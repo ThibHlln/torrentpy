@@ -7,10 +7,10 @@ from scripts import simuModels as sM
 
 class Network:
     """"""
-    def __init__(self, catchment, input_folder):
+    def __init__(self, catchment, outlet, input_folder):
         self.name = catchment.capitalize()
-        self.networkFile = "{}{}_networkLinksNodes".format(input_folder, catchment)
-        self.waterBodiesFile = "{}{}_waterBodies".format(input_folder, catchment)
+        self.networkFile = "{}{}_{}.network".format(input_folder, catchment, outlet)
+        self.waterBodiesFile = "{}{}_{}.waterbodies".format(input_folder, catchment, outlet)
         self.nodes = Network.get_network_attributes(self)["nodes"]
         self.links = Network.get_network_attributes(self)["links"]
         self.connections = Network.get_network_attributes(self)["connections"]
@@ -34,9 +34,9 @@ class Network:
                 for node in my_nodes:
                     my_additions[node] = list()
                 for link in my_connections:
-                    my_additions[my_connections[0]].append(link)
+                    my_additions[my_connections[link][0]].append(link)
 
-        except EnvironmentError:
+        except IOError:
             sys.exit("No link-node network file found for {}.".format(self.name))
 
         return {
@@ -54,19 +54,10 @@ class Network:
                 for row in my_reader:
                     my_categories[row['WaterBody']] = row['WaterBodyTypeCode'] + row['HeadwaterStatus']
 
-        except EnvironmentError:
+        except IOError:
             sys.exit("No link-node network file found for {}.".format(self.name))
 
         return my_categories
-
-
-class WaterBody:
-    """"""
-    def __init__(self, category, code, node_up, node_down):
-        self.category = category
-        self.code = code
-        self.nodeUp = node_up
-        self.nodeDown = node_down
 
 
 class Model:
@@ -89,22 +80,24 @@ class Model:
                         my_string = row[1]
                         count += 1
                 if count == 0:
-                    sys.exit("There is no {} specifications line in {}{}".format(specs_type, specs_folder,
-                                                                                 self.identifier))
+                    sys.exit("There is no {} specifications line in {}{}.".format(specs_type, specs_folder,
+                                                                                  self.identifier))
                 elif count > 1:
-                    sys.exit("There is more than one input specifications line in {}{}".format(specs_type, specs_folder,
-                                                                                               self.identifier))
-        except EnvironmentError:
-            sys.exit("There is no specifications file for {} in {} model.".format(self.identifier, specs_folder))
-        return my_string.split(";")
+                    sys.exit("There is more than one input specifications line in {}{}.".format(specs_type,
+                                                                                                specs_folder,
+                                                                                                self.identifier))
+            return my_string.split(";")
 
-    def run(self, obj_network, obj_waterbody, dict_data_frame, dict_meteo, datetime_time_step):
+        except IOError:
+            sys.exit("There is no specifications file for {} in {}.".format(self.identifier, specs_folder))
+
+    def run(self, obj_network, waterbody, dict_data_frame, dict_param, dict_meteo, datetime_time_step, time_gap):
         if self.identifier == "SMART":
-            sM.smart(obj_network, obj_waterbody, dict_data_frame, dict_meteo, datetime_time_step)
+            sM.smart(waterbody, dict_data_frame, dict_param, dict_meteo, datetime_time_step, time_gap)
         elif self.identifier == "LINRES":
-            sM.linres(obj_network, obj_waterbody, dict_data_frame, dict_meteo, datetime_time_step)
+            sM.linres(obj_network, waterbody, dict_data_frame, dict_param, dict_meteo, datetime_time_step, time_gap)
         elif self.identifier == "BATHTUB":
-            sM.bathtub(obj_network, obj_waterbody, dict_data_frame, dict_meteo, datetime_time_step)
+            sM.bathtub(waterbody, dict_data_frame, dict_param, dict_meteo, datetime_time_step, time_gap)
 
 
 class TimeFrame:
@@ -115,10 +108,10 @@ class TimeFrame:
         self.step = increment_in_minutes
 
     def get_list_datetime(self):
-        gap = self.end - self.end
+        gap = self.end - self.start
         gap_in_minutes = int(gap.total_seconds()) // 60
         my_list_datetime = list()
-        for time_step in range(0, gap_in_minutes + 1, 1):
+        for time_step in range(-self.step, gap_in_minutes + self.step, self.step):  # add one datetime before start
             my_datetime = self.start + datetime.timedelta(minutes=time_step)
             my_list_datetime.append(my_datetime)
 
