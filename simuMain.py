@@ -1,3 +1,5 @@
+import sys
+import os
 from pandas import DataFrame
 
 from simuClasses import *
@@ -10,8 +12,11 @@ def main():
     catchment = "Test"
     outlet = "IE_SE_16A010800"
 
-    model_specifications_folder = "C:/PycharmProjects/Python/CatchmentSimulationFramework/specs/"
-    input_folder = "C:/PycharmProjects/Python/CatchmentSimulationFramework/in/"
+    root = os.path.realpath('..')
+    os.chdir(root)
+
+    model_specifications_folder = "specs/"
+    input_folder = "in/"
 
     my_simu_start = (2011, 1, 1, 9, 0, 0)
     my_simu_end = (2011, 1, 10, 9, 0, 0)
