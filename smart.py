@@ -1,3 +1,5 @@
+import math
+
 # __________________
 #
 # Catchment model * c_ *
@@ -43,62 +45,38 @@
 # _____ c_in_l_dph          dissolved phosphorus loading on land [kg/ha/time step]
 # _____ c_in_l_pph          particulate phosphorus loading on land [kg/ha/time step]
 # _____ c_in_l_sed          sediment movable from land [kg/ha/time step]
+# _____ c_in_temp           water temperature [degree celsius]
 # ___ States
 # _____ c_s_c_no3_ove       concentration of nitrate in overland store [kg/m3]
 # _____ c_s_c_no3_dra       concentration of nitrate in drain store [kg/m3]
 # _____ c_s_c_no3_int       concentration of nitrate in inter store [kg/m3]
 # _____ c_s_c_no3_sgw       concentration of nitrate in shallow groundwater store [kg/m3]
 # _____ c_s_c_no3_dgw       concentration of nitrate in deep groundwater store [kg/m3]
-# _____ c_s_c_no3_ly1       concentration of nitrate in first soil layer store [kg/m3]
-# _____ c_s_c_no3_ly2       concentration of nitrate in second soil layer store [kg/m3]
-# _____ c_s_c_no3_ly3       concentration of nitrate in third soil layer store [kg/m3]
-# _____ c_s_c_no3_ly4       concentration of nitrate in fourth soil layer store [kg/m3]
-# _____ c_s_c_no3_ly5       concentration of nitrate in fifth soil layer store [kg/m3]
-# _____ c_s_c_no3_ly6       concentration of nitrate in sixth soil layer store [kg/m3]
+# _____ c_s_c_no3_soil      concentration of nitrate in whole soil column [kg/m3]
 # _____ c_s_c_nh4_ove       concentration of ammonia in overland store [kg/m3]
 # _____ c_s_c_nh4_dra       concentration of ammonia in drain store [kg/m3]
 # _____ c_s_c_nh4_int       concentration of ammonia in inter store [kg/m3]
 # _____ c_s_c_nh4_sgw       concentration of ammonia in shallow groundwater store [kg/m3]
 # _____ c_s_c_nh4_dgw       concentration of ammonia in deep groundwater store [kg/m3]
-# _____ c_s_c_nh4_ly1       concentration of ammonia in first soil layer store [kg/m3]
-# _____ c_s_c_nh4_ly2       concentration of ammonia in second soil layer store [kg/m3]
-# _____ c_s_c_nh4_ly3       concentration of ammonia in third soil layer store [kg/m3]
-# _____ c_s_c_nh4_ly4       concentration of ammonia in fourth soil layer store [kg/m3]
-# _____ c_s_c_nh4_ly5       concentration of ammonia in fifth soil layer store [kg/m3]
-# _____ c_s_c_nh4_ly6       concentration of ammonia in sixth soil layer store [kg/m3]
+# _____ c_s_c_nh4_soil      concentration of ammonia in whole soil column [kg/m3]
 # _____ c_s_c_dph_ove       concentration of dissolved phosphorus in overland store [kg/m3]
 # _____ c_s_c_dph_dra       concentration of dissolved phosphorus in drain store [kg/m3]
 # _____ c_s_c_dph_int       concentration of dissolved phosphorus in inter store [kg/m3]
 # _____ c_s_c_dph_sgw       concentration of dissolved phosphorus in shallow groundwater store [kg/m3]
 # _____ c_s_c_dph_dgw       concentration of dissolved phosphorus in deep groundwater store [kg/m3]
-# _____ c_s_c_dph_ly1       concentration of dissolved phosphorus in first soil layer store [kg/m3]
-# _____ c_s_c_dph_ly2       concentration of dissolved phosphorus in second soil layer store [kg/m3]
-# _____ c_s_c_dph_ly3       concentration of dissolved phosphorus in third soil layer store [kg/m3]
-# _____ c_s_c_dph_ly4       concentration of dissolved phosphorus in fourth soil layer store [kg/m3]
-# _____ c_s_c_dph_ly5       concentration of dissolved phosphorus in fifth soil layer store [kg/m3]
-# _____ c_s_c_dph_ly6       concentration of dissolved phosphorus in sixth soil layer store [kg/m3]
-# _____ c_s_c_sed_ove       concentration of particulate phosphorus in overland store [kg/m3]
-# _____ c_s_c_sed_dra       concentration of particulate phosphorus in drain store [kg/m3]
-# _____ c_s_c_sed_int       concentration of particulate phosphorus in inter store [kg/m3]
-# _____ c_s_c_sed_sgw       concentration of particulate phosphorus in shallow groundwater store [kg/m3]
-# _____ c_s_c_sed_dgw       concentration of particulate phosphorus in deep groundwater store [kg/m3]
-# _____ c_s_c_sed_ly1       concentration of particulate phosphorus in first soil layer store [kg/m3]
-# _____ c_s_c_sed_ly2       concentration of particulate phosphorus in second soil layer store [kg/m3]
-# _____ c_s_c_sed_ly3       concentration of particulate phosphorus in third soil layer store [kg/m3]
-# _____ c_s_c_sed_ly4       concentration of particulate phosphorus in fourth soil layer store [kg/m3]
-# _____ c_s_c_sed_ly5       concentration of particulate phosphorus in fifth soil layer store [kg/m3]
-# _____ c_s_c_sed_ly6       concentration of particulate phosphorus in sixth soil layer store [kg/m3]
-# _____ c_s_c_no3_ove       concentration of sediment in overland store [kg/m3]
-# _____ c_s_c_no3_dra       concentration of sediment in drain store [kg/m3]
-# _____ c_s_c_no3_int       concentration of sediment in inter store [kg/m3]
-# _____ c_s_c_no3_sgw       concentration of sediment in shallow groundwater store [kg/m3]
-# _____ c_s_c_no3_dgw       concentration of sediment in deep groundwater store [kg/m3]
-# _____ c_s_c_no3_ly1       concentration of sediment in first soil layer store [kg/m3]
-# _____ c_s_c_no3_ly2       concentration of sediment in second soil layer store [kg/m3]
-# _____ c_s_c_no3_ly3       concentration of sediment in third soil layer store [kg/m3]
-# _____ c_s_c_no3_ly4       concentration of sediment in fourth soil layer store [kg/m3]
-# _____ c_s_c_no3_ly5       concentration of sediment in fifth soil layer store [kg/m3]
-# _____ c_s_c_no3_ly6       concentration of sediment in sixth soil layer store [kg/m3]
+# _____ c_s_c_dph_soil      concentration of dissolved phosphorus in whole soil column [kg/m3]
+# _____ c_s_m_pph_ove       quantity of particulate phosphorus in overland store [kg]
+# _____ c_s_m_pph_dra       quantity of particulate phosphorus in drain store [kg]
+# _____ c_s_m_pph_int       quantity of particulate phosphorus in inter store [kg]
+# _____ c_s_m_pph_sgw       quantity of particulate phosphorus in shallow groundwater store [kg]
+# _____ c_s_m_pph_dgw       quantity of particulate phosphorus in deep groundwater store [kg]
+# _____ c_s_m_pph_soil      quantity of particulate phosphorus in whole soil column [kg]
+# _____ c_s_m_sed_ove       quantity of sediment in overland store [kg]
+# _____ c_s_m_sed_dra       quantity of sediment in drain store [kg]
+# _____ c_s_m_sed_int       quantity of sediment in inter store [kg]
+# _____ c_s_m_sed_sgw       quantity of sediment in shallow groundwater store [kg]
+# _____ c_s_m_sed_dgw       quantity of sediment in deep groundwater store [kg]
+# _____ c_s_m_sed_soil      quantity of sediment in whole soil column [kg]
 # ___ Parameters
 # _____ c_p_att_no3         daily attenuation factor for nitrate
 # _____ c_p_att_nh4         daily attenuation factor for ammonia
@@ -119,14 +97,48 @@ max_capacity_layer = 25.0  # maximum capacity of each layer (except the lowest)
 area = 100.0  # catchment area in m2
 time_step_min = 1440  # in minutes
 time_step_sec = time_step_min * 60  # in seconds
+time_factor = time_step_sec / 86400.0
 
-stores = ['ove', 'dra', 'int', 'sgw', 'dgw']
-species = ['no3', 'nh4', 'dph', 'pph', 'sed']
-state_species = ['no3', 'nh4', 'p_ino', 'p_ino_fb', 'p_org', 'p_org_fb', 'sed']
+volume_tolerance = 1.0E-8
+flow_threshold_for_erosion = {
+    'ove': 0.005,
+    'dra': 0.05
+}
+
+stores = ['ove', 'dra', 'int', 'sgw', 'dgw', 'soil']
+stores_contaminants = ['no3', 'nh4', 'dph', 'pph', 'sed']
+soil_layers = ['ly1', 'ly2', 'ly3', 'ly4', 'ly5']
+contaminants = ['no3', 'nh4', 'p_ino', 'p_ino_fb', 'p_org', 'p_org_fb', 'sed']
+
+daily_sediment_threshold = 1.0
+sediment_threshold = daily_sediment_threshold * time_factor
+sediment_k = 1.0
+sediment_p = 1.0
+soil_test_p = 1.0
+
+day_growing_season = 152.0
+day_of_year = 1.0
 
 # dictionaries to be used for 6 soil layers
 dict_z_lyr = dict()
 dict_lvl_lyr = dict()
+
+# other dictionaries
+dict_mass_applied = dict()
+dict_att_factors = {
+    'ove': {'no3': 1.0, 'nh4': 1.0, 'dph': 1.0, 'pph': 1.0, 'sed': 1.0},
+    'dra': {'no3': 1.0, 'nh4': 1.0, 'dph': 1.0, 'pph': 1.0, 'sed': 1.0},
+    'int': {'no3': 1.0, 'nh4': 1.0, 'dph': 1.0, 'pph': 1.0, 'sed': 1.0},
+    'sgw': {'no3': 1.0, 'nh4': 1.0, 'dph': 1.0, 'pph': 1.0, 'sed': 1.0},
+    'dgw': {'no3': 1.0, 'nh4': 1.0, 'dph': 1.0, 'pph': 1.0, 'sed': 1.0}
+}
+dict_mob_factors = {
+    'ove': {'no3': 1.0, 'nh4': 1.0, 'dph': 1.0, 'pph': 1.0, 'sed': 1.0},
+    'dra': {'no3': 1.0, 'nh4': 1.0, 'dph': 1.0, 'pph': 1.0, 'sed': 1.0},
+    'int': {'no3': 1.0, 'nh4': 1.0, 'dph': 1.0, 'pph': 1.0, 'sed': 1.0},
+    'sgw': {'no3': 1.0, 'nh4': 1.0, 'dph': 1.0, 'pph': 1.0, 'sed': 1.0},
+    'dgw': {'no3': 1.0, 'nh4': 1.0, 'dph': 1.0, 'pph': 1.0, 'sed': 1.0}
+}
 
 # # 1. Hydrology
 # # 1.1. Collect inputs, states, and parameters
@@ -172,10 +184,10 @@ dict_lvl_lyr[4] = c_s_v_h2o_ly4 / area * 1000  # factor 1000 to convert m in mm
 dict_lvl_lyr[5] = c_s_v_h2o_ly5 / area * 1000  # factor 1000 to convert m in mm
 dict_lvl_lyr[6] = c_s_v_h2o_ly6 / area * 1000  # factor 1000 to convert m in mm
 
-# calculate cumulative level of rain in all soil layers
-lvl_total = 0.0
+# calculate cumulative level of rain in all soil layers at beginning of time step
+lvl_total_start = 0.0
 for i in [1, 2, 3, 4, 5, 6]:
-    lvl_total += dict_lvl_lyr[i]
+    lvl_total_start += dict_lvl_lyr[i]
 
 # apply parameter T to rainfall data
 c_in_rain = c_in_rain * c_p_t
@@ -188,7 +200,7 @@ if excess_rain >= 0.0:  # excess rainfall available for runoff and infiltration
     # actual evapotranspiration = potential evapotranspiration
     c_out_aeva += c_in_peva
     # calculate surface runoff using H and Y parameters
-    h_prime = c_p_h * (lvl_total / c_p_z)
+    h_prime = c_p_h * (lvl_total_start / c_p_z)
     overland_flow = h_prime * excess_rain  # surface runoff
     excess_rain = excess_rain - overland_flow  # remainder that infiltrates
     # calculate percolation through soil layers
@@ -203,7 +215,7 @@ if excess_rain >= 0.0:  # excess rainfall available for runoff and infiltration
     drain_flow = c_p_s * excess_rain
     inter_flow = (1.0 - c_p_s) * excess_rain
     # calculate leak from soil layers
-    d_prime = c_p_d * (lvl_total / c_p_z)
+    d_prime = c_p_d * (lvl_total_start / c_p_z)
     # leak to interflow
     for i in [1, 2, 3, 4, 5, 6]:
         leak_interflow = dict_lvl_lyr[i] * (d_prime ** i)
@@ -231,6 +243,7 @@ else:  # no excess rainfall
     drain_flow = 0.0  # no quick drain flow
     inter_flow = 0.0  # no quick + leak interflow
     shallow_flow = 0.0  # no shallow groundwater flow
+    deep_flow = 0.0
 
     deficit_rain = - excess_rain
     c_out_aeva += c_in_rain
@@ -243,6 +256,11 @@ else:  # no excess rainfall
             c_out_aeva += dict_lvl_lyr[i]
             deficit_rain = c_p_c * (deficit_rain - dict_lvl_lyr[i])
             dict_lvl_lyr[i] = 0.0
+
+# calculate cumulative level of rain in all soil layers at end of time step
+lvl_total_end = 0.0
+for i in [1, 2, 3, 4, 5, 6]:
+    lvl_total_end += dict_lvl_lyr[i]
 
 # all calculations in S.I. units now
 
@@ -286,7 +304,40 @@ c_s_v_h2o_ly3 = dict_lvl_lyr[3] / 1000 * area
 c_s_v_h2o_ly4 = dict_lvl_lyr[4] / 1000 * area
 c_s_v_h2o_ly5 = dict_lvl_lyr[5] / 1000 * area
 
-# # 2. Hydrology
+# store states and outputs in dictionaries for use in water quality calculations
+dict_states_old_hd = {
+    'ove': c_s_v_h2o_ove_old,
+    'dra': c_s_v_h2o_dra_old,
+    'int': c_s_v_h2o_int_old,
+    'sgw': c_s_v_h2o_sgw_old,
+    'dgw': c_s_v_h2o_dgw_old
+}
+
+dict_states_hd = {
+    'ove': c_s_v_h2o_ove,
+    'dra': c_s_v_h2o_dra,
+    'int': c_s_v_h2o_int,
+    'sgw': c_s_v_h2o_sgw,
+    'dgw': c_s_v_h2o_dgw
+}
+
+dict_flows_mm_hd = {
+    'ove': overland_flow,
+    'dra': drain_flow,
+    'int': inter_flow,
+    'sgw': shallow_flow,
+    'dgw': deep_flow
+}
+
+dict_outputs_hd = {
+    'ove': c_out_q_h2o_ove,
+    'dra': c_out_q_h2o_dra,
+    'int': c_out_q_h2o_int,
+    'sgw': c_out_q_h2o_sgw,
+    'dgw': c_out_q_h2o_dgw
+}
+
+# # 2. Water quality calculations
 # # 2.1. Collect inputs, states, and parameters
 
 c_in_l_no3 = 1.0
@@ -294,18 +345,23 @@ c_in_l_nh4 = 1.0
 c_in_l_dph = 1.0
 c_in_l_pph = 1.0
 c_in_l_sed = 1.0
-mass_no3 = c_in_l_no3 * area * 1.0e-4  # area in m2 converted into ha
-mass_nh4 = c_in_l_nh4 * area * 1.0e-4  # area in m2 converted into ha
-mass_dph = c_in_l_dph * area * 1.0e-4  # area in m2 converted into ha
-mass_pph = c_in_l_pph * area * 1.0e-4  # area in m2 converted into ha
-mass_sed = c_in_l_sed * area * 1.0e-4  # area in m2 converted into ha
+dict_mass_applied['no3'] = c_in_l_no3 * area * 1.0e-4  # area in m2 converted into ha
+dict_mass_applied['nh4'] = c_in_l_nh4 * area * 1.0e-4  # area in m2 converted into ha
+dict_mass_applied['dph'] = c_in_l_dph * area * 1.0e-4  # area in m2 converted into ha
+dict_mass_applied['pph'] = c_in_l_pph * area * 1.0e-4  # area in m2 converted into ha
+dict_mass_applied['sed'] = c_in_l_sed * area * 1.0e-4  # area in m2 converted into ha
+c_in_temp = 1.0
 
-dict_states = dict()
+dict_states_wq = dict()
+dict_c_outflow = dict()
 for store in stores:
     my_dict = dict()
-    for specie in state_species:
-        my_dict[specie] = 1.0
-    dict_states[store] = my_dict[:]
+    my_dict_2 = dict()
+    for contaminant in stores_contaminants:
+        my_dict[contaminant] = 1.0
+        my_dict_2[contaminant] = 0.0
+    dict_states_wq[store] = my_dict[:]
+    dict_c_outflow[store] = my_dict_2[:]
 
 c_p_att_no3 = 1.0
 c_p_att_nh4 = 1.0
@@ -313,16 +369,162 @@ c_p_att_dph = 1.0
 c_p_att_pph = 1.0
 c_p_att_sed = 1.0
 # adapt daily attenuation factors to actual time step
-time_factor = time_step_sec / 86400.0
 if time_factor < 0.005:
     time_factor = 0.005
-attenuation_no3 = c_p_att_no3 * time_factor
-attenuation_nh4 = c_p_att_nh4 * time_factor
-attenuation_dph = c_p_att_dph * time_factor
-attenuation_pph = c_p_att_pph * time_factor
-attenuation_sed = c_p_att_sed * time_factor
+dict_att_factors['no3'] = c_p_att_no3 * time_factor
+dict_att_factors['nh4'] = c_p_att_nh4 * time_factor
+dict_att_factors['dph'] = c_p_att_dph * time_factor
+dict_att_factors['ddp'] = c_p_att_pph * time_factor
+dict_att_factors['sed'] = c_p_att_sed * time_factor
 
 # # 2.2. Water quality calculations
+# # 2.2.1. Overland flow contamination & drain flow contamination
+for store in ['ove', 'dra']:
+    # nitrate, ammonia, dissolved phosphorus (dissolved pollutants)
+    for contaminant in ['no3', 'nh4', 'dph']:
+        c_store = dict_states_wq[store][contaminant]
+        m_store = c_store * dict_states_old_hd[store]
+        dict_c_outflow[store][contaminant] = c_store
+        attenuation = dict_att_factors[store][contaminant]
+        if attenuation > 1.0:
+            attenuation = 1.0
+        elif attenuation < 0.0:
+            attenuation = 0.0
+        m_store_att = m_store * attenuation
+        mobilisation = dict_mob_factors[store][contaminant]
+        if (mobilisation < 0.0) or (mobilisation > 1.0):
+            mobilisation = 1.0
+        m_mobilised = (dict_flows_mm_hd[store] / 1000 * area) * dict_states_wq['soil'][contaminant] * mobilisation
+        m_store = m_store_att + m_mobilised - dict_outputs_hd[store] * c_store
+        if (m_store < 0.0) or (dict_states_hd[store] < volume_tolerance):
+            dict_states_wq[store][contaminant] = 0.0
+        else:
+            dict_states_wq[store][contaminant] = m_store / dict_states_hd[store]
 
+    # sediment
+    contaminant = 'sed'
+    m_store = dict_states_wq[store][contaminant]
+    attenuation = dict_att_factors[store][contaminant]
+    if attenuation > 1.0:
+        attenuation = 1.0
+    elif attenuation < 0.0:
+        attenuation = 0.0
+    m_store_att = m_store * attenuation
+    m_sediment_per_area = float()
+    m_sediment = float()
+    if (dict_flows_mm_hd[store] < sediment_threshold) or (dict_flows_mm_hd[store] < flow_threshold_for_erosion[store]):
+        m_sediment = 0.0
+        dict_c_outflow[store][contaminant] = 0.0
+    else:
+        m_sediment_per_area = (sediment_k * dict_flows_mm_hd[store] ** sediment_p) * time_factor
+        m_sediment = m_sediment_per_area * area
+        dict_c_outflow[store][contaminant] = m_sediment / (dict_flows_mm_hd[store] / 1000 * area)
+    if store == 'ove':
+        dict_states_wq[store][contaminant] = 0.0  # all sediment assumed gone
+    else:  # 'dra' store
+        m_store = m_store_att + m_sediment - dict_outputs_hd[store] * dict_c_outflow[store][contaminant]
+        if (m_store < 0.0) or (dict_states_hd[store] < volume_tolerance):
+            dict_states_wq[store][contaminant] = 0.0
+        else:
+            dict_states_wq[store][contaminant] = m_store
 
+    # particulate phosphorus (firmly bound phosphorus)
+    contaminant = 'pph'
+    c_store = dict_states_wq[store][contaminant]
+    m_store = c_store * dict_states_old_hd[store]
+    attenuation = dict_att_factors[store][contaminant]
+    if attenuation > 1.0:
+        attenuation = 1.0
+    elif attenuation < 0.0:
+        attenuation = 0.0
+    m_store_att = m_store * attenuation
+    m_particulate_p = float()
+    if (overland_flow < sediment_threshold) or (dict_flows_mm_hd[store] < 0.005):
+        m_particulate_p = 0.0
+        dict_c_outflow[store][contaminant] = 0.0
+    else:
+        soil_loss = m_sediment_per_area * 1e4  # [kg/ha]
+        p_enrichment_ratio = math.exp(2.48 - 0.27 * math.log1p(soil_loss))  # [-]
+        if p_enrichment_ratio < 0.1:
+            p_enrichment_ratio = 0.1
+        elif p_enrichment_ratio > 6.0:
+            p_enrichment_ratio = 6.0
+        m_particulate_p = soil_test_p * m_sediment * p_enrichment_ratio  # [kg]
+        m_particulate_p_missing = float()  # [kg]
+        if m_particulate_p < dict_states_wq['soil'][contaminant]:
+            dict_states_wq['soil'][contaminant] -= m_particulate_p
+            m_particulate_p_missing = 0.0
+        else:
+            m_particulate_p_missing = m_particulate_p - dict_states_wq['soil'][contaminant]
+            dict_states_wq['soil'][contaminant] = 0.0
+        m_particulate_p -= m_particulate_p_missing
+        dict_c_outflow[store][contaminant] = m_particulate_p / (dict_flows_mm_hd[store] / 1000 * area)
+    m_store = m_store_att + m_particulate_p - dict_outputs_hd[store] * c_store
+    if (m_store < 0.0) or (dict_states_hd[store] < volume_tolerance):
+        dict_states_wq[store][contaminant] = 0.0
+    else:
+        dict_states_wq[store][contaminant] = m_store / dict_states_hd[store]
 
+# # 2.2.2. Interflow contamination
+for store in ['int', 'sgw', 'dgw']:
+    for contaminant in stores_contaminants:
+        c_store = dict_states_wq[store][contaminant]
+        m_store = c_store * dict_states_old_hd[store]
+        dict_c_outflow[store][contaminant] = c_store
+        attenuation = dict_att_factors[store][contaminant]
+        if attenuation > 1.0:
+            attenuation = 1.0
+        elif attenuation < 0.0:
+            attenuation = 0.0
+        m_store_att = m_store * attenuation
+        mobilisation = dict_mob_factors[store][contaminant]
+        if (mobilisation < 0.0) or (mobilisation > 1.0):
+            mobilisation = 1.0
+        m_mobilised = (dict_flows_mm_hd[store] / 1000 * area) * dict_states_wq['soil'][contaminant] * mobilisation
+        m_store = m_store_att + m_mobilised - dict_outputs_hd[store] * c_store
+        if (m_store < 0.0) or (dict_states_hd[store] < volume_tolerance):
+            dict_states_wq[store][contaminant] = 0.0
+        else:
+            dict_states_wq[store][contaminant] = m_store / dict_states_hd[store]
+
+# # 2.2.3. Soil store contamination
+
+# soil constants
+cst_c1n = 1.0
+cst_c3n = 1.0
+cst_c4n = 1.0
+cst_c5n = 1.0
+cst_c6n = 1.0
+cst_c7n = 1.0
+cst_c1p = 1.0
+cst_c2p = 1.0
+cst_c3p = 1.0
+cst_c4p = 1.0
+cst_c5p = 1.0
+cst_c6p = 1.0
+cst_c7p = 1.0
+cst_c8p = 1.0
+
+# nitrate
+# s1: soil moisture factor
+s1 = lvl_total_end / (c_p_z * 0.275)
+# assuming field capacity = 110 mm/m depth & soil porosity = 0.4 => 0.11 * 0.4 = 0.275 (SMD max assumed by Met Eireann)
+if s1 > 1.0:
+    s1 = 1.0
+elif s1 < 0.0:
+    s1 = 0.0
+# s2: seasonal plant growth index
+s2 = 0.66 + 0.34 * math.sin(2 * math.pi * (day_of_year - day_growing_season) / 365)
+# pu: plant uptake
+c3 = cst_c3n * (1.047 ** (c_in_temp - 20.0))
+pu_no3 = c3 * s1 * s2
+# dn: denitrification / ni: nitrification / fx: fixation
+c1 = cst_c1n * (1.047 ** (c_in_temp - 20.0))
+c4 = cst_c4n * (1.047 ** (c_in_temp - 20.0))
+if c_in_temp < 0.0:
+    dn = 0.0  # no denitrification
+    ni = 0.0  # no nitrification
+    fx = 0.0  # no fixation
+else:
+    dn = c1 * s1
+    ni = c4 * s1 * 1.0

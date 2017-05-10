@@ -17,7 +17,7 @@
 # _____ r_in_c_dph      dissolved phosphorus concentration at inlet [kg/m3]
 # _____ r_in_c_pph      particulate phosphorus concentration at inlet [kg/m3]
 # _____ r_in_c_sed      sediment concentration at inlet [kg/m3]
-# _____ r_temp          water temperature [degree celsius]
+# _____ r_in_temp       water temperature [degree celsius]
 # ___ States
 # _____ r_s_m_no3       quantity of nitrate in store [kg]
 # _____ r_s_m_nh4       quantity of ammonia in store [kg]
@@ -44,7 +44,7 @@ time_step_sec = time_step_min * 60  # in seconds
 flow_tolerance = 1.0E-8
 volume_tolerance = 1.0E-8
 quantity_tolerance = 1.0E-8
-species = ['no3', 'nh4', 'dph', 'pph', 'sed']
+pollutant = ['no3', 'nh4', 'dph', 'pph', 'sed']
 
 # # 1. Hydrology
 # # 1.1. Collect inputs, states, and parameters
@@ -79,7 +79,7 @@ r_in_c_nh4 = 1.0
 r_in_c_dph = 1.0
 r_in_c_pph = 1.0
 r_in_c_sed = 1.0
-r_temp = 1.0
+r_in_temp = 1.0
 
 r_s_m_no3 = 1.0
 r_s_m_nh4 = 1.0
@@ -120,12 +120,12 @@ else:
     r_s_m_no3_old = r_s_m_no3
     # calculate concentration in store at beginning of time step
     concentration_no3 = r_s_m_no3_old / r_s_v_h2o_old
-    if r_temp < 0.0:  # frozen, no denitrification/no nitrification
+    if r_in_temp < 0.0:  # frozen, no denitrification/no nitrification
         c10 = 0.0
         c11 = 0.0
     else:  # not frozen
-        c10 = 0.1 * (1.047 ** (r_temp - 20.0))
-        c11 = 0.06 * (1.047 ** (r_temp - 20.0))
+        c10 = 0.1 * (1.047 ** (r_in_temp - 20.0))
+        c11 = 0.06 * (1.047 ** (r_in_temp - 20.0))
         if c10 < 0.0:  # check if rate constant between 0 and 1
             c10 = 0.0
         elif c10 > 1.0:
@@ -138,7 +138,7 @@ else:
     rdn = c11 * r_s_m_no3  # denitrification rate [kg]
     # update of amount in store
     r_s_m_no3 = r_s_m_no3_old + rni - rdn + \
-                  ((r_in_c_no3 * r_in_q_h2o) - (concentration_no3 * r_out_q_h2o)) * time_step_sec
+        ((r_in_c_no3 * r_in_q_h2o) - (concentration_no3 * r_out_q_h2o)) * time_step_sec
     if r_s_m_no3 < 0.0:
         r_s_m_no3 = 0.0
     # calculate outflow concentration
@@ -153,7 +153,7 @@ else:
     concentration_nh4 = r_s_m_nh4_old / r_s_v_h2o_old
     # update of amount in store
     r_s_m_nh4 = r_s_m_nh4_old - rni + \
-                ((r_in_c_nh4 * r_in_q_h2o) - (concentration_nh4 * r_out_q_h2o)) * time_step_sec
+        ((r_in_c_nh4 * r_in_q_h2o) - (concentration_nh4 * r_out_q_h2o)) * time_step_sec
     if r_s_m_nh4 < 0.0:
         r_s_m_nh4 = 0.0
     # calculate outflow concentration
