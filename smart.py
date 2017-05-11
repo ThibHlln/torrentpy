@@ -52,31 +52,32 @@ import math
 # _____ c_s_c_no3_int       concentration of nitrate in inter store [kg/m3]
 # _____ c_s_c_no3_sgw       concentration of nitrate in shallow groundwater store [kg/m3]
 # _____ c_s_c_no3_dgw       concentration of nitrate in deep groundwater store [kg/m3]
-# _____ c_s_c_no3_soil      concentration of nitrate in whole soil column [kg/m3]
 # _____ c_s_c_nh4_ove       concentration of ammonia in overland store [kg/m3]
 # _____ c_s_c_nh4_dra       concentration of ammonia in drain store [kg/m3]
 # _____ c_s_c_nh4_int       concentration of ammonia in inter store [kg/m3]
 # _____ c_s_c_nh4_sgw       concentration of ammonia in shallow groundwater store [kg/m3]
 # _____ c_s_c_nh4_dgw       concentration of ammonia in deep groundwater store [kg/m3]
-# _____ c_s_c_nh4_soil      concentration of ammonia in whole soil column [kg/m3]
 # _____ c_s_c_dph_ove       concentration of dissolved phosphorus in overland store [kg/m3]
 # _____ c_s_c_dph_dra       concentration of dissolved phosphorus in drain store [kg/m3]
 # _____ c_s_c_dph_int       concentration of dissolved phosphorus in inter store [kg/m3]
 # _____ c_s_c_dph_sgw       concentration of dissolved phosphorus in shallow groundwater store [kg/m3]
 # _____ c_s_c_dph_dgw       concentration of dissolved phosphorus in deep groundwater store [kg/m3]
-# _____ c_s_c_dph_soil      concentration of dissolved phosphorus in whole soil column [kg/m3]
 # _____ c_s_m_pph_ove       quantity of particulate phosphorus in overland store [kg]
 # _____ c_s_m_pph_dra       quantity of particulate phosphorus in drain store [kg]
 # _____ c_s_m_pph_int       quantity of particulate phosphorus in inter store [kg]
 # _____ c_s_m_pph_sgw       quantity of particulate phosphorus in shallow groundwater store [kg]
 # _____ c_s_m_pph_dgw       quantity of particulate phosphorus in deep groundwater store [kg]
-# _____ c_s_m_pph_soil      quantity of particulate phosphorus in whole soil column [kg]
 # _____ c_s_m_sed_ove       quantity of sediment in overland store [kg]
 # _____ c_s_m_sed_dra       quantity of sediment in drain store [kg]
 # _____ c_s_m_sed_int       quantity of sediment in inter store [kg]
 # _____ c_s_m_sed_sgw       quantity of sediment in shallow groundwater store [kg]
 # _____ c_s_m_sed_dgw       quantity of sediment in deep groundwater store [kg]
-# _____ c_s_m_sed_soil      quantity of sediment in whole soil column [kg]
+# _____ c_s_c_no3_soil      concentration of nitrate in soil column [kg/m3]
+# _____ c_s_c_nh4_soil      concentration of ammonia in soil column [kg/m3]
+# _____ c_s_c_p_org_ra_soil concentration of readily available organic phosphorus in soil column [kg/m3]
+# _____ c_s_c_p_ino_ra_soil concentration of readily available inorganic phosphorus phosphorus in soil column [kg/m3]
+# _____ c_s_m_p_org_fb_soil quantity of firmly bound organic phosphorus in soil column [kg]
+# _____ c_s_m_p_ino_fb_soil quantity of firmly bound organic phosphorus in soil column [kg]
 # ___ Parameters
 # _____ c_p_att_no3         daily attenuation factor for nitrate
 # _____ c_p_att_nh4         daily attenuation factor for ammonia
@@ -105,10 +106,11 @@ flow_threshold_for_erosion = {
     'dra': 0.05
 }
 
-stores = ['ove', 'dra', 'int', 'sgw', 'dgw', 'soil']
+stores = ['ove', 'dra', 'int', 'sgw', 'dgw']
 stores_contaminants = ['no3', 'nh4', 'dph', 'pph', 'sed']
 soil_layers = ['ly1', 'ly2', 'ly3', 'ly4', 'ly5']
-contaminants = ['no3', 'nh4', 'p_ino', 'p_ino_fb', 'p_org', 'p_org_fb', 'sed']
+soil_contaminants = ['no3', 'nh4', 'p_ino_ra', 'p_ino_fb', 'p_org_ra', 'p_org_fb']
+
 
 daily_sediment_threshold = 1.0
 sediment_threshold = daily_sediment_threshold * time_factor
@@ -130,7 +132,8 @@ dict_att_factors = {
     'dra': {'no3': 1.0, 'nh4': 1.0, 'dph': 1.0, 'pph': 1.0, 'sed': 1.0},
     'int': {'no3': 1.0, 'nh4': 1.0, 'dph': 1.0, 'pph': 1.0, 'sed': 1.0},
     'sgw': {'no3': 1.0, 'nh4': 1.0, 'dph': 1.0, 'pph': 1.0, 'sed': 1.0},
-    'dgw': {'no3': 1.0, 'nh4': 1.0, 'dph': 1.0, 'pph': 1.0, 'sed': 1.0}
+    'dgw': {'no3': 1.0, 'nh4': 1.0, 'dph': 1.0, 'pph': 1.0, 'sed': 1.0},
+    'soil': {'no3': 1.0, 'nh4': 1.0, 'p_ino_ra': 1.0, 'p_ino_fb': 1.0, 'p_org_ra': 1.0, 'p_org_fb': 1.0, 'sed': 1.0}
 }
 dict_mob_factors = {
     'ove': {'no3': 1.0, 'nh4': 1.0, 'dph': 1.0, 'pph': 1.0, 'sed': 1.0},
@@ -342,26 +345,33 @@ dict_outputs_hd = {
 
 c_in_l_no3 = 1.0
 c_in_l_nh4 = 1.0
-c_in_l_dph = 1.0
-c_in_l_pph = 1.0
+c_in_l_p_ino = 1.0
+c_in_l_p_org = 1.0
 c_in_l_sed = 1.0
 dict_mass_applied['no3'] = c_in_l_no3 * area * 1.0e-4  # area in m2 converted into ha
 dict_mass_applied['nh4'] = c_in_l_nh4 * area * 1.0e-4  # area in m2 converted into ha
-dict_mass_applied['dph'] = c_in_l_dph * area * 1.0e-4  # area in m2 converted into ha
-dict_mass_applied['pph'] = c_in_l_pph * area * 1.0e-4  # area in m2 converted into ha
+dict_mass_applied['p_ino'] = c_in_l_p_ino * area * 1.0e-4  # area in m2 converted into ha
+dict_mass_applied['p_org'] = c_in_l_p_org * area * 1.0e-4  # area in m2 converted into ha
 dict_mass_applied['sed'] = c_in_l_sed * area * 1.0e-4  # area in m2 converted into ha
 c_in_temp = 1.0
 
 dict_states_wq = dict()
 dict_c_outflow = dict()
 for store in stores:
-    my_dict = dict()
+    my_dict_1 = dict()
     my_dict_2 = dict()
     for contaminant in stores_contaminants:
-        my_dict[contaminant] = 1.0
+        my_dict_1[contaminant] = 1.0
         my_dict_2[contaminant] = 0.0
-    dict_states_wq[store] = my_dict[:]
+    dict_states_wq[store] = my_dict_1[:]
     dict_c_outflow[store] = my_dict_2[:]
+my_dict_3 = dict()
+for contaminant in soil_contaminants:
+    my_dict_3[contaminant] = 1.0
+dict_states_wq['soil'] = my_dict_3[:]
+# create 'artificial' states (in dictionary only) to sum organic and inorganic DPH and PPH
+dict_states_wq['soil']['dph'] = dict_states_wq['soil']['p_org_ra'] + dict_states_wq['soil']['p_ino_ra']  # [kg/m3]
+dict_states_wq['soil']['pph'] = dict_states_wq['soil']['p_org_fb'] + dict_states_wq['soil']['p_ino_fb']  # [kg]
 
 c_p_att_no3 = 1.0
 c_p_att_nh4 = 1.0
@@ -379,8 +389,9 @@ dict_att_factors['sed'] = c_p_att_sed * time_factor
 
 # # 2.2. Water quality calculations
 # # 2.2.1. Overland flow contamination & drain flow contamination
+dict_m_mobilised = {'no3': 0.0, 'nh4': 0.0, 'dph': 0.0, 'pph': 0.0, 'sed': 0.0}
 for store in ['ove', 'dra']:
-    # nitrate, ammonia, dissolved phosphorus (dissolved pollutants)
+    # dissolved contaminants: nitrate, ammonia, dissolved phosphorus (readily available)
     for contaminant in ['no3', 'nh4', 'dph']:
         c_store = dict_states_wq[store][contaminant]
         m_store = c_store * dict_states_old_hd[store]
@@ -400,6 +411,7 @@ for store in ['ove', 'dra']:
             dict_states_wq[store][contaminant] = 0.0
         else:
             dict_states_wq[store][contaminant] = m_store / dict_states_hd[store]
+        dict_m_mobilised[contaminant] += m_mobilised
 
     # sediment
     contaminant = 'sed'
@@ -427,11 +439,11 @@ for store in ['ove', 'dra']:
             dict_states_wq[store][contaminant] = 0.0
         else:
             dict_states_wq[store][contaminant] = m_store
+    dict_m_mobilised[contaminant] += m_sediment
 
     # particulate phosphorus (firmly bound phosphorus)
     contaminant = 'pph'
-    c_store = dict_states_wq[store][contaminant]
-    m_store = c_store * dict_states_old_hd[store]
+    m_store = dict_states_wq[store][contaminant]
     attenuation = dict_att_factors[store][contaminant]
     if attenuation > 1.0:
         attenuation = 1.0
@@ -451,12 +463,19 @@ for store in ['ove', 'dra']:
             p_enrichment_ratio = 6.0
         m_particulate_p = soil_test_p * m_sediment * p_enrichment_ratio  # [kg]
         m_particulate_p_missing = float()  # [kg]
-        if m_particulate_p < dict_states_wq['soil'][contaminant]:
-            dict_states_wq['soil'][contaminant] -= m_particulate_p
+        if m_particulate_p < dict_states_wq['soil']['p_ino_fb']:  # P removed from inorganic P firmly in soil
+            dict_states_wq['soil']['p_ino_fb'] -= m_particulate_p
             m_particulate_p_missing = 0.0
-        else:
-            m_particulate_p_missing = m_particulate_p - dict_states_wq['soil'][contaminant]
-            dict_states_wq['soil'][contaminant] = 0.0
+        else:  # P is also removed from organic firmly bound after inorganic firmly bound
+            m_particulate_p_missing = m_particulate_p - dict_states_wq['soil']['p_ino_fb']
+            dict_states_wq['soil']['p_ino_fb'] = 0.0
+            if m_particulate_p_missing < dict_states_wq['soil']['p_org_fb']:
+                dict_states_wq['soil']['p_org_fb'] -= m_particulate_p_missing
+                m_particulate_p_missing = 0.0
+            else:
+                m_particulate_p_missing -= dict_states_wq['soil']['p_org_fb']
+                dict_states_wq['soil']['p_org_fb'] = 0.0
+        dict_states_wq['soil'][contaminant] = dict_states_wq['soil']['p_org_fb'] + dict_states_wq['soil']['p_ino_fb']
         m_particulate_p -= m_particulate_p_missing
         dict_c_outflow[store][contaminant] = m_particulate_p / (dict_flows_mm_hd[store] / 1000 * area)
     m_store = m_store_att + m_particulate_p - dict_outputs_hd[store] * c_store
@@ -464,8 +483,9 @@ for store in ['ove', 'dra']:
         dict_states_wq[store][contaminant] = 0.0
     else:
         dict_states_wq[store][contaminant] = m_store / dict_states_hd[store]
+    dict_m_mobilised[contaminant] += m_particulate_p
 
-# # 2.2.2. Interflow contamination
+# # 2.2.2. Interflow contamination, Shallow groundwater flow contamination, & Deep groundwater flow contamination
 for store in ['int', 'sgw', 'dgw']:
     for contaminant in stores_contaminants:
         c_store = dict_states_wq[store][contaminant]
@@ -490,35 +510,31 @@ for store in ['int', 'sgw', 'dgw']:
 # # 2.2.3. Soil store contamination
 
 # soil constants
-cst_c1n = 1.0
-cst_c3n = 1.0
-cst_c4n = 1.0
-cst_c5n = 1.0
-cst_c6n = 1.0
-cst_c7n = 1.0
-cst_c1p = 1.0
-cst_c2p = 1.0
-cst_c3p = 1.0
-cst_c4p = 1.0
-cst_c5p = 1.0
-cst_c6p = 1.0
-cst_c7p = 1.0
-cst_c8p = 1.0
+cst_c1n = 1.0  # rate coefficient (m/day) for denitrification
+cst_c3n = 1.0  # rate coefficient (m/day) for NO3 plant uptake
+cst_c4n = 1.0  # rate coefficient (m/day) for nitrification
+cst_c5n = 1.0  # rate coefficient (m/day) for N mineralisation
+cst_c6n = 1.0  # rate coefficient (m/day) for N immobilisation
+cst_c7n = 1.0  # rate coefficient (m/day) for NH4 plant uptake
+cst_c1p = 1.0  # rate coefficient (m/day) for organic P plant uptake
+cst_c2p = 1.0  # rate coefficient (m/day) for P immobilisation
+cst_c3p = 1.0  # rate coefficient (m/day) for P mineralisation
+cst_c4p = 1.0  # conversion rate of readily available organic P into firmly bound organic P
+cst_c5p = 1.0  # conversion rate of firmly bound organic P into readily available organic P
+cst_c6p = 1.0  # rate coefficient (m/day) for inorganic P plant uptake
+cst_c7p = 1.0  # conversion rate of readily available inorganic P into firmly bound inorganic P
+cst_c8p = 1.0  # conversion rate of firmly bound inorganic P into readily available inorganic P
 
 # nitrate
-# s1: soil moisture factor
-s1 = lvl_total_end / (c_p_z * 0.275)
+s1 = lvl_total_end / (c_p_z * 0.275)  # soil moisture factor
 # assuming field capacity = 110 mm/m depth & soil porosity = 0.4 => 0.11 * 0.4 = 0.275 (SMD max assumed by Met Eireann)
 if s1 > 1.0:
     s1 = 1.0
 elif s1 < 0.0:
     s1 = 0.0
-# s2: seasonal plant growth index
-s2 = 0.66 + 0.34 * math.sin(2 * math.pi * (day_of_year - day_growing_season) / 365)
-# pu: plant uptake
-c3 = cst_c3n * (1.047 ** (c_in_temp - 20.0))
-pu_no3 = c3 * s1 * s2
-# dn: denitrification / ni: nitrification / fx: fixation
+s2 = 0.66 + 0.34 * math.sin(2 * math.pi * (day_of_year - day_growing_season) / 365)  # seasonal plant growth index
+c3_no3 = cst_c3n * (1.047 ** (c_in_temp - 20.0))
+pu_no3 = c3_no3 * s1 * s2  # plant uptake
 c1 = cst_c1n * (1.047 ** (c_in_temp - 20.0))
 c4 = cst_c4n * (1.047 ** (c_in_temp - 20.0))
 if c_in_temp < 0.0:
@@ -527,4 +543,119 @@ if c_in_temp < 0.0:
     fx = 0.0  # no fixation
 else:
     dn = c1 * s1
-    ni = c4 * s1 * 1.0
+    ni = c4 * s1 * dict_states_wq['soil']['nh4'] * (lvl_total_start / 1000 * area)
+    fx = 0.0
+processes_attenuation = 1.0 - pu_no3 - dn + fx
+external_attenuation = dict_att_factors['soil']['no3']
+attenuation = (processes_attenuation * external_attenuation) ** time_factor
+if attenuation > 1.0:
+    attenuation = 1.0
+elif attenuation < 0.0:
+    attenuation = 0.0
+m_soil = dict_states_wq['soil']['no3'] * (lvl_total_start / 1000 * area)
+m_soil_new = m_soil * attenuation + ni * time_factor + dict_mass_applied['no3'] - dict_m_mobilised['no3']
+if (m_soil_new < 0.0) or ((lvl_total_end / 1000 * area) < volume_tolerance):
+    dict_states_wq['soil']['no3'] = 0.0
+else:
+    dict_states_wq['soil']['no3'] = m_soil_new / (lvl_total_end / 1000 * area)
+
+# ammonia
+c3_nh4 = cst_c7n * (1.047 ** (c_in_temp - 20.0))
+pu_nh4 = c3_nh4 * s1 * s2  # plant uptake
+if c_in_temp < 0.0:
+    im = 0.0  # no immobilisation
+    mi = 0.0  # no mineralisation
+else:
+    im = cst_c6n * (1.047 ** (c_in_temp - 20.0)) * s1
+    mi = cst_c5n * (1.047 ** (c_in_temp - 20.0)) * s1 * area / 1e4
+processes_attenuation = 1.0 - pu_nh4 - im
+external_attenuation = dict_att_factors['soil']['nh4']
+attenuation = (processes_attenuation * external_attenuation) ** time_factor
+if attenuation > 1.0:
+    attenuation = 1.0
+elif attenuation < 0.0:
+    attenuation = 0.0
+m_soil = dict_states_wq['soil']['nh4'] * (lvl_total_start / 1000 * area)
+m_soil_new = m_soil * attenuation + dict_mass_applied['nh4'] - (mi + ni) * time_factor - dict_m_mobilised['nh4']
+if (m_soil_new < 0.0) or ((lvl_total_end / 1000 * area) < volume_tolerance):
+    dict_states_wq['soil']['nh4'] = 0.0
+else:
+    dict_states_wq['soil']['nh4'] = m_soil_new / (lvl_total_end / 1000 * area)
+
+# readily available inorganic phosphorus
+c3_p_ino_ra = cst_c6p * (1.047 ** (c_in_temp - 20.0))
+pu_p_ino_ra = c3_p_ino_ra * s1 * s2  # plant uptake
+pmi = cst_c3p * (1.047 ** (c_in_temp - 20.0)) * s1 * dict_states_wq['soil']['p_org_ra'] * \
+      (lvl_total_start / 1000 * area)  # mineralisation
+pim = cst_c2p * (1.047 ** (c_in_temp - 20.0)) * s1 * dict_states_wq['soil']['p_ino_ra'] * \
+      (lvl_total_start / 1000 * area)  # immobilisation
+processes_attenuation = 1.0 - pu_p_ino_ra
+external_attenuation = dict_att_factors['soil']['dph']
+attenuation = (processes_attenuation * external_attenuation) ** time_factor
+if attenuation > 1.0:
+    attenuation = 1.0
+elif attenuation < 0.0:
+    attenuation = 0.0
+conversion_p_ino_fb_into_ra = (cst_c8p * dict_states_wq['soil']['p_ino_fb'])
+conversion_p_ino_ra_into_fb = (cst_c7p * dict_states_wq['soil']['p_ino_ra'] * (lvl_total_start / 1000 * area))
+m_soil = dict_states_wq['soil']['p_ino_ra'] * (lvl_total_start / 1000 * area)
+m_soil_new = m_soil * attenuation + dict_mass_applied['p_ino'] - 0.5 * dict_m_mobilised['dph'] + \
+             (pmi - pim + conversion_p_ino_fb_into_ra - conversion_p_ino_ra_into_fb) * time_factor
+if (m_soil_new < 0.0) or ((lvl_total_end / 1000 * area) < volume_tolerance):
+    dict_states_wq['soil']['p_ino_ra'] = 0.0
+else:
+    dict_states_wq['soil']['p_ino_ra'] = m_soil_new / (lvl_total_end / 1000 * area)
+
+# firmly bound inorganic phosphorus
+processes_attenuation = 1.0  # no processes consume firmly bound P
+external_attenuation = dict_att_factors['soil']['pph']
+attenuation = (processes_attenuation * external_attenuation) ** time_factor
+if attenuation > 1.0:
+    attenuation = 1.0
+elif attenuation < 0.0:
+    attenuation = 0.0
+m_soil = dict_states_wq['soil']['p_ino_fb']
+m_soil_new = m_soil * attenuation - 0.5 * dict_m_mobilised['pph'] + \
+             (conversion_p_ino_ra_into_fb - conversion_p_ino_fb_into_ra) * time_factor
+if (m_soil_new < 0.0) or ((lvl_total_end / 1000 * area) < volume_tolerance):
+    dict_states_wq['soil']['p_ino_fb'] = 0.0
+else:
+    dict_states_wq['soil']['p_ino_fb'] = m_soil_new
+
+# readily available organic phosphorus
+c3_p_org_ra = cst_c1p * (1.047 ** (c_in_temp - 20.0))
+pu_p_org_ra = c3_p_org_ra * s1 * s2  # plant uptake
+processes_attenuation = 1.0 - pu_p_org_ra
+external_attenuation = dict_att_factors['soil']['dph']
+attenuation = (processes_attenuation * external_attenuation) ** time_factor
+if attenuation > 1.0:
+    attenuation = 1.0
+elif attenuation < 0.0:
+    attenuation = 0.0
+conversion_p_org_fb_into_ra = (cst_c5p * dict_states_wq['soil']['p_org_fb'])
+conversion_p_org_ra_into_fb = (cst_c4p * dict_states_wq['soil']['p_org_ra'] * (lvl_total_start / 1000 * area))
+m_soil = dict_states_wq['soil']['p_org_ra'] * (lvl_total_start / 1000 * area)
+m_soil_new = m_soil * attenuation + dict_mass_applied['p_org'] - 0.5 * dict_m_mobilised['dph'] + \
+             (pim - pmi + conversion_p_org_fb_into_ra - conversion_p_org_ra_into_fb) * time_factor
+if (m_soil_new < 0.0) or ((lvl_total_end / 1000 * area) < volume_tolerance):
+    dict_states_wq['soil']['p_org_ra'] = 0.0
+else:
+    dict_states_wq['soil']['p_org_ra'] = m_soil_new / (lvl_total_end / 1000 * area)
+
+# firmly bound organic phosphorus
+processes_attenuation = 1.0  # no processes consume firmly bound P
+external_attenuation = dict_att_factors['soil']['pph']
+attenuation = (processes_attenuation * external_attenuation) ** time_factor
+if attenuation > 1.0:
+    attenuation = 1.0
+elif attenuation < 0.0:
+    attenuation = 0.0
+m_soil = dict_states_wq['soil']['p_org_fb']
+m_soil_new = m_soil * attenuation - 0.5 * dict_m_mobilised['pph'] + \
+             (conversion_p_ino_ra_into_fb - conversion_p_ino_fb_into_ra) * time_factor
+if (m_soil_new < 0.0) or ((lvl_total_end / 1000 * area) < volume_tolerance):
+    dict_states_wq['soil']['p_org_fb'] = 0.0
+else:
+    dict_states_wq['soil']['p_org_fb'] = m_soil_new
+
+# sediment: availability unlimited assumed
