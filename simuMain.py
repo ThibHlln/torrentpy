@@ -48,14 +48,14 @@ def main():
     for link in my__network.links:
         # Declare Model objects and get meteo DataFrame
         if my__network.categories[link] == "11":  # river headwater
-            dict__model[link] = [Model("SMART", model_specifications_folder)]
+            dict__model[link] = [Model("CATCHMENT", model_specifications_folder)]
             dict_meteo[link] = sF.get_data_frame_for_daily_meteo_data(catchment, link, time_steps, input_folder)
         elif my__network.categories[link] == "10":  # river
-            dict__model[link] = [Model("SMART", model_specifications_folder),
-                                 Model("LINRES", model_specifications_folder)]
+            dict__model[link] = [Model("CATCHMENT", model_specifications_folder),
+                                 Model("RIVER", model_specifications_folder)]
             dict_meteo[link] = sF.get_data_frame_for_daily_meteo_data(catchment, link, time_steps, input_folder)
         elif my__network.categories[link] == "20":  # lake
-            dict__model[link] = [Model("BATHTUB", model_specifications_folder)]
+            dict__model[link] = [Model("LAKE", model_specifications_folder)]
             # For now, no direct rainfall on open water in model
             # need to be changed, but to do so, need remove lake polygon from sub-basin polygon)
         else:  # unknown (e.g. 21 would be a lake headwater)

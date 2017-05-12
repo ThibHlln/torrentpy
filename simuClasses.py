@@ -2,7 +2,7 @@ import csv
 import sys
 import datetime
 
-from scripts import simuModels as sM
+import simuModels as sM
 
 
 class Network:
@@ -92,12 +92,12 @@ class Model:
             sys.exit("There is no specifications file for {} in {}.".format(self.identifier, specs_folder))
 
     def run(self, obj_network, waterbody, dict_data_frame, dict_param, dict_meteo, datetime_time_step, time_gap):
-        if self.identifier == "SMART":
-            sM.smart(waterbody, dict_data_frame, dict_param, dict_meteo, datetime_time_step, time_gap)
-        elif self.identifier == "LINRES":
-            sM.linres(obj_network, waterbody, dict_data_frame, dict_param, dict_meteo, datetime_time_step, time_gap)
-        elif self.identifier == "BATHTUB":
-            sM.bathtub(waterbody, dict_data_frame, dict_param, dict_meteo, datetime_time_step, time_gap)
+        if self.identifier == "CATCHMENT":
+            sM.catchment_model(waterbody, dict_data_frame, dict_param, dict_meteo, datetime_time_step, time_gap)
+        elif self.identifier == "RIVER":
+            sM.river_model(obj_network, waterbody, dict_data_frame, dict_param, dict_meteo, datetime_time_step, time_gap)
+        elif self.identifier == "LAKE":
+            sM.lake_model(waterbody, dict_data_frame, dict_param, dict_meteo, datetime_time_step, time_gap)
 
 
 class TimeFrame:
