@@ -21,16 +21,16 @@ class Network:
         try:
             with open(self.networkFile) as my_file:
                 my_reader = csv.DictReader(my_file)
-                my_nodes = list()
-                my_links = list()
-                my_connections = dict()
-                my_additions = dict()
+                my_nodes = list()  # list of all nodes
+                my_links = list()  # list of all links (i.e. waterbodies)
+                my_connections = dict()  # key: waterbody, value: 2-element list (node down, node up)
+                my_additions = dict()  # key: node, value: list of waterbodies pouring into node
                 for row in my_reader:
                     my_nodes.append(row['NodeDown'])
                     my_nodes.append(row['NodeUp'])
                     my_links.append(row['WaterBody'])
                     my_connections[row['WaterBody']] = (row['NodeDown'], row['NodeUp'])
-                my_nodes = list(set(my_nodes))
+                my_nodes = list(set(my_nodes))  # get rid of the duplicates
                 for node in my_nodes:
                     my_additions[node] = list()
                 for link in my_connections:
@@ -55,7 +55,7 @@ class Network:
                     my_categories[row['WaterBody']] = row['WaterBodyTypeCode'] + row['HeadwaterStatus']
 
         except IOError:
-            sys.exit("No link-node network file found for {}.".format(self.name))
+            sys.exit("No waterbodies file found for {}.".format(self.name))
 
         return my_categories
 
@@ -91,13 +91,21 @@ class Model:
         except IOError:
             sys.exit("There is no specifications file for {} in {}.".format(self.identifier, specs_folder))
 
-    def run(self, obj_network, waterbody, dict_data_frame, dict_param, dict_meteo, datetime_time_step, time_gap):
+    def run(self, obj_network, waterbody, dict_data_frame,
+            dict_param, dict_meteo, dict_loads,
+            datetime_time_step, time_gap):
         if self.identifier == "CATCHMENT":
-            sM.catchment_model(waterbody, dict_data_frame, dict_param, dict_meteo, datetime_time_step, time_gap)
+            sM.catchment_model(waterbody, dict_data_frame,
+                               dict_param, dict_meteo, dict_loads,
+                               datetime_time_step, time_gap)
         elif self.identifier == "RIVER":
-            sM.river_model(obj_network, waterbody, dict_data_frame, dict_param, dict_meteo, datetime_time_step, time_gap)
+            sM.river_model(obj_network, waterbody, dict_data_frame,
+                           dict_param, dict_meteo,
+                           datetime_time_step, time_gap)
         elif self.identifier == "LAKE":
-            sM.lake_model(waterbody, dict_data_frame, dict_param, dict_meteo, datetime_time_step, time_gap)
+            sM.lake_model(waterbody, dict_data_frame,
+                          dict_param, dict_meteo,
+                          datetime_time_step, time_gap)
 
 
 class TimeFrame:
