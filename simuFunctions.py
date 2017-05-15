@@ -62,3 +62,18 @@ def get_dict_parameters_from_file(catchment, outlet, obj_network, dict__model, i
 
     except IOError:
         sys.exit("{}{}_{}.parameters does not exist.".format(in_folder, catchment, outlet))
+
+
+def get_dict_constants_from_file(model, db_folder):
+
+    try:
+        with open("{}{}.const".format(db_folder, model.upper())) as my_file:
+            my_dict_cst = dict()
+            my_reader = csv.reader(my_file)
+            for row in my_reader:
+                my_dict_cst[row[0]] = row[1]
+
+        return my_dict_cst
+
+    except IOError:
+        sys.exit("{}{}.const".format(db_folder, model.upper()))

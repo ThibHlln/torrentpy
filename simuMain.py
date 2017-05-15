@@ -1,4 +1,5 @@
 import os
+import logging
 from pandas import DataFrame
 
 from simuClasses import *
@@ -11,23 +12,33 @@ def main():
     catchment = "Test"
     outlet = "IE_SE_16A010800"
 
-    root = os.path.realpath('..')  # move to parent directory
-    os.chdir(root)  # define parent directory as root for relative paths
-
-    model_specifications_folder = "specs/"
-    input_folder = "in/"
-
     my_simu_start = (2011, 1, 1, 9, 0, 0)
     my_simu_end = (2011, 1, 10, 9, 0, 0)
+    time_step_in_minutes = 1440.0
 
-    time_step_in_minutes = 1440
+    # Location of the different needed folders
+    root = os.path.realpath('..')  # move to parent directory of this current python file
+    os.chdir(root)  # define parent directory as root in order to use only relative paths after this
+    specifications_folder = "specs/"
+    input_folder = "in/"
+    output_folder = "out/"
+
+    # Create a logger
+    # # Logger levels: debug < info < warning < error < critical
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+    # Create a file handler
+    if os.path.isfile('{}{}_{}.log'.format(output_folder, catchment, outlet)):
+        os.remove('{}{}_{}.log'.format(output_folder, catchment, outlet))
+    handler = logging.FileHandler('{}{}_{}.log'.format(output_folder, catchment, outlet))
+    handler.setLevel(logging.WARNING)
+    logger.addHandler(handler)
 
     # Convert all time information in datetime format, and create a TimeFrame object
     datetime_start = datetime.datetime(my_simu_start[0], my_simu_start[1], my_simu_start[2],
                                        my_simu_start[3], my_simu_start[4], my_simu_start[5])
     datetime_end = datetime.datetime(my_simu_end[0], my_simu_end[1], my_simu_end[2],
                                      my_simu_end[3], my_simu_end[4], my_simu_end[5])
-
     time_steps = TimeFrame(datetime_start, datetime_end, time_step_in_minutes).get_list_datetime()
 
     # Declare all the dictionaries that will be needed, all using the waterbody code as a key
@@ -44,18 +55,19 @@ def main():
     for node in my__network.nodes:
         dict_storage[node] = DataFrame(index=time_steps, columns=my_variables).fillna(0.0)  # filled with zeros
 
-    # Initiate everything needed for the links (WaterBody object, Model objects, DataFrame objects
+    # Initiate everything needed for the links (Model objects, DataFrame objects)
+    # And collect meteorological data for the links (Meteo dictionary)
     for link in my__network.links:
         # Declare Model objects and get meteo DataFrame
         if my__network.categories[link] == "11":  # river headwater
-            dict__models[link] = [Model("CATCHMENT", model_specifications_folder)]
+            dict__models[link] = [Model("CATCHMENT", "SMART", specifications_folder)]
             dict_meteo[link] = sF.get_data_frame_for_daily_meteo_data(catchment, link, time_steps, input_folder)
         elif my__network.categories[link] == "10":  # river
-            dict__models[link] = [Model("CATCHMENT", model_specifications_folder),
-                                  Model("RIVER", model_specifications_folder)]
+            dict__models[link] = [Model("CATCHMENT", "SMART", specifications_folder),
+                                  Model("RIVER", "LINRES", specifications_folder)]
             dict_meteo[link] = sF.get_data_frame_for_daily_meteo_data(catchment, link, time_steps, input_folder)
         elif my__network.categories[link] == "20":  # lake
-            dict__models[link] = [Model("LAKE", model_specifications_folder)]
+            dict__models[link] = [Model("LAKE", "BATHTUB", specifications_folder)]
             dict_meteo[link] = sF.get_data_frame_for_daily_meteo_data(catchment, link, time_steps, input_folder)
             # For now, no direct rainfall on open water in model
             # need to be changed, but to do so, need remove lake polygon from sub-basin polygon)
@@ -71,6 +83,10 @@ def main():
     # Read the parameters in .param file
     dict_param = sF.get_dict_parameters_from_file(catchment, outlet, my__network, dict__models, input_folder)
 
+    # Read the constants in .const file
+    dict_const = dict()
+    dict_const["SMART"] = sF.get_dict_constants_from_file("SMART", specifications_folder)
+
     # Initial for reservoirs
     # # TO BE DEFINED
 
@@ -84,8 +100,9 @@ def main():
         for link in my__network.links:
             for model in dict__models[link]:
                 model.run(my__network, link, dict_storage,
-                          dict_param, dict_meteo, dict_loads,
-                          step, time_step_in_minutes)
+                          dict_param, dict_const, dict_meteo, dict_loads,
+                          step, time_step_in_minutes,
+                          logger)
         # Sum up everything coming from upstream for each node
         for node in my__network.nodes:
             if my__network.additions.get(node):  # ignore the node up for headwaters

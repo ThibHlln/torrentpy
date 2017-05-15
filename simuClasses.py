@@ -62,12 +62,14 @@ class Network:
 
 class Model:
     """"""
-    def __init__(self, identifier, specs_folder):
+    def __init__(self, category, identifier, specs_folder):
+        self.category = category.upper()
         self.identifier = identifier.upper()
         self.input_names = Model.get_one_list(self, specs_folder, "inputs")
         self.parameter_names = Model.get_one_list(self, specs_folder, "parameters")
         self.state_names = Model.get_one_list(self, specs_folder, "states")
         self.output_names = Model.get_one_list(self, specs_folder, "outputs")
+        self.constant_names = Model.get_one_list(self, specs_folder, "constants")
 
     def get_one_list(self, specs_folder, specs_type):
         try:
@@ -92,20 +94,23 @@ class Model:
             sys.exit("There is no specifications file for {} in {}.".format(self.identifier, specs_folder))
 
     def run(self, obj_network, waterbody, dict_data_frame,
-            dict_param, dict_meteo, dict_loads,
-            datetime_time_step, time_gap):
-        if self.identifier == "CATCHMENT":
-            sM.catchment_model(waterbody, dict_data_frame,
-                               dict_param, dict_meteo, dict_loads,
-                               datetime_time_step, time_gap)
-        elif self.identifier == "RIVER":
-            sM.river_model(obj_network, waterbody, dict_data_frame,
+            dict_param, dict_const, dict_meteo, dict_loads,
+            datetime_time_step, time_gap, logger):
+        if self.category == "CATCHMENT":
+            sM.catchment_model(self.identifier, waterbody, dict_data_frame,
+                               dict_param, dict_const, dict_meteo, dict_loads,
+                               datetime_time_step, time_gap,
+                               logger)
+        elif self.category == "RIVER":
+            sM.river_model(self.identifier, obj_network, waterbody, dict_data_frame,
                            dict_param, dict_meteo,
-                           datetime_time_step, time_gap)
-        elif self.identifier == "LAKE":
-            sM.lake_model(waterbody, dict_data_frame,
+                           datetime_time_step, time_gap,
+                           logger)
+        elif self.category == "LAKE":
+            sM.lake_model(self.identifier, waterbody, dict_data_frame,
                           dict_param, dict_meteo,
-                          datetime_time_step, time_gap)
+                          datetime_time_step, time_gap,
+                          logger)
 
 
 class TimeFrame:
