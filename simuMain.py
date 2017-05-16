@@ -3,7 +3,8 @@ import logging
 from pandas import DataFrame
 
 from simuClasses import *
-import simuFunctions as sF
+import simuFiles as sF
+import simuFunctions as sFn
 
 
 def main():
@@ -44,7 +45,6 @@ def main():
     # Declare all the dictionaries that will be needed, all using the waterbody code as a key
     dict__models = dict()  # key: waterbody, value: list of model objects
     dict_meteo = dict()  # key: waterbody, value: data frame (x: time step, y: meteo data type)
-    dict_loads = dict()  # key: waterbody, value: data frame (x: time step, y: loading type)
     dict_storage = dict()  # key: waterbody, value: data frame (x: time step, y: data type)
 
     # Create a Network object from networkNodesLinks and waterBodies files
@@ -80,8 +80,18 @@ def main():
             my_headers += model.input_names + model.state_names + model.output_names
         dict_storage[link] = DataFrame(index=time_steps, columns=my_headers).fillna(0.0)  # filled with zeros
 
-    # Read the parameters in .param file
-    dict_param = sF.get_dict_parameters_from_file(catchment, outlet, my__network, dict__models, input_folder)
+    # Read the parameters, or read the descriptors file and generate the parameters
+    if os.path.isfile('{}{}_{}.parameters'.format(input_folder, catchment, outlet)):
+        dict_param = sF.get_dict_parameters_from_file(catchment, outlet, my__network, dict__models, input_folder)
+    else:
+        if os.path.isfile('{}{}_{}.descriptors'.format(input_folder, catchment, outlet)):
+            dict_desc = sF.get_dict_variables_from_file("descriptors", catchment, outlet, my__network, input_folder)
+            dict_param = sFn.infer_parameters_from_descriptors(my__network, dict_desc)
+        else:
+            sys.exit("Parameters are not available from files.")
+
+    # Read in loadings file
+    dict_loads = sF.get_dict_variables_from_file("loadings", catchment, outlet, my__network, input_folder)
 
     # Read the constants in .const file
     dict_const = dict()
