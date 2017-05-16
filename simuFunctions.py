@@ -1,79 +1,102 @@
-from pandas import DataFrame
-import sys
-import csv
-import datetime
+import math
 
 
-def get_data_frame_for_daily_meteo_data(catchment, link, time_steps, in_folder):
+def infer_parameters_from_descriptors(obj_network, dict_desc):
 
-    my_start = '%04d' % time_steps[1].year + '%02d' % time_steps[1].month + '%02d' % time_steps[1].day
-    # use 1, not 0 because 0 was artificially created in TimeFrame object for initial conditions
-    my_end = '%04d' % time_steps[-1].year + '%02d' % time_steps[-1].month + '%02d' % time_steps[-1].day
+    dict_parameters = dict()
 
-    my_meteo_data_types = ["rain", "peva", "temp"]
+    for waterbody in obj_network.links:
+        my_dict = dict()
+        # Parameter T
+        my_dict['c_p_t'] = 65.622 * dict_desc[waterbody]['SAAPE'] ** (-0.652) * \
+            dict_desc[waterbody]['TAYSLO'] ** 0.003 * \
+            (dict_desc[waterbody]['SlopeLow'] + 1) ** (-0.075) * \
+            (dict_desc[waterbody]['PEAT'] ** 0.5 + 1) ** (-0.221) * \
+            (dict_desc[waterbody]['Made'] ** 0.5 + 1) ** (-0.481)
 
-    my__data_frame = DataFrame(index=time_steps, columns=my_meteo_data_types).fillna(0.0)
+        # Parameter C
+        my_dict['c_p_c'] = 9.041 * dict_desc[waterbody]['SAAR'] ** (-0.71) * \
+            dict_desc[waterbody]['Q.mm'] ** 0.573 * \
+            dict_desc[waterbody]['FLATWET'] ** (-0.753) * \
+            (dict_desc[waterbody]['AlluvMIN'] + 1) * (-3.378) * \
+            (dict_desc[waterbody]['FOREST'] + 1) * (-0.713) * \
+            (dict_desc[waterbody]['Pu_Pl'] ** 0.5 + 1) ** 0.221
 
-    for meteo_type in my_meteo_data_types:
-        try:
-            with open("{}{}_{}_{}_{}.{}".format(in_folder, catchment,
-                                                link, my_start, my_end, meteo_type)) as my_file:
-                my_reader = csv.DictReader(my_file)
+        # Parameter H
+        my_dict['c_p_h'] = 2.789 * dict_desc[waterbody]['DRAIND'] ** 0.157 * \
+            dict_desc[waterbody]['WtdReCoMod'] ** 0.036 * \
+            (dict_desc[waterbody]['PoorDrain'] + 1) ** (-0.081) * \
+            (dict_desc[waterbody]['Water'] ** 0.25 + 1) ** 0.102 * \
+            (dict_desc[waterbody]['ModP'] + 1) ** (-0.15) * \
+            (dict_desc[waterbody]['Rkc_Rk'] + 1) ** (-0.146) * \
+            (dict_desc[waterbody]['Pu_Pl'] ** 0.5 + 1) ** (-0.179) * \
+            (dict_desc[waterbody]['Lg_Rg'] ** 0.5 + 1) ** 0.224
 
-                for row in my_reader:
-                    file_datetime = datetime.datetime(int(row['YEAR']), int(row['MONTH']), int(row['DAY']),
-                                                      int(row['HOURS']), int(row['MINUTES']), int(row['SECONDS']))
+        # Parameter S
+        drain_eff_factor = 0.75
+        my_dict['c_p_s'] = dict_desc[waterbody]['land_drain_ratio'] * drain_eff_factor
 
-                    my__data_frame.set_value(file_datetime, meteo_type, float(row[meteo_type.upper()]))
+        # Parameter D
+        my_dict['c_p_d'] = 8.611e-14 * dict_desc[waterbody]['SAAR'] ** 3.207 * \
+            dict_desc[waterbody]['AVG.SLOPE'] ** (-1.089) * \
+            (dict_desc[waterbody]['BFIsoil'] ** 2 + 1) ** (-3.765) * \
+            (dict_desc[waterbody]['URBEXT'] ** 0.5 + 1) ** 17.515 * \
+            (dict_desc[waterbody]['FOREST'] + 1) ** 9.544 * \
+            (dict_desc[waterbody]['WellDrain'] + 1) ** 5.654 * \
+            (dict_desc[waterbody]['HighP'] ** 0.5 + 1) ** (-6.206) * \
+            (dict_desc[waterbody]['Rkd_Lk'] + 1) ** 1.553 * \
+            (dict_desc[waterbody]['Lm_Rf'] + 1) ** 4.251 * \
+            math.exp(dict_desc[waterbody]['Ll']) ** (-1.186)
 
-        except EnvironmentError:
-            sys.exit("{}{}_{}_{}_{}.{} does not exist.".format(in_folder, catchment,
-                                                               link, my_start, my_end, meteo_type))
+        # Parameter Z
+        my_dict['c_p_z'] = 9.2e6 * dict_desc[waterbody]['SAAR'] ** (-1.85) * \
+            dict_desc[waterbody]['DRAIND'] ** 0.633 * \
+            (dict_desc[waterbody]['BFIsoil'] ** 2 + 1) ** 1.729 * \
+            dict_desc[waterbody]['FARL'] ** (-2.912) * \
+            (dict_desc[waterbody]['URBEXT'] ** 0.5 + 1) ** (-5.634) * \
+            (dict_desc[waterbody]['HighP'] ** 0.5 + 1) ** 3.051 * \
+            (dict_desc[waterbody]['Lm_Rf'] + 1) ** (-2.193) * \
+            math.exp(dict_desc[waterbody]['Ll']) ** 0.554
 
-    return my__data_frame
+        # Parameter SK
+        my_dict['c_p_sk'] = 2.8e5 * (dict_desc[waterbody]['BFIsoil'] ** 2 + 1) ** 1.32 * \
+            dict_desc[waterbody]['FARL'] ** (-8.366) * \
+            dict_desc[waterbody]['SAAR'] ** (-1.24) * \
+            (dict_desc[waterbody]['ARTDRAIN'] ** 2 + 1) ** (-0.529) * \
+            (dict_desc[waterbody]['PoorDrain'] + 1) ** (-1.605)
 
+        # Parameter FK
+        my_dict['c_p_fk'] = 5.67e-7 * dict_desc[waterbody]['SAAR'] ** 5.619 * \
+            dict_desc[waterbody]['Q.mm'] ** (-3.037) * \
+            (dict_desc[waterbody]['ARTDRAIN'] ** 2 + 1) ** (-1.279) * \
+            (dict_desc[waterbody]['BFIsoil'] ** 2 + 1) ** 3.017 * \
+            (dict_desc[waterbody]['VulXE'] ** 0.5 + 1) ** (-2.823) * \
+            (dict_desc[waterbody]['VulML'] + 1) ** 2.727 * \
+            (dict_desc[waterbody]['URBEXT'] ** 0.5 + 1) ** (-10.386) * \
+            (dict_desc[waterbody]['FOREST'] + 1) ** -2.43 * \
+            (dict_desc[waterbody]['HighP'] ** 0.5 + 1) ** 6.089 * \
+            (dict_desc[waterbody]['PNA'] + 1) ** 2.781 * \
+            (dict_desc[waterbody]['Rkc_Rk'] + 1) ** (-1.6107)
 
-def get_dict_parameters_from_file(catchment, outlet, obj_network, dict__model, in_folder):
+        # Parameter GK
+        my_dict['c_p_gk'] = 46950 + dict_desc[waterbody]['SlopeLow'] * 8676 + \
+            dict_desc[waterbody]['SAAPE'] * (-82.27) + \
+            dict_desc[waterbody]['Rkc_Rk'] * (-7204) + \
+            dict_desc[waterbody]['Pu_Pl'] * (-1911) + \
+            dict_desc[waterbody]['Made'] * (-127800) + \
+            dict_desc[waterbody]['WtdReCoMod'] * (-49470) + \
+            dict_desc[waterbody]['FOREST'] * 9257 + \
+            dict_desc[waterbody]['SAAR'] * (-5.379) + \
+            dict_desc[waterbody]['WtdReCoMod'] * dict_desc['SAAR'] * 41.68
 
-    try:
-        with open("{}{}_{}.parameters".format(in_folder, catchment, outlet)) as my_file:
-            my_dict_param = dict()
-            my_reader = csv.DictReader(my_file)
-            found = list()
-            for row in my_reader:
-                if row["EU_CD"] in obj_network.links:
-                    my_dict = dict()
-                    for model in dict__model[row["EU_CD"]]:
-                        for param in model.parameter_names:
-                            try:
-                                my_dict[param] = row[param]
-                            except KeyError:
-                                sys.exit("The parameter {} is not available for {}".format(param, row["EU_CD"]))
-                    my_dict_param[row["EU_CD"]] = my_dict
-                    found.append(row["EU_CD"])
-                else:
-                    print "The waterbody {} in the parameter file is not in the network file.".format(row["EU_CD"])
+        # Parameter RK
+        l = dict_desc[waterbody]['stream_length']
+        q = 0.7 * dict_desc[waterbody]['SAAR'] * dict_desc[waterbody]['AREA'] * 3.171e-5
+        slp = dict_desc[waterbody]['TAYSLO'] / 1000.0
+        n = 0.04
+        my_dict['c_p_s'] = l / ((q**(2/5) * slp**(3/10)) / ((3.67 * q**0.45) ** (2/5) * n**(3/5)))
 
-            missing = [elem for elem in obj_network.links if elem not in found]
-            if missing:
-                sys.exit("The following waterbodies are not in the parameter file: {}.".format(missing))
+        dict_parameters[waterbody] = my_dict[:]
 
-        return my_dict_param
+    return dict_parameters
 
-    except IOError:
-        sys.exit("{}{}_{}.parameters does not exist.".format(in_folder, catchment, outlet))
-
-
-def get_dict_constants_from_file(model, db_folder):
-
-    try:
-        with open("{}{}.const".format(db_folder, model.upper())) as my_file:
-            my_dict_cst = dict()
-            my_reader = csv.reader(my_file)
-            for row in my_reader:
-                my_dict_cst[row[0]] = row[1]
-
-        return my_dict_cst
-
-    except IOError:
-        sys.exit("{}{}.const".format(db_folder, model.upper()))
