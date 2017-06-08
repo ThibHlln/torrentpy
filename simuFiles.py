@@ -1,4 +1,5 @@
 from pandas import DataFrame
+import pandas
 import sys
 import csv
 import datetime
@@ -46,9 +47,9 @@ def get_dict_parameters_from_file(catchment, outlet, obj_network, dict__model, i
                     for model in dict__model[row["EU_CD"]]:
                         for param in model.parameter_names:
                             try:
-                                my_dict[param] = row[param]
+                                my_dict[param] = float(row[param])
                             except KeyError:
-                                sys.exit("The parameter {} is not available for {}".format(param, row["EU_CD"]))
+                                sys.exit("The parameter {} is not available for {}.".format(param, row["EU_CD"]))
                     my_dict_param[row["EU_CD"]] = my_dict
                     found.append(row["EU_CD"])
                 else:
@@ -64,35 +65,35 @@ def get_dict_parameters_from_file(catchment, outlet, obj_network, dict__model, i
         sys.exit("{}{}_{}.parameters does not exist.".format(in_folder, catchment, outlet))
 
 
-def get_dict_constants_from_file(model, db_folder):
+def get_dict_constants_from_file(model, specs_folder):
 
     try:
-        with open("{}{}.const".format(db_folder, model.upper())) as my_file:
+        with open("{}{}.const".format(specs_folder, model.upper())) as my_file:
             my_dict_cst = dict()
             my_reader = csv.reader(my_file)
             for row in my_reader:
-                my_dict_cst[row[0]] = row[1]
+                my_dict_cst[row[0]] = float(row[1])
 
         return my_dict_cst
 
     except IOError:
-        sys.exit("{}{}.const".format(db_folder, model.upper()))
+        sys.exit("{}{}.const".format(specs_folder, model.upper()))
 
 
-def get_dict_variables_from_file(variables, catchment, outlet, obj_network, in_folder):
+def get_dict_floats_from_file(variables, catchment, outlet, obj_network, folder):
 
     try:
-        with open("{}{}_{}.{}".format(in_folder, catchment, outlet, variables)) as my_file:
+        with open("{}{}_{}.{}".format(folder, catchment, outlet, variables)) as my_file:
             my_dict_variables = dict()
             my_reader = csv.DictReader(my_file)
-            fields = my_reader.fieldnames
-            fields.delete("EU_CD")
+            fields = my_reader.fieldnames[:]
+            fields.remove("EU_CD")
             found = list()
             for row in my_reader:
                 if row["EU_CD"] in obj_network.links:
                     my_dict = dict()
                     for field in fields:
-                        my_dict[field] = row[field]
+                        my_dict[field] = float(row[field])
                     my_dict_variables[row["EU_CD"]] = my_dict
                     found.append(row["EU_CD"])
                 else:
@@ -105,4 +106,44 @@ def get_dict_variables_from_file(variables, catchment, outlet, obj_network, in_f
         return my_dict_variables
 
     except IOError:
-        sys.exit("{}{}_{}.{} does not exist.".format(in_folder, catchment, outlet, variables))
+        sys.exit("{}{}_{}.{} does not exist.".format(folder, catchment, outlet, variables))
+
+
+def get_dict_strings_from_file(variables, catchment, outlet, obj_network, folder):
+
+    try:
+        with open("{}{}_{}.{}".format(folder, catchment, outlet, variables)) as my_file:
+            my_dict_variables = dict()
+            my_reader = csv.DictReader(my_file)
+            fields = my_reader.fieldnames[:]
+            fields.remove("EU_CD")
+            found = list()
+            for row in my_reader:
+                if row["EU_CD"] in obj_network.links:
+                    my_dict = dict()
+                    for field in fields:
+                        my_dict[field] = str(row[field])
+                    my_dict_variables[row["EU_CD"]] = my_dict
+                    found.append(row["EU_CD"])
+                else:
+                    print "The waterbody {} in the {} file is not in the network file.".format(row["EU_CD"], variables)
+
+            missing = [elem for elem in obj_network.links if elem not in found]
+            if missing:
+                sys.exit("The following waterbodies are not in the {} file: {}.".format(missing, variables))
+
+        return my_dict_variables
+
+    except IOError:
+        sys.exit("{}{}_{}.{} does not exist.".format(folder, catchment, outlet, variables))
+
+
+def get_df_distributions_from_file(specs_folder):
+
+    try:
+        my_file = '{}LOADINGS.dist'.format(specs_folder)
+        my_df_distributions = pandas.read_csv(my_file, index_col=0)
+        return my_df_distributions
+
+    except IOError:
+        sys.exit("{}LOADINGS.dist does not exist.".format(specs_folder))

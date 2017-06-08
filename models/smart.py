@@ -1,10 +1,10 @@
-import math
-import datetime
 import calendar
+import datetime
+import math
 
 
 def run(waterbody, dict_data_frame,
-        dict_param, dict_const, dict_meteo, dict_loads,
+        dict_desc, dict_param, dict_const, dict_meteo, dict_loads,
         datetime_time_step, time_gap,
         logger):
     """
@@ -47,11 +47,11 @@ def run(waterbody, dict_data_frame,
     _ Water Quality
     ___ Inputs * in_ *
     _____ c_in_temp             water temperature [degree celsius]
-    _____ c_in_l_no3            nitrate loading on land [kg/ha/time step]
-    _____ c_in_l_nh4            ammonia loading on land [kg/ha/time step]
-    _____ c_in_l_dph            dissolved phosphorus loading on land [kg/ha/time step]
-    _____ c_in_l_pph            particulate phosphorus loading on land [kg/ha/time step]
-    _____ c_in_l_sed            sediment movable from land [kg/ha/time step]
+    _____ c_in_m_no3            nitrate loading on land [kg/ha/time step]
+    _____ c_in_m_nh4            ammonia loading on land [kg/ha/time step]
+    _____ c_in_m_dph            dissolved phosphorus loading on land [kg/ha/time step]
+    _____ c_in_m_pph            particulate phosphorus loading on land [kg/ha/time step]
+    _____ c_in_m_sed            sediment movable from land [kg/ha/time step]
     ___ States * s_ *
     _____ c_s_c_no3_ove         concentration of nitrate in overland store [kg/m3]
     _____ c_s_c_no3_dra         concentration of nitrate in drain store [kg/m3]
@@ -84,6 +84,7 @@ def run(waterbody, dict_data_frame,
     _____ c_s_c_p_ino_ra_soil   concentration of readily available inorganic phosphorus phosphorus in soil column [kg/m3]
     _____ c_s_m_p_org_fb_soil   mass of firmly bound organic phosphorus in soil column [kg]
     _____ c_s_m_p_ino_fb_soil   mass of firmly bound inorganic phosphorus in soil column [kg]
+    _____ c_s_m_sed_soil        mass of sediment in soil column [kg]
     ___ Parameters * p_ *
     _____ c_p_att_no3_ove       daily attenuation factor for nitrate in overland flow [-]
     _____ c_p_att_nh4_ove       daily attenuation factor for ammonia in overland flow [-]
@@ -116,6 +117,7 @@ def run(waterbody, dict_data_frame,
     _____ c_p_att_p_ino_ra_soil daily attenuation factor for readily available inorganic phosphorus in soil column [-]
     _____ c_p_att_p_org_fb_soil daily attenuation factor for firmly bound organic phosphorus in soil column [-]
     _____ c_p_att_p_ino_fb_soil daily attenuation factor for firmly bound inorganic phosphorus in soil column [-]
+    _____ c_p_att_sed_soil      daily attenuation factor for sediment in soil column [-]
     ___ Outputs * out_ *
     _____ c_out_c_no3_ove       nitrate concentration in overland flow [kg/m3]
     _____ c_out_c_nh4_ove       ammonia concentration in overland flow [kg/m3]
@@ -150,7 +152,7 @@ def run(waterbody, dict_data_frame,
     """
 
     nb_soil_layers = 6.0  # number of layers in soil column [-]
-    area = 100.0  # catchment area [m2]
+    area_m2 = dict_desc[waterbody]['area']  # catchment area [m2]
     time_step_sec = time_gap * 60.0  # [seconds]
     time_factor = time_step_sec / 86400.0
     if time_factor < 0.005:
@@ -164,7 +166,9 @@ def run(waterbody, dict_data_frame,
 
     stores = ['ove', 'dra', 'int', 'sgw', 'dgw']
     stores_contaminants = ['no3', 'nh4', 'dph', 'pph', 'sed']
-    soil_contaminants = ['no3', 'nh4', 'p_ino_ra', 'p_ino_fb', 'p_org_ra', 'p_org_fb']
+    soil_contaminants = {'no3': 'c', 'nh4': 'c',
+                         'p_ino_ra': 'c', 'p_ino_fb': 'm', 'p_org_ra': 'c', 'p_org_fb': 'm',
+                         'sed': 'm'}
 
     # # 1. Hydrology
     # # 1.1. Collect inputs, states, and parameters
@@ -214,12 +218,12 @@ def run(waterbody, dict_data_frame,
     for i in [1, 2, 3, 4, 5, 6]:
         dict_z_lyr[i] = c_p_z / nb_soil_layers
     dict_lvl_lyr = dict()
-    dict_lvl_lyr[1] = c_s_v_h2o_ly1 / area * 1e3  # factor 1000 to convert m in mm
-    dict_lvl_lyr[2] = c_s_v_h2o_ly2 / area * 1e3  # factor 1000 to convert m in mm
-    dict_lvl_lyr[3] = c_s_v_h2o_ly3 / area * 1e3  # factor 1000 to convert m in mm
-    dict_lvl_lyr[4] = c_s_v_h2o_ly4 / area * 1e3  # factor 1000 to convert m in mm
-    dict_lvl_lyr[5] = c_s_v_h2o_ly5 / area * 1e3  # factor 1000 to convert m in mm
-    dict_lvl_lyr[6] = c_s_v_h2o_ly6 / area * 1e3  # factor 1000 to convert m in mm
+    dict_lvl_lyr[1] = c_s_v_h2o_ly1 / area_m2 * 1e3  # factor 1000 to convert m in mm
+    dict_lvl_lyr[2] = c_s_v_h2o_ly2 / area_m2 * 1e3  # factor 1000 to convert m in mm
+    dict_lvl_lyr[3] = c_s_v_h2o_ly3 / area_m2 * 1e3  # factor 1000 to convert m in mm
+    dict_lvl_lyr[4] = c_s_v_h2o_ly4 / area_m2 * 1e3  # factor 1000 to convert m in mm
+    dict_lvl_lyr[5] = c_s_v_h2o_ly5 / area_m2 * 1e3  # factor 1000 to convert m in mm
+    dict_lvl_lyr[6] = c_s_v_h2o_ly6 / area_m2 * 1e3  # factor 1000 to convert m in mm
 
     # calculate cumulative level of water in all soil layers at beginning of time step
     lvl_total_start = 0.0
@@ -227,9 +231,9 @@ def run(waterbody, dict_data_frame,
         lvl_total_start += dict_lvl_lyr[i]
 
     # apply parameter T to rainfall data
-    c_in_rain = c_in_rain * c_p_t
+    rain = c_in_rain * c_p_t
     # calculate rainfall excess
-    excess_rain = c_in_rain - c_in_peva
+    excess_rain = rain - c_in_peva
     # initialise actual evapotranspiration variable
     c_out_aeva = 0.0
 
@@ -243,8 +247,9 @@ def run(waterbody, dict_data_frame,
         # calculate percolation through soil layers
         for i in [1, 2, 3, 4, 5, 6]:
             space_in_lyr = dict_z_lyr[i] - dict_lvl_lyr[i]
-            if space_in_lyr <= excess_rain:
+            if excess_rain <= space_in_lyr:
                 dict_lvl_lyr[i] += excess_rain
+                excess_rain = 0.0
             else:
                 dict_lvl_lyr[i] = dict_z_lyr[i]
                 excess_rain -= space_in_lyr
@@ -276,23 +281,25 @@ def run(waterbody, dict_data_frame,
                 deep_flow += leak_deep_flow
                 dict_lvl_lyr[i] -= leak_deep_flow
     else:  # no excess rainfall
-        overland_flow = 0.0  # no quick overland flow
-        drain_flow = 0.0  # no quick drain flow
-        inter_flow = 0.0  # no quick + leak interflow
-        shallow_flow = 0.0  # no shallow groundwater flow
-        deep_flow = 0.0
+        overland_flow = 0.0  # no soil contribution to quick overland flow store
+        drain_flow = 0.0  # no soil contribution to quick drain flow store
+        inter_flow = 0.0  # no soil contribution to quick + leak interflow store
+        shallow_flow = 0.0  # no soil contribution to shallow groundwater flow store
+        deep_flow = 0.0  # no soil contribution to deep groundwater flow store
 
-        deficit_rain = excess_rain * (-1.0)  # excess is actually a deficit
-        c_out_aeva += c_in_rain
+        deficit_rain = excess_rain * (-1.0)  # excess is negative = excess is actually a deficit
+        c_out_aeva += rain
         for i in [1, 2, 3, 4, 5, 6]:
-            if dict_lvl_lyr[i] >= deficit_rain:
-                dict_lvl_lyr[i] -= deficit_rain
-                c_out_aeva += deficit_rain
-                deficit_rain = 0.0
+            if dict_lvl_lyr[i] >= deficit_rain:  # i.e. all moisture required available in this soil layer
+                dict_lvl_lyr[i] -= deficit_rain  # soil layer is reduced by the moisture required
+                c_out_aeva += deficit_rain  # this moisture contributes to the actual evapotranspiration
+                deficit_rain = 0.0  # the full moisture still required has been met
             else:
-                c_out_aeva += dict_lvl_lyr[i]
+                c_out_aeva += dict_lvl_lyr[i]  # takes what is available in this layer
+                # effectively reduce the evaporation demand for the next layer using parameter C
+                # i.e. the more you move down through the soil layers, the less AEva can meet PEva (exponentially)
                 deficit_rain = c_p_c * (deficit_rain - dict_lvl_lyr[i])
-                dict_lvl_lyr[i] = 0.0
+                dict_lvl_lyr[i] = 0.0  # soil layer is now empty
 
     # calculate cumulative level of water in all soil layers at end of time step
     lvl_total_end = 0.0
@@ -304,42 +311,42 @@ def run(waterbody, dict_data_frame,
     # route overland flow (direct runoff)
     c_out_q_h2o_ove = c_s_v_h2o_ove / c_p_sk  # [m3/s]
     c_s_v_h2o_ove_old = c_s_v_h2o_ove
-    c_s_v_h2o_ove += (overland_flow / 1e3 * area) - (c_out_q_h2o_ove * time_step_sec)  # [m3] - [m3]
+    c_s_v_h2o_ove += (overland_flow / 1e3 * area_m2) - (c_out_q_h2o_ove * time_step_sec)  # [m3] - [m3]
     if c_s_v_h2o_ove < 0.0:
-        logger.info("{}: {} - Volume in OVE Store has gone negative, volume reset "
-                    "to zero.".format(waterbody, datetime_time_step))
+        logger.debug("{}: {} - Volume in OVE Store has gone negative, volume reset "
+                     "to zero.".format(waterbody, datetime_time_step))
         c_s_v_h2o_ove = 0.0
     # route drain flow
     c_out_q_h2o_dra = c_s_v_h2o_dra / c_p_sk  # [m3/s]
     c_s_v_h2o_dra_old = c_s_v_h2o_dra
-    c_s_v_h2o_dra += (drain_flow / 1e3 * area) - (c_out_q_h2o_dra * time_step_sec)  # [m3] - [m3]
+    c_s_v_h2o_dra += (drain_flow / 1e3 * area_m2) - (c_out_q_h2o_dra * time_step_sec)  # [m3] - [m3]
     if c_s_v_h2o_dra < 0.0:
-        logger.info("{}: {} - Volume in DRA Store has gone negative, volume reset "
-                    "to zero.".format(waterbody, datetime_time_step))
+        logger.debug("{}: {} - Volume in DRA Store has gone negative, volume reset "
+                     "to zero.".format(waterbody, datetime_time_step))
         c_s_v_h2o_dra = 0.0
     # route interflow
     c_out_q_h2o_int = c_s_v_h2o_int / c_p_fk  # [m3/s]
     c_s_v_h2o_int_old = c_s_v_h2o_int
-    c_s_v_h2o_int += (inter_flow / 1e3 * area) - (c_out_q_h2o_int * time_step_sec)  # [m3] - [m3]
+    c_s_v_h2o_int += (inter_flow / 1e3 * area_m2) - (c_out_q_h2o_int * time_step_sec)  # [m3] - [m3]
     if c_s_v_h2o_int < 0.0:
-        logger.info("{}: {} - Volume in INT Store has gone negative, volume reset "
-                    "to zero.".format(waterbody, datetime_time_step))
+        logger.debug("{}: {} - Volume in INT Store has gone negative, volume reset "
+                     "to zero.".format(waterbody, datetime_time_step))
         c_s_v_h2o_int = 0.0
     # route shallow groundwater flow
     c_out_q_h2o_sgw = c_s_v_h2o_sgw / c_p_gk  # [m3/s]
     c_s_v_h2o_sgw_old = c_s_v_h2o_sgw
-    c_s_v_h2o_sgw += (inter_flow / 1e3 * area) - (c_out_q_h2o_sgw * time_step_sec)  # [m3] - [m3]
+    c_s_v_h2o_sgw += (inter_flow / 1e3 * area_m2) - (c_out_q_h2o_sgw * time_step_sec)  # [m3] - [m3]
     if c_s_v_h2o_sgw < 0.0:
-        logger.info("{}: {} - Volume in SGW Store has gone negative, volume reset "
-                    "to zero.".format(waterbody, datetime_time_step))
+        logger.debug("{}: {} - Volume in SGW Store has gone negative, volume reset "
+                     "to zero.".format(waterbody, datetime_time_step))
         c_s_v_h2o_sgw = 0.0
     # route deep groundwater flow
     c_out_q_h2o_dgw = c_s_v_h2o_dgw / c_p_gk  # [m3/s]
     c_s_v_h2o_dgw_old = c_s_v_h2o_dgw
-    c_s_v_h2o_dgw += (inter_flow / 1e3 * area) - (c_out_q_h2o_dgw * time_step_sec)  # [m3] - [m3]
+    c_s_v_h2o_dgw += (inter_flow / 1e3 * area_m2) - (c_out_q_h2o_dgw * time_step_sec)  # [m3] - [m3]
     if c_s_v_h2o_dgw < 0.0:
-        logger.info("{}: {} - Volume in DGW Store has gone negative, volume reset "
-                    "to zero.".format(waterbody, datetime_time_step))
+        logger.debug("{}: {} - Volume in DGW Store has gone negative, volume reset "
+                     "to zero.".format(waterbody, datetime_time_step))
         c_s_v_h2o_dgw = 0.0
     # calculate total outflow
     c_out_q_h2o = c_out_q_h2o_ove + c_out_q_h2o_dra + c_out_q_h2o_int + c_out_q_h2o_sgw + c_out_q_h2o_dgw  # [m3/s]
@@ -379,19 +386,19 @@ def run(waterbody, dict_data_frame,
 
     # # 1.3. Save inputs, states, and outputs
     dict_data_frame[waterbody].set_value(datetime_time_step, "c_in_rain", c_in_rain)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_in_peva", c_in_rain)
+    dict_data_frame[waterbody].set_value(datetime_time_step, "c_in_peva", c_in_peva)
 
     dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ove", c_s_v_h2o_ove)
     dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_dra", c_s_v_h2o_dra)
     dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_int", c_s_v_h2o_int)
     dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_sgw", c_s_v_h2o_sgw)
     dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_dgw", c_s_v_h2o_dgw)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ly1", c_s_v_h2o_ly1)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ly2", c_s_v_h2o_ly2)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ly3", c_s_v_h2o_ly3)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ly4", c_s_v_h2o_ly4)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ly5", c_s_v_h2o_ly5)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ly6", c_s_v_h2o_ly6)
+    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ly1", dict_lvl_lyr[1] / 1e3 * area_m2)
+    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ly2", dict_lvl_lyr[2] / 1e3 * area_m2)
+    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ly3", dict_lvl_lyr[3] / 1e3 * area_m2)
+    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ly4", dict_lvl_lyr[4] / 1e3 * area_m2)
+    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ly5", dict_lvl_lyr[5] / 1e3 * area_m2)
+    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ly6", dict_lvl_lyr[6] / 1e3 * area_m2)
 
     dict_data_frame[waterbody].set_value(datetime_time_step, "c_out_aeva", c_out_aeva)
     dict_data_frame[waterbody].set_value(datetime_time_step, "c_out_q_h2o_ove", c_out_q_h2o_ove)
@@ -405,15 +412,40 @@ def run(waterbody, dict_data_frame,
     # # 2.1. Collect inputs, states, parameters, and constants
 
     c_in_temp = dict_meteo[waterbody].loc[datetime_time_step, "temp"]
-    c_in_l_no3 = dict_loads[waterbody].loc[datetime_time_step, "no3"]
-    c_in_l_nh4 = dict_loads[waterbody].loc[datetime_time_step, "no3"]
-    c_in_l_p_ino = dict_loads[waterbody].loc[datetime_time_step, "no3"]
-    c_in_l_p_org = dict_loads[waterbody].loc[datetime_time_step, "no3"]
+    mass_n = \
+        dict_loads[waterbody].loc[datetime_time_step, "org_n_grassland"] * \
+        dict_desc[waterbody]["grassland_ratio"] * dict_desc[waterbody]["area"] * 100 + \
+        dict_loads[waterbody].loc[datetime_time_step, "ino_n_grassland"] * \
+        dict_desc[waterbody]["grassland_ratio"] * dict_desc[waterbody]["area"] * 100 + \
+        dict_loads[waterbody].loc[datetime_time_step, "org_n_arable"] * \
+        dict_desc[waterbody]["arable_ratio"] * dict_desc[waterbody]["area"] * 100 + \
+        dict_loads[waterbody].loc[datetime_time_step, "ino_n_arable"] * \
+        dict_desc[waterbody]["arable_ratio"] * dict_desc[waterbody]["area"] * 100 + \
+        dict_loads[waterbody].loc[datetime_time_step, "n_urban"] * \
+        dict_desc[waterbody]["urban_ratio"] * dict_desc[waterbody]["area"] * 100 + \
+        dict_loads[waterbody].loc[datetime_time_step, "n_atm_deposition"] * \
+        dict_desc[waterbody]["woodland_ratio"] * dict_desc[waterbody]["area"] * 100 + \
+        dict_loads[waterbody].loc[datetime_time_step, "n_septic_tanks"]
+    c_in_m_no3 = mass_n * 0.70  # assumed 70% as nitrate
+    c_in_m_nh4 = mass_n * 0.30  # assumed 30% as ammonia
+    c_in_m_p_ino = (dict_loads[waterbody].loc[datetime_time_step, "ino_p_grassland"] *
+                    dict_desc[waterbody]["grassland_ratio"] * dict_desc[waterbody]["area"] * 100 +
+                    dict_loads[waterbody].loc[datetime_time_step, "ino_p_arable"] *
+                    dict_desc[waterbody]["arable_ratio"] * dict_desc[waterbody]["area"] * 100 +
+                    dict_loads[waterbody].loc[datetime_time_step, "p_urban"] *
+                    dict_desc[waterbody]["urban_ratio"] * dict_desc[waterbody]["area"] * 100 +
+                    dict_loads[waterbody].loc[datetime_time_step, "p_atm_deposition"] *
+                    dict_desc[waterbody]["woodland_ratio"] * dict_desc[waterbody]["area"] * 100)
+    c_in_m_p_org = (dict_loads[waterbody].loc[datetime_time_step, "org_p_grassland"] *
+                    dict_desc[waterbody]["grassland_ratio"] * dict_desc[waterbody]["area"] * 100 +
+                    dict_loads[waterbody].loc[datetime_time_step, "org_p_arable"] *
+                    dict_desc[waterbody]["arable_ratio"] * dict_desc[waterbody]["area"] * 100 +
+                    dict_loads[waterbody].loc[datetime_time_step, "p_septic_tanks"])
     dict_mass_applied = dict()
-    dict_mass_applied['no3'] = c_in_l_no3 * area * 1e-4  # area in m2 converted into ha
-    dict_mass_applied['nh4'] = c_in_l_nh4 * area * 1e-4  # area in m2 converted into ha
-    dict_mass_applied['p_ino'] = c_in_l_p_ino * area * 1e-4  # area in m2 converted into ha
-    dict_mass_applied['p_org'] = c_in_l_p_org * area * 1e-4  # area in m2 converted into ha
+    dict_mass_applied['no3'] = c_in_m_no3
+    dict_mass_applied['nh4'] = c_in_m_nh4
+    dict_mass_applied['p_ino'] = c_in_m_p_ino
+    dict_mass_applied['p_org'] = c_in_m_p_org
 
     dict_states_wq = dict()  # for states of the stores + soil
     dict_c_outflow = dict()  # for outflow concentrations from stores
@@ -427,23 +459,27 @@ def run(waterbody, dict_data_frame,
         for contaminant in stores_contaminants:
             my_dict_1[contaminant] = dict_data_frame[waterbody].loc[datetime_time_step +
                                                                     datetime.timedelta(minutes=-time_gap),
-                                                                    "c_s_v_{}_{}".format(contaminant, store)]
+                                                                    "c_s_c_{}_{}".format(contaminant, store)]
             my_dict_2[contaminant] = 0.0
             my_dict_3[contaminant] = dict_param[waterbody]["c_p_att_{}_{}".format(contaminant, store)] * time_factor
             my_dict_4[contaminant] = dict_const["SMART"]["c_cst_mob_{}_{}".format(contaminant, store)]
-        dict_states_wq[store] = my_dict_1[:]
-        dict_c_outflow[store] = my_dict_2[:]
-        dict_att_factors[store] = my_dict_3[:]
-        dict_mob_factors[store] = my_dict_4[:]
+        dict_states_wq[store] = my_dict_1
+        dict_c_outflow[store] = my_dict_2
+        dict_att_factors[store] = my_dict_3
+        dict_mob_factors[store] = my_dict_4
     my_dict_5 = dict()
+    my_dict_6 = dict()
     for contaminant in soil_contaminants:
         my_dict_5[contaminant] = dict_data_frame[waterbody].loc[datetime_time_step +
                                                                 datetime.timedelta(minutes=-time_gap),
-                                                                "c_s_v_{}_soil".format(contaminant)]
-    dict_states_wq['soil'] = my_dict_5[:]
+                                                                "c_s_{}_{}_soil".format(soil_contaminants[contaminant],
+                                                                                        contaminant)]
+        my_dict_6[contaminant] = dict_param[waterbody]["c_p_att_{}_soil".format(contaminant)] * time_factor
+    dict_states_wq['soil'] = my_dict_5
     # create 'artificial' states (in dictionary only) to sum organic and inorganic DPH and PPH
     dict_states_wq['soil']['dph'] = dict_states_wq['soil']['p_org_ra'] + dict_states_wq['soil']['p_ino_ra']  # [kg/m3]
     dict_states_wq['soil']['pph'] = dict_states_wq['soil']['p_org_fb'] + dict_states_wq['soil']['p_ino_fb']  # [kg]
+    dict_att_factors['soil'] = my_dict_6
 
     daily_sediment_threshold = dict_const["SMART"]['c_cst_sed_daily_thresh']  # [mm/day]
     sediment_threshold = daily_sediment_threshold * time_factor
@@ -489,11 +525,11 @@ def run(waterbody, dict_data_frame,
             mobilisation = dict_mob_factors[store][contaminant]
             if (mobilisation < 0.0) or (mobilisation > 1.0):
                 mobilisation = 1.0
-            m_mobilised = (dict_flows_mm_hd[store] / 1e3 * area) * dict_states_wq['soil'][contaminant] * mobilisation
+            m_mobilised = (dict_flows_mm_hd[store] / 1e3 * area_m2) * dict_states_wq['soil'][contaminant] * mobilisation
             m_store = m_store_att + m_mobilised - dict_outputs_hd[store] * c_store
             if (m_store < 0.0) or (dict_states_hd[store] < volume_tolerance):
-                logger.info("{}: {} - {} Quantity in {} Store has gone negative, quantity reset "
-                            "to zero.".format(waterbody, datetime_time_step, contaminant.upper(), store.upper()))
+                logger.debug("{}: {} - {} Quantity in {} Store has gone negative, quantity reset "
+                             "to zero.".format(waterbody, datetime_time_step, contaminant.upper(), store.upper()))
                 dict_states_wq[store][contaminant] = 0.0
             else:
                 dict_states_wq[store][contaminant] = m_store / dict_states_hd[store]
@@ -516,15 +552,15 @@ def run(waterbody, dict_data_frame,
             dict_c_outflow[store][contaminant] = 0.0
         else:
             m_sediment_per_area = (sediment_k * dict_flows_mm_hd[store] ** sediment_p) * time_factor
-            m_sediment = m_sediment_per_area * area
-            dict_c_outflow[store][contaminant] = m_sediment / (dict_flows_mm_hd[store] / 1e3 * area)
+            m_sediment = m_sediment_per_area * area_m2
+            dict_c_outflow[store][contaminant] = m_sediment / (dict_flows_mm_hd[store] / 1e3 * area_m2)
         if store == 'ove':  # no mass balance, all sediment assumed gone
             dict_states_wq[store][contaminant] = 0.0
         elif store == 'dra':  # mass balance
             m_store = m_store_att + m_sediment - dict_outputs_hd[store] * dict_c_outflow[store][contaminant]
             if (m_store < 0.0) or (dict_states_hd[store] < volume_tolerance):
-                logger.info("{}: {} - {} Quantity in {} Store has gone negative, quantity reset "
-                            "to zero.".format(waterbody, datetime_time_step, contaminant.upper(), store.upper()))
+                logger.debug("{}: {} - {} Quantity in {} Store has gone negative, quantity reset "
+                             "to zero.".format(waterbody, datetime_time_step, contaminant.upper(), store.upper()))
                 dict_states_wq[store][contaminant] = 0.0
             else:
                 dict_states_wq[store][contaminant] = m_store / dict_states_hd[store]
@@ -566,11 +602,11 @@ def run(waterbody, dict_data_frame,
             dict_states_wq['soil'][contaminant] = dict_states_wq['soil']['p_org_fb'] + \
                 dict_states_wq['soil']['p_ino_fb']
             m_particulate_p -= m_particulate_p_missing
-            dict_c_outflow[store][contaminant] = m_particulate_p / (dict_flows_mm_hd[store] / 1e3 * area)
+            dict_c_outflow[store][contaminant] = m_particulate_p / (dict_flows_mm_hd[store] / 1e3 * area_m2)
         m_store = m_store_att + m_particulate_p - dict_outputs_hd[store] * c_store
         if (m_store < 0.0) or (dict_states_hd[store] < volume_tolerance):
-            logger.info("{}: {} - {} Quantity in {} Store has gone negative, quantity reset "
-                        "to zero.".format(waterbody, datetime_time_step, contaminant.upper(), store.upper()))
+            logger.debug("{}: {} - {} Quantity in {} Store has gone negative, quantity reset "
+                         "to zero.".format(waterbody, datetime_time_step, contaminant.upper(), store.upper()))
             dict_states_wq[store][contaminant] = 0.0
         else:
             dict_states_wq[store][contaminant] = m_store / dict_states_hd[store]
@@ -591,11 +627,11 @@ def run(waterbody, dict_data_frame,
             mobilisation = dict_mob_factors[store][contaminant]
             if (mobilisation < 0.0) or (mobilisation > 1.0):
                 mobilisation = 1.0
-            m_mobilised = (dict_flows_mm_hd[store] / 1e3 * area) * dict_states_wq['soil'][contaminant] * mobilisation
+            m_mobilised = (dict_flows_mm_hd[store] / 1e3 * area_m2) * dict_states_wq['soil'][contaminant] * mobilisation
             m_store = m_store_att + m_mobilised - dict_outputs_hd[store] * c_store
             if (m_store < 0.0) or (dict_states_hd[store] < volume_tolerance):
-                logger.info("{}: {} - {} Quantity in {} Store has gone negative, quantity reset "
-                            "to zero.".format(waterbody, datetime_time_step, contaminant.upper(), store.upper()))
+                logger.debug("{}: {} - {} Quantity in {} Store has gone negative, quantity reset "
+                             "to zero.".format(waterbody, datetime_time_step, contaminant.upper(), store.upper()))
                 dict_states_wq[store][contaminant] = 0.0
             else:
                 dict_states_wq[store][contaminant] = m_store / dict_states_hd[store]
@@ -621,7 +657,7 @@ def run(waterbody, dict_data_frame,
         fx = 0.0  # no fixation
     else:
         dn = c1 * s1  # denitrification
-        ni = c4 * s1 * dict_states_wq['soil']['nh4'] * (lvl_total_start / 1e3 * area)  # nitrification
+        ni = c4 * s1 * dict_states_wq['soil']['nh4'] * (lvl_total_start / 1e3 * area_m2)  # nitrification
         fx = 0.0  # fixation
     processes_attenuation = 1.0 - pu_no3 - dn + fx  # attenuation due to processes in soil system
     external_attenuation = dict_att_factors['soil']['no3']
@@ -630,14 +666,14 @@ def run(waterbody, dict_data_frame,
         attenuation = 1.0
     elif attenuation < 0.0:
         attenuation = 0.0
-    m_soil = dict_states_wq['soil']['no3'] * (lvl_total_start / 1e3 * area)  # mass in soil at beginning of time step
+    m_soil = dict_states_wq['soil']['no3'] * (lvl_total_start / 1e3 * area_m2)  # mass in soil at beginning of time step
     m_soil_new = m_soil * attenuation + ni * time_factor + dict_mass_applied['no3'] - dict_m_mobilised['no3']
-    if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area) < volume_tolerance):
-        logger.info("{}: {} - NO3 Quantity in SOIL Store has gone negative, quantity reset "
-                    "to zero.".format(waterbody, datetime_time_step))
+    if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area_m2) < volume_tolerance):
+        logger.debug("{}: {} - NO3 Quantity in SOIL Store has gone negative, quantity reset "
+                     "to zero.".format(waterbody, datetime_time_step))
         dict_states_wq['soil']['no3'] = 0.0
     else:
-        dict_states_wq['soil']['no3'] = m_soil_new / (lvl_total_end / 1e3 * area)
+        dict_states_wq['soil']['no3'] = m_soil_new / (lvl_total_end / 1e3 * area_m2)
 
     # ammonia
     c3_nh4 = cst_c7n * (1.047 ** (c_in_temp - 20.0))
@@ -647,7 +683,7 @@ def run(waterbody, dict_data_frame,
         mi = 0.0  # no mineralisation
     else:
         im = cst_c6n * (1.047 ** (c_in_temp - 20.0)) * s1  # immobilisation
-        mi = cst_c5n * (1.047 ** (c_in_temp - 20.0)) * s1 * area / 1e4  # mineralisation
+        mi = cst_c5n * (1.047 ** (c_in_temp - 20.0)) * s1 * area_m2 / 1e4  # mineralisation
     processes_attenuation = 1.0 - pu_nh4 - im
     external_attenuation = dict_att_factors['soil']['nh4']
     attenuation = (processes_attenuation * external_attenuation) ** time_factor
@@ -655,44 +691,44 @@ def run(waterbody, dict_data_frame,
         attenuation = 1.0
     elif attenuation < 0.0:
         attenuation = 0.0
-    m_soil = dict_states_wq['soil']['nh4'] * (lvl_total_start / 1e3 * area)
+    m_soil = dict_states_wq['soil']['nh4'] * (lvl_total_start / 1e3 * area_m2)
     m_soil_new = m_soil * attenuation + dict_mass_applied['nh4'] - (mi + ni) * time_factor - dict_m_mobilised['nh4']
-    if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area) < volume_tolerance):
-        logger.info("{}: {} - NH4 Quantity in SOIL Store has gone negative, quantity reset "
-                    "to zero.".format(waterbody, datetime_time_step))
+    if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area_m2) < volume_tolerance):
+        logger.debug("{}: {} - NH4 Quantity in SOIL Store has gone negative, quantity reset "
+                     "to zero.".format(waterbody, datetime_time_step))
         dict_states_wq['soil']['nh4'] = 0.0
     else:
-        dict_states_wq['soil']['nh4'] = m_soil_new / (lvl_total_end / 1e3 * area)
+        dict_states_wq['soil']['nh4'] = m_soil_new / (lvl_total_end / 1e3 * area_m2)
 
     # readily available inorganic phosphorus
     c3_p_ino_ra = cst_c6p * (1.047 ** (c_in_temp - 20.0))
     pu_p_ino_ra = c3_p_ino_ra * s1 * s2  # plant uptake
     pmi = cst_c3p * (1.047 ** (c_in_temp - 20.0)) * s1 * dict_states_wq['soil']['p_org_ra'] * \
-        (lvl_total_start / 1e3 * area)  # mineralisation
+        (lvl_total_start / 1e3 * area_m2)  # mineralisation
     pim = cst_c2p * (1.047 ** (c_in_temp - 20.0)) * s1 * dict_states_wq['soil']['p_ino_ra'] * \
-        (lvl_total_start / 1e3 * area)  # immobilisation
+        (lvl_total_start / 1e3 * area_m2)  # immobilisation
     processes_attenuation = 1.0 - pu_p_ino_ra
-    external_attenuation = dict_att_factors['soil']['dph']
+    external_attenuation = dict_att_factors['soil']['p_ino_ra']
     attenuation = (processes_attenuation * external_attenuation) ** time_factor
     if attenuation > 1.0:
         attenuation = 1.0
     elif attenuation < 0.0:
         attenuation = 0.0
     conversion_p_ino_fb_into_ra = (cst_c8p * dict_states_wq['soil']['p_ino_fb'])
-    conversion_p_ino_ra_into_fb = (cst_c7p * dict_states_wq['soil']['p_ino_ra'] * (lvl_total_start / 1e3 * area))
-    m_soil = dict_states_wq['soil']['p_ino_ra'] * (lvl_total_start / 1e3 * area)
+    conversion_p_ino_ra_into_fb = (cst_c7p * dict_states_wq['soil']['p_ino_ra'] * (lvl_total_start / 1e3 * area_m2))
+    m_soil = dict_states_wq['soil']['p_ino_ra'] * (lvl_total_start / 1e3 * area_m2)
     m_soil_new = m_soil * attenuation + dict_mass_applied['p_ino'] - 0.5 * dict_m_mobilised['dph'] + \
         (pmi - pim + conversion_p_ino_fb_into_ra - conversion_p_ino_ra_into_fb) * time_factor
-    if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area) < volume_tolerance):
-        logger.info("{}: {} - P_INO_RA Quantity in SOIL Store has gone negative, quantity reset "
-                    "to zero.".format(waterbody, datetime_time_step))
+    if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area_m2) < volume_tolerance):
+        logger.debug("{}: {} - P_INO_RA Quantity in SOIL Store has gone negative, quantity reset "
+                     "to zero.".format(waterbody, datetime_time_step))
         dict_states_wq['soil']['p_ino_ra'] = 0.0
     else:
-        dict_states_wq['soil']['p_ino_ra'] = m_soil_new / (lvl_total_end / 1e3 * area)
+        dict_states_wq['soil']['p_ino_ra'] = m_soil_new / (lvl_total_end / 1e3 * area_m2)
 
     # firmly bound inorganic phosphorus
     processes_attenuation = 1.0  # no processes consume firmly bound P
-    external_attenuation = dict_att_factors['soil']['pph']
+    external_attenuation = dict_att_factors['soil']['p_ino_fb']
     attenuation = (processes_attenuation * external_attenuation) ** time_factor
     if attenuation > 1.0:
         attenuation = 1.0
@@ -701,9 +737,9 @@ def run(waterbody, dict_data_frame,
     m_soil = dict_states_wq['soil']['p_ino_fb']
     m_soil_new = m_soil * attenuation - 0.5 * dict_m_mobilised['pph'] + \
         (conversion_p_ino_ra_into_fb - conversion_p_ino_fb_into_ra) * time_factor
-    if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area) < volume_tolerance):
-        logger.info("{}: {} - P_INO_FB Quantity in SOIL Store has gone negative, quantity reset "
-                    "to zero.".format(waterbody, datetime_time_step))
+    if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area_m2) < volume_tolerance):
+        logger.debug("{}: {} - P_INO_FB Quantity in SOIL Store has gone negative, quantity reset "
+                     "to zero.".format(waterbody, datetime_time_step))
         dict_states_wq['soil']['p_ino_fb'] = 0.0
     else:
         dict_states_wq['soil']['p_ino_fb'] = m_soil_new
@@ -712,27 +748,27 @@ def run(waterbody, dict_data_frame,
     c3_p_org_ra = cst_c1p * (1.047 ** (c_in_temp - 20.0))
     pu_p_org_ra = c3_p_org_ra * s1 * s2  # plant uptake
     processes_attenuation = 1.0 - pu_p_org_ra
-    external_attenuation = dict_att_factors['soil']['dph']
+    external_attenuation = dict_att_factors['soil']['p_org_ra']
     attenuation = (processes_attenuation * external_attenuation) ** time_factor
     if attenuation > 1.0:
         attenuation = 1.0
     elif attenuation < 0.0:
         attenuation = 0.0
     conversion_p_org_fb_into_ra = (cst_c5p * dict_states_wq['soil']['p_org_fb'])
-    conversion_p_org_ra_into_fb = (cst_c4p * dict_states_wq['soil']['p_org_ra'] * (lvl_total_start / 1e3 * area))
-    m_soil = dict_states_wq['soil']['p_org_ra'] * (lvl_total_start / 1e3 * area)
+    conversion_p_org_ra_into_fb = (cst_c4p * dict_states_wq['soil']['p_org_ra'] * (lvl_total_start / 1e3 * area_m2))
+    m_soil = dict_states_wq['soil']['p_org_ra'] * (lvl_total_start / 1e3 * area_m2)
     m_soil_new = m_soil * attenuation + dict_mass_applied['p_org'] - 0.5 * dict_m_mobilised['dph'] + \
         (pim - pmi + conversion_p_org_fb_into_ra - conversion_p_org_ra_into_fb) * time_factor
-    if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area) < volume_tolerance):
-        logger.info("{}: {} - P_ORG_RA Quantity in SOIL Store has gone negative, quantity reset "
-                    "to zero.".format(waterbody, datetime_time_step))
+    if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area_m2) < volume_tolerance):
+        logger.debug("{}: {} - P_ORG_RA Quantity in SOIL Store has gone negative, quantity reset "
+                     "to zero.".format(waterbody, datetime_time_step))
         dict_states_wq['soil']['p_org_ra'] = 0.0
     else:
-        dict_states_wq['soil']['p_org_ra'] = m_soil_new / (lvl_total_end / 1e3 * area)
+        dict_states_wq['soil']['p_org_ra'] = m_soil_new / (lvl_total_end / 1e3 * area_m2)
 
     # firmly bound organic phosphorus
     processes_attenuation = 1.0  # no processes consume firmly bound P
-    external_attenuation = dict_att_factors['soil']['pph']
+    external_attenuation = dict_att_factors['soil']['p_org_fb']
     attenuation = (processes_attenuation * external_attenuation) ** time_factor
     if attenuation > 1.0:
         attenuation = 1.0
@@ -741,9 +777,9 @@ def run(waterbody, dict_data_frame,
     m_soil = dict_states_wq['soil']['p_org_fb']
     m_soil_new = m_soil * attenuation - 0.5 * dict_m_mobilised['pph'] + \
         (conversion_p_ino_ra_into_fb - conversion_p_ino_fb_into_ra) * time_factor
-    if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area) < volume_tolerance):
-        logger.info("{}: {} - P_ORG_FB Quantity in SOIL Store has gone negative, quantity reset "
-                    "to zero.".format(waterbody, datetime_time_step))
+    if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area_m2) < volume_tolerance):
+        logger.debug("{}: {} - P_ORG_FB Quantity in SOIL Store has gone negative, quantity reset "
+                     "to zero.".format(waterbody, datetime_time_step))
         dict_states_wq['soil']['p_org_fb'] = 0.0
     else:
         dict_states_wq['soil']['p_org_fb'] = m_soil_new
@@ -754,8 +790,6 @@ def run(waterbody, dict_data_frame,
 
     dict_data_frame[waterbody].set_value(datetime_time_step, "c_in_temp", c_in_temp)
 
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_in_rain", c_in_rain)
-
     for contaminant in stores_contaminants:
         m_outflow = 0.0
         for store in stores:
@@ -765,9 +799,13 @@ def run(waterbody, dict_data_frame,
                                                  dict_c_outflow[store][contaminant])
             m_outflow += dict_c_outflow[store][contaminant] * \
                 dict_data_frame[waterbody].loc[datetime_time_step, "c_out_q_h2o_{}".format(store)]
-        c_outflow = m_outflow / dict_data_frame[waterbody].loc[datetime_time_step, "c_out_q_h2o"]
-        dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_c_{}".format(contaminant), c_outflow)
+        if dict_data_frame[waterbody].loc[datetime_time_step, "c_out_q_h2o"] > 0.0:
+            c_outflow = m_outflow / dict_data_frame[waterbody].loc[datetime_time_step, "c_out_q_h2o"]
+        else:
+            c_outflow = 0.0
+        dict_data_frame[waterbody].set_value(datetime_time_step, "c_out_c_{}".format(contaminant), c_outflow)
 
     for contaminant in soil_contaminants:
-        dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_c_{}_soil".format(contaminant),
+        dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_{}_{}_soil".format(soil_contaminants[contaminant],
+                                                                                         contaminant),
                                              dict_states_wq['soil'][contaminant])

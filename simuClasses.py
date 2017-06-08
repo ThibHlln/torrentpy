@@ -82,8 +82,8 @@ class Model:
                         my_string = row[1]
                         count += 1
                 if count == 0:
-                    sys.exit("There is no {} specifications line in {}{}.".format(specs_type, specs_folder,
-                                                                                  self.identifier))
+                    sys.exit("There is no {} specifications line in {}{}.spec.".format(specs_type, specs_folder,
+                                                                                       self.identifier))
                 elif count > 1:
                     sys.exit("There is more than one input specifications line in {}{}.".format(specs_type,
                                                                                                 specs_folder,
@@ -94,21 +94,21 @@ class Model:
             sys.exit("There is no specifications file for {} in {}.".format(self.identifier, specs_folder))
 
     def run(self, obj_network, waterbody, dict_data_frame,
-            dict_param, dict_const, dict_meteo, dict_loads,
+            dict_desc, dict_param, dict_const, dict_meteo, dict_loads,
             datetime_time_step, time_gap, logger):
         if self.category == "CATCHMENT":
             sM.catchment_model(self.identifier, waterbody, dict_data_frame,
-                               dict_param, dict_const, dict_meteo, dict_loads,
+                               dict_desc, dict_param, dict_const, dict_meteo, dict_loads,
                                datetime_time_step, time_gap,
                                logger)
         elif self.category == "RIVER":
             sM.river_model(self.identifier, obj_network, waterbody, dict_data_frame,
-                           dict_param, dict_meteo,
+                           dict_desc, dict_param, dict_meteo,
                            datetime_time_step, time_gap,
                            logger)
         elif self.category == "LAKE":
             sM.lake_model(self.identifier, waterbody, dict_data_frame,
-                          dict_param, dict_meteo,
+                          dict_desc, dict_param, dict_meteo,
                           datetime_time_step, time_gap,
                           logger)
 

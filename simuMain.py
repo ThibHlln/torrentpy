@@ -10,11 +10,11 @@ import simuFunctions as sFn
 def main():
 
     # User-defined parameters
-    catchment = "Test"
-    outlet = "IE_SE_16A010800"
+    catchment = "Morell"
+    outlet = "IE_EA_09M010300"
 
-    my_simu_start = (2011, 1, 1, 9, 0, 0)
-    my_simu_end = (2011, 1, 10, 9, 0, 0)
+    my_simu_start = (2007, 1, 1, 9, 0, 0)
+    my_simu_end = (2007, 1, 10, 9, 0, 0)
     time_step_in_minutes = 1440.0
 
     # Location of the different needed folders
@@ -40,14 +40,14 @@ def main():
                                        my_simu_start[3], my_simu_start[4], my_simu_start[5])
     datetime_end = datetime.datetime(my_simu_end[0], my_simu_end[1], my_simu_end[2],
                                      my_simu_end[3], my_simu_end[4], my_simu_end[5])
-    time_steps = TimeFrame(datetime_start, datetime_end, time_step_in_minutes).get_list_datetime()
+    time_steps = TimeFrame(datetime_start, datetime_end, int(time_step_in_minutes)).get_list_datetime()
 
     # Declare all the dictionaries that will be needed, all using the waterbody code as a key
     dict__models = dict()  # key: waterbody, value: list of model objects
     dict_meteo = dict()  # key: waterbody, value: data frame (x: time step, y: meteo data type)
     dict_storage = dict()  # key: waterbody, value: data frame (x: time step, y: data type)
 
-    # Create a Network object from networkNodesLinks and waterBodies files
+    # Create a Network object from network and waterBodies files
     my__network = Network(catchment, outlet, input_folder)
 
     # Initiate everything needed for the nodes
@@ -83,15 +83,20 @@ def main():
     # Read the parameters, or read the descriptors file and generate the parameters
     if os.path.isfile('{}{}_{}.parameters'.format(input_folder, catchment, outlet)):
         dict_param = sF.get_dict_parameters_from_file(catchment, outlet, my__network, dict__models, input_folder)
+        dict_desc = sF.get_dict_floats_from_file("descriptors", catchment, outlet, my__network, input_folder)
+    elif os.path.isfile('{}{}_{}.descriptors'.format(input_folder, catchment, outlet)):
+        dict_desc = sF.get_dict_floats_from_file("descriptors", catchment, outlet, my__network, input_folder)
+        dict_param = sFn.infer_parameters_from_descriptors(my__network, dict_desc, logger)
+        df_param = DataFrame.from_dict(dict_param, orient='index')
+        df_param.to_csv('{}{}_{}.parameters'.format(output_folder, catchment.capitalize(), outlet))
     else:
-        if os.path.isfile('{}{}_{}.descriptors'.format(input_folder, catchment, outlet)):
-            dict_desc = sF.get_dict_variables_from_file("descriptors", catchment, outlet, my__network, input_folder)
-            dict_param = sFn.infer_parameters_from_descriptors(my__network, dict_desc)
-        else:
-            sys.exit("Parameters are not available from files.")
+        sys.exit("Parameters are not available from files.")
 
     # Read in loadings file
-    dict_loads = sF.get_dict_variables_from_file("loadings", catchment, outlet, my__network, input_folder)
+    dict_annual_loads = sF.get_dict_floats_from_file("loadings", catchment, outlet, my__network, input_folder)
+    dict_applications = sF.get_dict_strings_from_file("applications", catchment, outlet, my__network, input_folder)
+    dict_loadings = sFn.distribute_loadings_across_year(my__network, dict_annual_loads, dict_applications,
+                                                        time_steps, specifications_folder)
 
     # Read the constants in .const file
     dict_const = dict()
@@ -110,7 +115,7 @@ def main():
         for link in my__network.links:
             for model in dict__models[link]:
                 model.run(my__network, link, dict_storage,
-                          dict_param, dict_const, dict_meteo, dict_loads,
+                          dict_desc, dict_param, dict_const, dict_meteo, dict_loadings,
                           step, time_step_in_minutes,
                           logger)
         # Sum up everything coming from upstream for each node
@@ -131,19 +136,38 @@ def main():
                 for variable in ["c_no3", "c_nh4", "c_dph", "c_pph", "c_sed"]:
                     for link in my__network.additions[node]:
                         if my__network.categories[link] == "11":
-                            my_dict_variables[variable] += dict_storage[link].loc[step, "c_out_" + variable] / \
-                                dict_storage[link].loc[step, "c_out_q_h2o" + variable]
+                            my_dict_variables[variable] += dict_storage[link].loc[step, "c_out_" + variable] * \
+                                dict_storage[link].loc[step, "c_out_q_h2o"]
                         elif my__network.categories[link] == "10":
-                            my_dict_variables[variable] += dict_storage[link].loc[step, "r_out_" + variable] / \
-                                dict_storage[link].loc[step, "c_out_q_h2o" + variable]
-                            my_dict_variables[variable] += dict_storage[link].loc[step, "c_out_" + variable] / \
-                                dict_storage[link].loc[step, "c_out_q_h2o" + variable]
+                            my_dict_variables[variable] += dict_storage[link].loc[step, "r_out_" + variable] * \
+                                dict_storage[link].loc[step, "r_out_q_h2o"]
+                            my_dict_variables[variable] += dict_storage[link].loc[step, "c_out_" + variable] * \
+                                dict_storage[link].loc[step, "c_out_q_h2o"]
                         elif my__network.categories[link] == "20":
-                            my_dict_variables[variable] += dict_storage[link].loc[step, "l_out_" + variable] / \
-                                dict_storage[link].loc[step, "c_out_q_h2o" + variable]
-                    dict_storage[node].set_value(step, variable,
-                                                 my_dict_variables[variable] / my_dict_variables["q_h2o"])
+                            my_dict_variables[variable] += dict_storage[link].loc[step, "l_out_" + variable] * \
+                                dict_storage[link].loc[step, "l_out_q_h2o"]
+                    if my_dict_variables["q_h2o"] > 0.0:
+                        dict_storage[node].set_value(step, variable,
+                                                     my_dict_variables[variable] / my_dict_variables["q_h2o"])
                     my_dict_variables[variable] = 0.0
+
+    for link in my__network.links:
+        my_inputs = list()
+        my_states = list()
+        my_outputs = list()
+        for model in dict__models[link]:
+            my_inputs += model.input_names
+            my_states += model.state_names
+            my_outputs += model.output_names
+        dict_storage[link].to_csv('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link),
+                                  columns=my_inputs, float_format='%e')
+        dict_storage[link].to_csv('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link),
+                                  columns=my_states, float_format='%e')
+        dict_storage[link].to_csv('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link),
+                                  columns=my_outputs, float_format='%e')
+    for node in my__network.nodes:
+        dict_storage[node].to_csv('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node),
+                                  float_format='%e')
 
 
 if __name__ == "__main__":
