@@ -108,7 +108,7 @@ class Model:
                                logger)
         elif self.category == "RIVER":
             sM.river_model(self.identifier, obj_network, waterbody, dict_data_frame,
-                           dict_desc, dict_param, dict_meteo,
+                           dict_param, dict_meteo,
                            datetime_time_step, time_gap,
                            logger)
         elif self.category == "LAKE":

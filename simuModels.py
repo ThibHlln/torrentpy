@@ -21,15 +21,19 @@ def catchment_model(identifier, waterbody, dict_data_frame,
 
 
 def river_model(identifier, obj_network, waterbody, dict_data_frame,
-                dict_desc, dict_param, dict_meteo,
+                dict_param, dict_meteo,
                 datetime_time_step, time_gap,
                 logger):
 
-    if identifier == "LINRES":
+    if identifier == "LINRES_INCAS":
         linres.run(obj_network, waterbody, dict_data_frame,
-                   dict_desc, dict_param, dict_meteo,
+                   dict_param,
                    datetime_time_step, time_gap,
                    logger)
+        inca.run_in_stream(obj_network, waterbody, dict_data_frame,
+                           dict_param, dict_meteo,
+                           datetime_time_step, time_gap,
+                           logger)
 
 
 def lake_model(identifier, waterbody, dict_data_frame,

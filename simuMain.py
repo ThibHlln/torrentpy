@@ -64,7 +64,7 @@ def main():
             dict_meteo[link] = sF.get_data_frame_for_daily_meteo_data(catchment, link, time_steps, input_folder)
         elif my__network.categories[link] == "10":  # river
             dict__models[link] = [Model("CATCHMENT", "SMART_INCAL", specifications_folder),
-                                  Model("RIVER", "LINRES", specifications_folder)]
+                                  Model("RIVER", "LINRES_INCAS", specifications_folder)]
             dict_meteo[link] = sF.get_data_frame_for_daily_meteo_data(catchment, link, time_steps, input_folder)
         elif my__network.categories[link] == "20":  # lake
             dict__models[link] = [Model("LAKE", "BATHTUB", specifications_folder)]
