@@ -1,3 +1,4 @@
+import sys
 
 
 from models import smart, linres, inca
@@ -18,6 +19,13 @@ def catchment_model(identifier, waterbody, dict_data_frame,
                          datetime_time_step, time_gap,
                          logger,
                          my_dict_hydro)
+    elif identifier == "SMART":
+        smart.run(waterbody, dict_data_frame,
+                  dict_desc, dict_param, dict_meteo,
+                  datetime_time_step, time_gap,
+                  logger)
+    else:
+        sys.exit('The model {} is not associated to any script.'.format(identifier))
 
 
 def river_model(identifier, obj_network, waterbody, dict_data_frame,
@@ -34,6 +42,13 @@ def river_model(identifier, obj_network, waterbody, dict_data_frame,
                            dict_param, dict_meteo,
                            datetime_time_step, time_gap,
                            logger)
+    elif identifier == "LINRES":
+        linres.run(obj_network, waterbody, dict_data_frame,
+                   dict_param,
+                   datetime_time_step, time_gap,
+                   logger)
+    else:
+        sys.exit('The model {} is not associated to any script.'.format(identifier))
 
 
 def lake_model(identifier, waterbody, dict_data_frame,
