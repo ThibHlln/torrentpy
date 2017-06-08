@@ -60,10 +60,10 @@ def main():
     for link in my__network.links:
         # Declare Model objects and get meteo DataFrame
         if my__network.categories[link] == "11":  # river headwater
-            dict__models[link] = [Model("CATCHMENT", "SMART_INCA", specifications_folder)]
+            dict__models[link] = [Model("CATCHMENT", "SMART_INCAL", specifications_folder)]
             dict_meteo[link] = sF.get_data_frame_for_daily_meteo_data(catchment, link, time_steps, input_folder)
         elif my__network.categories[link] == "10":  # river
-            dict__models[link] = [Model("CATCHMENT", "SMART_INCA", specifications_folder),
+            dict__models[link] = [Model("CATCHMENT", "SMART_INCAL", specifications_folder),
                                   Model("RIVER", "LINRES", specifications_folder)]
             dict_meteo[link] = sF.get_data_frame_for_daily_meteo_data(catchment, link, time_steps, input_folder)
         elif my__network.categories[link] == "20":  # lake
@@ -100,7 +100,7 @@ def main():
 
     # Read the constants in .const file
     dict_const = dict()
-    dict_const["INCA"] = sF.get_dict_constants_from_file("INCA", specifications_folder)
+    dict_const["INCAL"] = sF.get_dict_constants_from_file("INCAL", specifications_folder)
 
     # Initial for reservoirs
     # # TO BE DEFINED

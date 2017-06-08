@@ -8,7 +8,7 @@ def catchment_model(identifier, waterbody, dict_data_frame,
                     datetime_time_step, time_gap,
                     logger):
 
-    if identifier == "SMART_INCA":
+    if identifier == "SMART_INCAL":
         my_dict_hydro = smart.run(waterbody, dict_data_frame,
                                   dict_desc, dict_param, dict_meteo,
                                   datetime_time_step, time_gap,

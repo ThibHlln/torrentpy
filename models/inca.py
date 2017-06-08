@@ -46,7 +46,7 @@ def run_on_land(waterbody, dict_data_frame,
     _____ c_s_c_no3_soil        concentration of nitrate in soil column [kg/m3]
     _____ c_s_c_nh4_soil        concentration of ammonia in soil column [kg/m3]
     _____ c_s_c_p_org_ra_soil   concentration of readily available organic phosphorus in soil column [kg/m3]
-    _____ c_s_c_p_ino_ra_soil   concentration of readily available inorganic phosphorus phosphorus in soil column [kg/m3]
+    _____ c_s_c_p_ino_ra_soil   concentration of readily available inorganic phosphorus in soil column [kg/m3]
     _____ c_s_m_p_org_fb_soil   mass of firmly bound organic phosphorus in soil column [kg]
     _____ c_s_m_p_ino_fb_soil   mass of firmly bound inorganic phosphorus in soil column [kg]
     _____ c_s_m_sed_soil        mass of sediment in soil column [kg]
@@ -197,7 +197,7 @@ def run_on_land(waterbody, dict_data_frame,
                                                                     "c_s_c_{}_{}".format(contaminant, store)]
             my_dict_2[contaminant] = 0.0
             my_dict_3[contaminant] = dict_param[waterbody]["c_p_att_{}_{}".format(contaminant, store)] * time_factor
-            my_dict_4[contaminant] = dict_const["INCA"]["c_cst_mob_{}_{}".format(contaminant, store)]
+            my_dict_4[contaminant] = dict_const["INCAL"]["c_cst_mob_{}_{}".format(contaminant, store)]
         dict_states_wq[store] = my_dict_1
         dict_c_outflow[store] = my_dict_2
         dict_att_factors[store] = my_dict_3
@@ -215,32 +215,32 @@ def run_on_land(waterbody, dict_data_frame,
     dict_states_wq['soil']['dph'] = dict_states_wq['soil']['p_org_ra'] + dict_states_wq['soil']['p_ino_ra']  # [kg/m3]
     dict_states_wq['soil']['pph'] = dict_states_wq['soil']['p_org_fb'] + dict_states_wq['soil']['p_ino_fb']  # [kg]
     dict_att_factors['soil'] = my_dict_6
-    daily_sediment_threshold = dict_const["INCA"]['c_cst_sed_daily_thresh']  # [mm/day]
+    daily_sediment_threshold = dict_const["INCAL"]['c_cst_sed_daily_thresh']  # [mm/day]
     sediment_threshold = daily_sediment_threshold * time_factor
-    sediment_k = dict_const["INCA"]['c_cst_sed_k']
-    sediment_p = dict_const["INCA"]['c_cst_sed_p']
-    soil_test_p = dict_const["INCA"]['c_cst_soil_test_p']  # [kg/kg]
-    day_growing_season = dict_const["INCA"]['c_cst_day_grow']
+    sediment_k = dict_const["INCAL"]['c_cst_sed_k']
+    sediment_p = dict_const["INCAL"]['c_cst_sed_p']
+    soil_test_p = dict_const["INCAL"]['c_cst_soil_test_p']  # [kg/kg]
+    day_growing_season = dict_const["INCAL"]['c_cst_day_grow']
     day_of_year = float(datetime_time_step.timetuple().tm_yday)
     if calendar.isleap(datetime_time_step.timetuple().tm_year):
         days_in_year = 366.0
     else:
         days_in_year = 365.0
 
-    cst_c1n = dict_const["INCA"]["c_cst_soil_c1n"]  # rate coefficient (m/day) for denitrification
-    cst_c3n = dict_const["INCA"]["c_cst_soil_c3n"]  # rate coefficient (m/day) for NO3 plant uptake
-    cst_c4n = dict_const["INCA"]["c_cst_soil_c4n"]  # rate coefficient (m/day) for nitrification
-    cst_c5n = dict_const["INCA"]["c_cst_soil_c5n"]  # rate coefficient (m/day) for N mineralisation
-    cst_c6n = dict_const["INCA"]["c_cst_soil_c6n"]  # rate coefficient (m/day) for N immobilisation
-    cst_c7n = dict_const["INCA"]["c_cst_soil_c7n"]  # rate coefficient (m/day) for NH4 plant uptake
-    cst_c1p = dict_const["INCA"]["c_cst_soil_c1p"]  # rate coefficient (m/day) for organic P plant uptake
-    cst_c2p = dict_const["INCA"]["c_cst_soil_c2p"]  # rate coefficient (m/day) for P immobilisation
-    cst_c3p = dict_const["INCA"]["c_cst_soil_c3p"]  # rate coefficient (m/day) for P mineralisation
-    cst_c4p = dict_const["INCA"]["c_cst_soil_c4p"]  # conversion rate of r. avail. organic P into f. bound organic P
-    cst_c5p = dict_const["INCA"]["c_cst_soil_c5p"]  # conversion rate of f. bound organic P into r. avail. organic P
-    cst_c6p = dict_const["INCA"]["c_cst_soil_c6p"]  # rate coefficient (m/day) for inorganic P plant uptake
-    cst_c7p = dict_const["INCA"]["c_cst_soil_c7p"]  # conversion rate of r. avail. ino. P into f. bound ino. P
-    cst_c8p = dict_const["INCA"]["c_cst_soil_c8p"]  # conversion rate of f. bound ino. P into r. available ino. P
+    cst_c1n = dict_const["INCAL"]["c_cst_soil_c1n"]  # rate coefficient (m/day) for denitrification
+    cst_c3n = dict_const["INCAL"]["c_cst_soil_c3n"]  # rate coefficient (m/day) for NO3 plant uptake
+    cst_c4n = dict_const["INCAL"]["c_cst_soil_c4n"]  # rate coefficient (m/day) for nitrification
+    cst_c5n = dict_const["INCAL"]["c_cst_soil_c5n"]  # rate coefficient (m/day) for N mineralisation
+    cst_c6n = dict_const["INCAL"]["c_cst_soil_c6n"]  # rate coefficient (m/day) for N immobilisation
+    cst_c7n = dict_const["INCAL"]["c_cst_soil_c7n"]  # rate coefficient (m/day) for NH4 plant uptake
+    cst_c1p = dict_const["INCAL"]["c_cst_soil_c1p"]  # rate coefficient (m/day) for organic P plant uptake
+    cst_c2p = dict_const["INCAL"]["c_cst_soil_c2p"]  # rate coefficient (m/day) for P immobilisation
+    cst_c3p = dict_const["INCAL"]["c_cst_soil_c3p"]  # rate coefficient (m/day) for P mineralisation
+    cst_c4p = dict_const["INCAL"]["c_cst_soil_c4p"]  # conversion rate of r. avail. organic P into f. bound organic P
+    cst_c5p = dict_const["INCAL"]["c_cst_soil_c5p"]  # conversion rate of f. bound organic P into r. avail. organic P
+    cst_c6p = dict_const["INCAL"]["c_cst_soil_c6p"]  # rate coefficient (m/day) for inorganic P plant uptake
+    cst_c7p = dict_const["INCAL"]["c_cst_soil_c7p"]  # conversion rate of r. avail. ino. P into f. bound ino. P
+    cst_c8p = dict_const["INCAL"]["c_cst_soil_c8p"]  # conversion rate of f. bound ino. P into r. available ino. P
 
     # # 2.2. Water quality calculations
     # # 2.2.1. Overland flow contamination & drain flow contamination
@@ -336,7 +336,7 @@ def run_on_land(waterbody, dict_data_frame,
                     m_particulate_p_missing -= dict_states_wq['soil']['p_org_fb']
                     dict_states_wq['soil']['p_org_fb'] = 0.0
             dict_states_wq['soil'][contaminant] = dict_states_wq['soil']['p_org_fb'] + \
-                                                  dict_states_wq['soil']['p_ino_fb']
+                dict_states_wq['soil']['p_ino_fb']
             m_particulate_p -= m_particulate_p_missing
             dict_c_outflow[store][contaminant] = m_particulate_p / (dict_flows_mm_hd[store] / 1e3 * area_m2)
         m_store = m_store_att + m_particulate_p - dict_outputs_hd[store] * c_store
@@ -440,9 +440,9 @@ def run_on_land(waterbody, dict_data_frame,
     c3_p_ino_ra = cst_c6p * (1.047 ** (c_in_temp - 20.0))
     pu_p_ino_ra = c3_p_ino_ra * s1 * s2  # plant uptake
     pmi = cst_c3p * (1.047 ** (c_in_temp - 20.0)) * s1 * dict_states_wq['soil']['p_org_ra'] * \
-          (lvl_total_start / 1e3 * area_m2)  # mineralisation
+        (lvl_total_start / 1e3 * area_m2)  # mineralisation
     pim = cst_c2p * (1.047 ** (c_in_temp - 20.0)) * s1 * dict_states_wq['soil']['p_ino_ra'] * \
-          (lvl_total_start / 1e3 * area_m2)  # immobilisation
+        (lvl_total_start / 1e3 * area_m2)  # immobilisation
     processes_attenuation = 1.0 - pu_p_ino_ra
     external_attenuation = dict_att_factors['soil']['p_ino_ra']
     attenuation = (processes_attenuation * external_attenuation) ** time_factor
@@ -454,7 +454,7 @@ def run_on_land(waterbody, dict_data_frame,
     conversion_p_ino_ra_into_fb = (cst_c7p * dict_states_wq['soil']['p_ino_ra'] * (lvl_total_start / 1e3 * area_m2))
     m_soil = dict_states_wq['soil']['p_ino_ra'] * (lvl_total_start / 1e3 * area_m2)
     m_soil_new = m_soil * attenuation + dict_mass_applied['p_ino'] - 0.5 * dict_m_mobilised['dph'] + \
-                 (pmi - pim + conversion_p_ino_fb_into_ra - conversion_p_ino_ra_into_fb) * time_factor
+        (pmi - pim + conversion_p_ino_fb_into_ra - conversion_p_ino_ra_into_fb) * time_factor
     if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area_m2) < volume_tolerance):
         logger.debug("{}: {} - P_INO_RA Quantity in SOIL Store has gone negative, quantity reset "
                      "to zero.".format(waterbody, datetime_time_step))
@@ -472,7 +472,7 @@ def run_on_land(waterbody, dict_data_frame,
         attenuation = 0.0
     m_soil = dict_states_wq['soil']['p_ino_fb']
     m_soil_new = m_soil * attenuation - 0.5 * dict_m_mobilised['pph'] + \
-                 (conversion_p_ino_ra_into_fb - conversion_p_ino_fb_into_ra) * time_factor
+        (conversion_p_ino_ra_into_fb - conversion_p_ino_fb_into_ra) * time_factor
     if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area_m2) < volume_tolerance):
         logger.debug("{}: {} - P_INO_FB Quantity in SOIL Store has gone negative, quantity reset "
                      "to zero.".format(waterbody, datetime_time_step))
@@ -494,7 +494,7 @@ def run_on_land(waterbody, dict_data_frame,
     conversion_p_org_ra_into_fb = (cst_c4p * dict_states_wq['soil']['p_org_ra'] * (lvl_total_start / 1e3 * area_m2))
     m_soil = dict_states_wq['soil']['p_org_ra'] * (lvl_total_start / 1e3 * area_m2)
     m_soil_new = m_soil * attenuation + dict_mass_applied['p_org'] - 0.5 * dict_m_mobilised['dph'] + \
-                 (pim - pmi + conversion_p_org_fb_into_ra - conversion_p_org_ra_into_fb) * time_factor
+        (pim - pmi + conversion_p_org_fb_into_ra - conversion_p_org_ra_into_fb) * time_factor
     if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area_m2) < volume_tolerance):
         logger.debug("{}: {} - P_ORG_RA Quantity in SOIL Store has gone negative, quantity reset "
                      "to zero.".format(waterbody, datetime_time_step))
@@ -512,7 +512,7 @@ def run_on_land(waterbody, dict_data_frame,
         attenuation = 0.0
     m_soil = dict_states_wq['soil']['p_org_fb']
     m_soil_new = m_soil * attenuation - 0.5 * dict_m_mobilised['pph'] + \
-                 (conversion_p_ino_ra_into_fb - conversion_p_ino_fb_into_ra) * time_factor
+        (conversion_p_ino_ra_into_fb - conversion_p_ino_fb_into_ra) * time_factor
     if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area_m2) < volume_tolerance):
         logger.debug("{}: {} - P_ORG_FB Quantity in SOIL Store has gone negative, quantity reset "
                      "to zero.".format(waterbody, datetime_time_step))
