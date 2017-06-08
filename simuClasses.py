@@ -72,26 +72,31 @@ class Model:
         self.constant_names = Model.get_one_list(self, specs_folder, "constants")
 
     def get_one_list(self, specs_folder, specs_type):
-        try:
-            with open(specs_folder + self.identifier + ".spec") as my_file:
-                my_reader = csv.reader(my_file)
-                my_string = list()
-                count = 0
-                for row in my_reader:
-                    if row[0] == specs_type:
-                        my_string = row[1]
-                        count += 1
-                if count == 0:
-                    sys.exit("There is no {} specifications line in {}{}.spec.".format(specs_type, specs_folder,
-                                                                                       self.identifier))
-                elif count > 1:
-                    sys.exit("There is more than one input specifications line in {}{}.".format(specs_type,
-                                                                                                specs_folder,
-                                                                                                self.identifier))
-            return my_string.split(";")
+        components = self.identifier.split('_')
+        my_list = list()
+        for component in components:
+            try:
+                with open(specs_folder + component + ".spec") as my_file:
+                    my_reader = csv.reader(my_file)
+                    my_string = list()
+                    count = 0
+                    for row in my_reader:
+                        if row[0] == specs_type:
+                            my_string = row[1]
+                            count += 1
+                    if count == 0:
+                        sys.exit("There is no {} specifications line in {}{}.spec.".format(specs_type, specs_folder,
+                                                                                           component))
+                    elif count > 1:
+                        sys.exit("There is more than one input specifications line in {}{}.".format(specs_type,
+                                                                                                    specs_folder,
+                                                                                                    component))
+                    my_list.extend(my_string.split(";"))
 
-        except IOError:
-            sys.exit("There is no specifications file for {} in {}.".format(self.identifier, specs_folder))
+            except IOError:
+                sys.exit("There is no specifications file for {} in {}.".format(component, specs_folder))
+
+        return my_list
 
     def run(self, obj_network, waterbody, dict_data_frame,
             dict_desc, dict_param, dict_const, dict_meteo, dict_loads,

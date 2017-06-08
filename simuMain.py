@@ -60,10 +60,10 @@ def main():
     for link in my__network.links:
         # Declare Model objects and get meteo DataFrame
         if my__network.categories[link] == "11":  # river headwater
-            dict__models[link] = [Model("CATCHMENT", "SMART", specifications_folder)]
+            dict__models[link] = [Model("CATCHMENT", "SMART_INCA", specifications_folder)]
             dict_meteo[link] = sF.get_data_frame_for_daily_meteo_data(catchment, link, time_steps, input_folder)
         elif my__network.categories[link] == "10":  # river
-            dict__models[link] = [Model("CATCHMENT", "SMART", specifications_folder),
+            dict__models[link] = [Model("CATCHMENT", "SMART_INCA", specifications_folder),
                                   Model("RIVER", "LINRES", specifications_folder)]
             dict_meteo[link] = sF.get_data_frame_for_daily_meteo_data(catchment, link, time_steps, input_folder)
         elif my__network.categories[link] == "20":  # lake
@@ -81,16 +81,16 @@ def main():
         dict_storage[link] = DataFrame(index=time_steps, columns=my_headers).fillna(0.0)  # filled with zeros
 
     # Read the parameters, or read the descriptors file and generate the parameters
-    if os.path.isfile('{}{}_{}.parameters'.format(input_folder, catchment, outlet)):
+    if os.path.isfile('{}{}_{}.smart.parameters'.format(input_folder, catchment, outlet)):
         dict_param = sF.get_dict_parameters_from_file(catchment, outlet, my__network, dict__models, input_folder)
         dict_desc = sF.get_dict_floats_from_file("descriptors", catchment, outlet, my__network, input_folder)
     elif os.path.isfile('{}{}_{}.descriptors'.format(input_folder, catchment, outlet)):
         dict_desc = sF.get_dict_floats_from_file("descriptors", catchment, outlet, my__network, input_folder)
         dict_param = sFn.infer_parameters_from_descriptors(my__network, dict_desc, logger)
         df_param = DataFrame.from_dict(dict_param, orient='index')
-        df_param.to_csv('{}{}_{}.parameters'.format(output_folder, catchment.capitalize(), outlet))
+        df_param.to_csv('{}{}_{}.smart.parameters'.format(output_folder, catchment.capitalize(), outlet))
     else:
-        sys.exit("Parameters are not available from files.")
+        sys.exit("SMART parameters are not available from files.")
 
     # Read in loadings file
     dict_annual_loads = sF.get_dict_floats_from_file("loadings", catchment, outlet, my__network, input_folder)
@@ -100,7 +100,7 @@ def main():
 
     # Read the constants in .const file
     dict_const = dict()
-    dict_const["SMART"] = sF.get_dict_constants_from_file("SMART", specifications_folder)
+    dict_const["INCA"] = sF.get_dict_constants_from_file("INCA", specifications_folder)
 
     # Initial for reservoirs
     # # TO BE DEFINED
