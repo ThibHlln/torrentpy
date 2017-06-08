@@ -13,7 +13,7 @@ def main():
     question_catch = raw_input('Name of the catchment? ')
     catchment = question_catch.capitalize()
 
-    question_catch = raw_input('European Code (EU_CD) of the catchment? ')
+    question_catch = raw_input('European Code (EU_CD) of the catchment? [format IE_XX_##X######] ')
     outlet = question_catch.upper()
 
     question_start = raw_input('Starting date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
@@ -28,8 +28,11 @@ def main():
     except ValueError:
         sys.exit("The ending date format entered is incorrect [not compliant with DD/MM/YYYY HH:MM:SS].")
 
-    question_time_step = raw_input('Time step for simulation? [in minutes] ')
-    time_step_in_minutes = float(question_time_step)
+    question_time_step = raw_input('Time step for simulation? [integer in minutes] ')
+    try:
+        time_step_in_minutes = float(int(question_time_step))
+    except ValueError:
+        sys.exit("The time step is invalid.")
 
     # Location of the different needed folders
     root = os.path.realpath('..')  # move to parent directory of this current python file
