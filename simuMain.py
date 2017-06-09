@@ -9,6 +9,13 @@ import simuFunctions as sFn
 
 def main():
 
+    # Location of the different needed folders
+    root = os.path.realpath('..')  # move to parent directory of this current python file
+    os.chdir(root)  # define parent directory as root in order to use only relative paths after this
+    specifications_folder = "specs/"
+    input_folder = "in/"
+    output_folder = "out/"
+
     # Ask user for information on simulation
     question_catch = raw_input('Name of the catchment? ')
     catchment = question_catch.capitalize()
@@ -16,30 +23,27 @@ def main():
     question_catch = raw_input('European Code (EU_CD) of the catchment? [format IE_XX_##X######] ')
     outlet = question_catch.upper()
 
+    if not os.path.isfile('{}{}_{}.network'.format(input_folder, catchment, outlet)):
+        # Check if combination catchment/outlet is coherent by using the name of the network file
+        sys.exit("The combination [ {} - {} ] is incorrect.".format(catchment, outlet))
+
     question_start = raw_input('Starting date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
     try:
         datetime_start = datetime.datetime.strptime(question_start, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The starting date format entered is incorrect [not compliant with DD/MM/YYYY HH:MM:SS].")
+        sys.exit("The starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     question_end = raw_input('Ending date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
     try:
         datetime_end = datetime.datetime.strptime(question_end, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The ending date format entered is incorrect [not compliant with DD/MM/YYYY HH:MM:SS].")
+        sys.exit("The ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     question_time_step = raw_input('Time step for simulation? [integer in minutes] ')
     try:
         time_step_in_minutes = float(int(question_time_step))
     except ValueError:
-        sys.exit("The time step is invalid.")
-
-    # Location of the different needed folders
-    root = os.path.realpath('..')  # move to parent directory of this current python file
-    os.chdir(root)  # define parent directory as root in order to use only relative paths after this
-    specifications_folder = "specs/"
-    input_folder = "in/"
-    output_folder = "out/"
+        sys.exit("The time step is invalid. [not an integer]")
 
     # Create a logger
     # # Logger levels: debug < info < warning < error < critical
@@ -74,7 +78,8 @@ def main():
     for link in my__network.links:
         # Declare Model objects and get meteo DataFrame
         if my__network.categories[link] == "11":  # river headwater
-            dict__models[link] = [Model("CATCHMENT", "SMART_INCAL", specifications_folder)]
+            dict__models[link] = [Model("CATCHMENT", "SMART_INCAL", specifications_folder),
+                                  Model("RIVER", "LINRES_INCAS", specifications_folder)]
             dict_meteo[link] = sF.get_data_frame_for_daily_meteo_data(catchment, link, time_steps, input_folder)
         elif my__network.categories[link] == "10":  # river
             dict__models[link] = [Model("CATCHMENT", "SMART_INCAL", specifications_folder),
@@ -134,38 +139,46 @@ def main():
                           logger)
         # Sum up everything coming from upstream for each node
         for node in my__network.nodes:
-            if my__network.additions.get(node):  # ignore the node up for headwaters
-                # Sum up the flows
-                for variable in ["q_h2o"]:
-                    for link in my__network.additions[node]:
-                        if my__network.categories[link] == "11":
-                            my_dict_variables[variable] += dict__data_frames[link].loc[step, "c_out_" + variable]
-                        elif my__network.categories[link] == "10":
-                            my_dict_variables[variable] += dict__data_frames[link].loc[step, "r_out_" + variable]
-                            my_dict_variables[variable] += dict__data_frames[link].loc[step, "c_out_" + variable]
-                        elif my__network.categories[link] == "20":
-                            my_dict_variables[variable] += dict__data_frames[link].loc[step, "l_out_" + variable]
+            # Sum up the flows
+            for variable in ["q_h2o"]:
+                for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
+                    if my__network.categories[link] == "11":
+                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "r_out_" + variable]
+                    elif my__network.categories[link] == "10":
+                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "r_out_" + variable]
+                    elif my__network.categories[link] == "20":
+                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "l_out_" + variable]
+                for link in my__network.adding.get(node):  # for the catchment of the link downstream of this node
+                    if my__network.categories[link] == "11":
+                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "c_out_" + variable]
+                    elif my__network.categories[link] == "10":
+                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "c_out_" + variable]
+                dict__data_frames[node].set_value(step, variable,
+                                                  my_dict_variables[variable])
+                my_dict_variables[variable] = 0.0
+            # Sum up the contaminants
+            for variable in ["c_no3", "c_nh4", "c_dph", "c_pph", "c_sed"]:
+                for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
+                    if my__network.categories[link] == "11":
+                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "r_out_" + variable] * \
+                            dict__data_frames[link].loc[step, "r_out_q_h2o"]
+                    elif my__network.categories[link] == "10":
+                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "r_out_" + variable] * \
+                            dict__data_frames[link].loc[step, "r_out_q_h2o"]
+                    elif my__network.categories[link] == "20":
+                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "l_out_" + variable] * \
+                            dict__data_frames[link].loc[step, "l_out_q_h2o"]
+                for link in my__network.adding.get(node):  # for the catchment of the link downstream of this node
+                    if my__network.categories[link] == "11":
+                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "c_out_" + variable] * \
+                            dict__data_frames[link].loc[step, "c_out_q_h2o"]
+                    elif my__network.categories[link] == "10":
+                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "c_out_" + variable] * \
+                            dict__data_frames[link].loc[step, "c_out_q_h2o"]
+                if my_dict_variables["q_h2o"] > 0.0:
                     dict__data_frames[node].set_value(step, variable,
-                                                      my_dict_variables[variable])
-                    my_dict_variables[variable] = 0.0
-                # Sum up the contaminants
-                for variable in ["c_no3", "c_nh4", "c_dph", "c_pph", "c_sed"]:
-                    for link in my__network.additions[node]:
-                        if my__network.categories[link] == "11":
-                            my_dict_variables[variable] += dict__data_frames[link].loc[step, "c_out_" + variable] * \
-                                dict__data_frames[link].loc[step, "c_out_q_h2o"]
-                        elif my__network.categories[link] == "10":
-                            my_dict_variables[variable] += dict__data_frames[link].loc[step, "r_out_" + variable] * \
-                                dict__data_frames[link].loc[step, "r_out_q_h2o"]
-                            my_dict_variables[variable] += dict__data_frames[link].loc[step, "c_out_" + variable] * \
-                                dict__data_frames[link].loc[step, "c_out_q_h2o"]
-                        elif my__network.categories[link] == "20":
-                            my_dict_variables[variable] += dict__data_frames[link].loc[step, "l_out_" + variable] * \
-                                dict__data_frames[link].loc[step, "l_out_q_h2o"]
-                    if my_dict_variables["q_h2o"] > 0.0:
-                        dict__data_frames[node].set_value(step, variable,
-                                                          my_dict_variables[variable] / my_dict_variables["q_h2o"])
-                    my_dict_variables[variable] = 0.0
+                                                      my_dict_variables[variable] / my_dict_variables["q_h2o"])
+                my_dict_variables[variable] = 0.0
 
     # Save the DataFrames for the links (separating inputs, states, and outputs)
     for link in my__network.links:

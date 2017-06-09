@@ -14,7 +14,8 @@ class Network:
         self.nodes = Network.get_network_attributes(self)["nodes"]
         self.links = Network.get_network_attributes(self)["links"]
         self.connections = Network.get_network_attributes(self)["connections"]
-        self.additions = Network.get_network_attributes(self)["additions"]
+        self.adding = Network.get_network_attributes(self)["adding"]
+        self.routing = Network.get_network_attributes(self)["routing"]
         self.categories = Network.get_water_bodies_attributes(self)
 
     def get_network_attributes(self):
@@ -24,7 +25,8 @@ class Network:
                 my_nodes = list()  # list of all nodes
                 my_links = list()  # list of all links (i.e. waterbodies)
                 my_connections = dict()  # key: waterbody, value: 2-element list (node down, node up)
-                my_additions = dict()  # key: node, value: list of waterbodies pouring into node
+                my_routing = dict()  # key: node, value: list of streams pouring into node
+                my_adding = dict()  # key: node, value: basin pouring into node
                 for row in my_reader:
                     my_nodes.append(row['NodeDown'])
                     my_nodes.append(row['NodeUp'])
@@ -32,9 +34,11 @@ class Network:
                     my_connections[row['WaterBody']] = (row['NodeDown'], row['NodeUp'])
                 my_nodes = list(set(my_nodes))  # get rid of the duplicates
                 for node in my_nodes:
-                    my_additions[node] = list()
+                    my_routing[node] = list()
+                    my_adding[node] = list()
                 for link in my_connections:
-                    my_additions[my_connections[link][0]].append(link)
+                    my_routing[my_connections[link][0]].append(link)
+                    my_adding[my_connections[link][1]].append(link)
 
         except IOError:
             sys.exit("No link-node network file found for {}.".format(self.name))
@@ -43,7 +47,8 @@ class Network:
             "nodes": my_nodes,
             "links": my_links,
             "connections": my_connections,
-            "additions": my_additions
+            "routing": my_routing,
+            "adding": my_adding
         }
 
     def get_water_bodies_attributes(self):
