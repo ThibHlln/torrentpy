@@ -125,42 +125,42 @@ def infer_parameters_from_descriptors(obj_network, dict_desc, logger):
         my_dict['c_p_att_sed_dra'] = 0.8
 
         # inter flow attenuation
-        # factor = 1.0 * (dict_desc[waterbody]['N_subsoil_transport'] / 100.0) * \
-        #     (dict_desc[waterbody]['N_near_surface_delivery'] / 100.0)
-        # if factor < 0.0001:
-        #     factor = 0.0001
-        # elif factor > 1.0:
-        #     factor = 1.0
-        # factor = factor ** 0.04
-        my_dict['c_p_att_no3_int'] = 1.0  # factor
-        my_dict['c_p_att_nh4_int'] = 1.0  # factor
-        # factor = 1.0 * (dict_desc[waterbody]['P_subsoil_transport'] / 100.0) * \
-        #     (dict_desc[waterbody]['P_near_surface_delivery'] / 100.0)
-        # if factor < 0.0001:
-        #     factor = 0.0001
-        # elif factor > 1.0:
-        #     factor = 1.0
-        # factor = factor ** 0.04
-        my_dict['c_p_att_dph_int'] = 1.0  # factor
+        factor = 1.0 * (dict_desc[waterbody]['N_subsoil_transport'] / 100.0) * \
+            (dict_desc[waterbody]['N_near_surface_delivery'] / 100.0)
+        if factor < 0.0001:
+            factor = 0.0001
+        elif factor > 1.0:
+            factor = 1.0
+        factor = factor ** 0.04
+        my_dict['c_p_att_no3_int'] = factor
+        my_dict['c_p_att_nh4_int'] = factor
+        factor = 1.0 * (dict_desc[waterbody]['P_subsoil_transport'] / 100.0) * \
+            (dict_desc[waterbody]['P_near_surface_delivery'] / 100.0)
+        if factor < 0.0001:
+            factor = 0.0001
+        elif factor > 1.0:
+            factor = 1.0
+        factor = factor ** 0.04
+        my_dict['c_p_att_dph_int'] = factor
         my_dict['c_p_att_pph_int'] = 1.0
         my_dict['c_p_att_sed_int'] = 1.0
 
         # shallow ground water attenuation
-        # factor = 1.0 * (dict_desc[waterbody]['N_bedrock_transport'] / 100.0)
-        # if factor < 0.01:
-        #     factor = 0.01
-        # elif factor > 1.0:
-        #     factor = 1.0
-        # factor = factor ** 0.02
-        my_dict['c_p_att_no3_sgw'] = 1.0  # factor
-        my_dict['c_p_att_nh4_sgw'] = 1.0  # factor
+        factor = 1.0 * (dict_desc[waterbody]['N_bedrock_transport'] / 100.0)
+        if factor < 0.01:
+            factor = 0.01
+        elif factor > 1.0:
+            factor = 1.0
+        factor = factor ** 0.02
+        my_dict['c_p_att_no3_sgw'] = factor
+        my_dict['c_p_att_nh4_sgw'] = factor
         my_dict['c_p_att_dph_sgw'] = 0.6
         my_dict['c_p_att_pph_sgw'] = 0.0
         my_dict['c_p_att_sed_sgw'] = 0.0
 
         # deep ground water attenuation
-        my_dict['c_p_att_no3_dgw'] = 1.0  # factor
-        my_dict['c_p_att_nh4_dgw'] = 1.0  # factor
+        my_dict['c_p_att_no3_dgw'] = factor
+        my_dict['c_p_att_nh4_dgw'] = factor
         my_dict['c_p_att_dph_dgw'] = 0.5
         my_dict['c_p_att_pph_dgw'] = 0.0
         my_dict['c_p_att_sed_dgw'] = 0.0
