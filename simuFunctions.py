@@ -26,6 +26,10 @@ def infer_parameters_from_descriptors(obj_network, dict_desc, logger):
             (dict_desc[waterbody]['AlluvMIN'] + 1.0) * (-3.378) * \
             (dict_desc[waterbody]['FOREST'] + 1.0) * (-0.713) * \
             ((dict_desc[waterbody]['Pu'] + dict_desc[waterbody]['Pl']) ** 0.5 + 1.0) ** 0.221
+        if my_dict['c_p_c'] < 0.1:
+            my_dict['c_p_c'] = 0.1
+        elif my_dict['c_p_c'] > 1.0:
+            my_dict['c_p_c'] = 1.0
 
         # Parameter H: Quick runoff coefficient
         my_dict['c_p_h'] = 2.789 * dict_desc[waterbody]['DRAIND'] ** 0.157 * \
