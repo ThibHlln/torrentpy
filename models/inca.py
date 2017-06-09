@@ -666,7 +666,7 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
         rdn = c11 * r_s_m_no3  # denitrification rate [kg]
         # update of amount in store
         r_s_m_no3 = r_s_m_no3_old + rni - rdn + \
-                    ((r_in_c_no3 * r_in_q_h2o) - (concentration_no3 * r_out_q_h2o)) * time_step_sec
+            ((r_in_c_no3 * r_in_q_h2o) - (concentration_no3 * r_out_q_h2o)) * time_step_sec
         if r_s_m_no3 < 0.0:
             logger.debug("{}: {} - NO3 Quantity has gone negative in River Store, quantity "
                          "reset to zero.".format(waterbody, datetime_time_step))
@@ -685,7 +685,7 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
         concentration_nh4 = r_s_m_nh4_old / r_s_v_h2o_old
         # update of amount in store
         r_s_m_nh4 = r_s_m_nh4_old - rni + \
-                    ((r_in_c_nh4 * r_in_q_h2o) - (concentration_nh4 * r_out_q_h2o)) * time_step_sec
+            ((r_in_c_nh4 * r_in_q_h2o) - (concentration_nh4 * r_out_q_h2o)) * time_step_sec
         if r_s_m_nh4 < 0.0:
             r_s_m_nh4 = 0.0
         # calculate outflow concentration
@@ -704,6 +704,8 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
         r_s_m_dph = r_s_m_dph_old + ((r_in_c_dph * r_in_q_h2o) - (concentration_dph * r_out_q_h2o)) * time_step_sec
         if r_s_m_dph < 0.0:
             r_s_m_dph = 0.0
+        # apply attenuation factor to store
+        r_s_m_dph = r_s_m_dph * r_p_att_dph
         # calculate outflow concentration
         if r_s_v_h2o > volume_tolerance:
             r_out_c_dph = r_s_m_dph / r_s_v_h2o
@@ -720,6 +722,8 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
         r_s_m_pph = r_s_m_pph_old + ((r_in_c_pph * r_in_q_h2o) - (concentration_pph * r_out_q_h2o)) * time_step_sec
         if r_s_m_pph < 0.0:
             r_s_m_pph = 0.0
+        # apply attenuation factor to store
+        r_s_m_pph = r_s_m_pph * r_p_att_pph
         # calculate outflow concentration
         if r_s_v_h2o > volume_tolerance:
             r_out_c_pph = r_s_m_pph / r_s_v_h2o
@@ -736,6 +740,8 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
         r_s_m_sed = r_s_m_sed_old + ((r_in_c_sed * r_in_q_h2o) - (concentration_sed * r_out_q_h2o)) * time_step_sec
         if r_s_m_sed < 0.0:
             r_s_m_sed = 0.0
+        # apply attenuation factor to store
+        r_s_m_sed = r_s_m_sed * r_p_att_sed
         # calculate outflow concentration
         if r_s_v_h2o > volume_tolerance:
             r_out_c_sed = r_s_m_sed / r_s_v_h2o
