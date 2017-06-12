@@ -7,7 +7,7 @@ import simuModels as sM
 
 class Network:
     """"""
-    def __init__(self, catchment, outlet, input_folder):
+    def __init__(self, catchment, outlet, input_folder, specs_folder):
         self.name = catchment.capitalize()
         self.networkFile = "{}{}_{}.network".format(input_folder, catchment, outlet)
         self.waterBodiesFile = "{}{}_{}.waterbodies".format(input_folder, catchment, outlet)
@@ -17,6 +17,7 @@ class Network:
         self.adding = Network.get_network_attributes(self)["adding"]
         self.routing = Network.get_network_attributes(self)["routing"]
         self.categories = Network.get_water_bodies_attributes(self)
+        self.variables = Network.get_one_list(specs_folder, "variables")
 
     def get_network_attributes(self):
         try:
@@ -64,6 +65,30 @@ class Network:
 
         return my_categories
 
+    @staticmethod
+    def get_one_list(specs_folder, specs_type):
+        my_list = list()
+        try:
+            with open(specs_folder + "SIMULATOR.spec") as my_file:
+                my_reader = csv.reader(my_file)
+                my_string = list()
+                count = 0
+                for row in my_reader:
+                    if row[0] == specs_type:
+                        my_string = row[1]
+                        count += 1
+                if count == 0:
+                    sys.exit("There is no {} specifications line in {}SIMULATOR.spec.".format(specs_type, specs_folder))
+                elif count > 1:
+                    sys.exit("There is more than one {} specifications line in {}SIMULATOR.spec.".format(specs_type,
+                                                                                                         specs_folder))
+                my_list.extend(my_string.split(";"))
+
+        except IOError:
+            sys.exit("There is no specifications file for SIMULATOR in {}.".format(specs_folder))
+
+        return my_list
+
 
 class Model:
     """"""
@@ -93,9 +118,9 @@ class Model:
                         sys.exit("There is no {} specifications line in {}{}.spec.".format(specs_type, specs_folder,
                                                                                            component))
                     elif count > 1:
-                        sys.exit("There is more than one input specifications line in {}{}.".format(specs_type,
-                                                                                                    specs_folder,
-                                                                                                    component))
+                        sys.exit("There is more than one {} specifications line in {}{}.".format(specs_type,
+                                                                                                 specs_folder,
+                                                                                                 component))
                     my_list.extend(my_string.split(";"))
 
             except IOError:
@@ -129,6 +154,7 @@ class TimeFrame:
         self.start = datetime_start
         self.end = datetime_end
         self.step = increment_in_minutes
+        self.series = TimeFrame.get_list_datetime(self)
 
     def get_list_datetime(self):
         gap = self.end - self.start
