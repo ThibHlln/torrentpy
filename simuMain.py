@@ -190,16 +190,16 @@ def main():
             my_states += model.state_names
             my_outputs += model.output_names
         dict__data_frames[link].to_csv('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link),
-                                       columns=my_inputs, float_format='%e')
+                                       columns=my_inputs, float_format='%e', index_label='Date')
         dict__data_frames[link].to_csv('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link),
-                                       columns=my_states, float_format='%e')
+                                       columns=my_states, float_format='%e', index_label='Date')
         dict__data_frames[link].to_csv('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link),
-                                       columns=my_outputs, float_format='%e')
+                                       columns=my_outputs, float_format='%e', index_label='Date')
 
     # Save the DataFrames for the nodes
     for node in my__network.nodes:
         dict__data_frames[node].to_csv('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node),
-                                       float_format='%e')
+                                       float_format='%e', index_label='Date')
 
 
 if __name__ == "__main__":
