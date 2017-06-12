@@ -158,10 +158,10 @@ class TimeFrame:
 
     def get_list_datetime(self):
         gap = self.end - self.start
-        gap_in_minutes = int(gap.total_seconds()) // 60
+        end_index = int(gap.total_seconds() // (self.step * 60)) + 1
         my_list_datetime = list()
-        for time_step in range(-self.step, gap_in_minutes + self.step, self.step):  # add one datetime before start
-            my_datetime = self.start + datetime.timedelta(minutes=time_step)
+        for factor in range(-1, end_index, 1):  # add one datetime before start
+            my_datetime = self.start + datetime.timedelta(minutes=factor * self.step)
             my_list_datetime.append(my_datetime)
 
         return my_list_datetime
