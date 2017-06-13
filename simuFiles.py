@@ -2,7 +2,6 @@ from pandas import DataFrame
 import pandas
 import sys
 import csv
-import datetime
 
 
 def get_data_frame_for_daily_meteo_data(catchment, link, time_steps, in_folder):
@@ -17,17 +16,24 @@ def get_data_frame_for_daily_meteo_data(catchment, link, time_steps, in_folder):
 
     for meteo_type in my_meteo_data_types:
         try:
-            with open("{}{}_{}_{}_{}.{}".format(in_folder, catchment,
-                                                link, my_start, my_end, meteo_type)) as my_file:
-                my_reader = csv.DictReader(my_file)
+            my_meteo_df = pandas.read_csv("{}{}_{}_{}_{}.{}".format(in_folder, catchment,
+                                                                    link, my_start, my_end, meteo_type),
+                                          index_col=0)
 
-                for row in my_reader:
-                    file_datetime = datetime.datetime(int(row['YEAR']), int(row['MONTH']), int(row['DAY']),
-                                                      int(row['HOURS']), int(row['MINUTES']), int(row['SECONDS']))
+            for my_datetime in time_steps[1:]:  # ignore first value which is for the initial conditions
+                try:
+                    my_value = my_meteo_df.loc[my_datetime.strftime("%Y-%m-%d %H:%M:%S"), meteo_type.upper()]
+                    my__data_frame.set_value(my_datetime, meteo_type, float(my_value))
+                except KeyError:  # could only be raised for .loc[], when index or column does not exist
+                    sys.exit("{}{}_{}_{}_{}.{} does not "
+                             "contain any value for {}.".format(in_folder, catchment, link, my_start, my_end,
+                                                                meteo_type, my_datetime.strftime("%Y-%m-%d %H:%M:%S")))
+                except ValueError:  # could only be raised for float(), when my_value is not a number
+                    sys.exit("{}{}_{}_{}_{}.{} contains "
+                             "an invalid value for {}.".format(in_folder, catchment, link, my_start, my_end,
+                                                               meteo_type, my_datetime.strftime("%Y-%m-%d %H:%M:%S")))
 
-                    my__data_frame.set_value(file_datetime, meteo_type, float(row[meteo_type.upper()]))
-
-        except EnvironmentError:
+        except IOError:
             sys.exit("{}{}_{}_{}_{}.{} does not exist.".format(in_folder, catchment,
                                                                link, my_start, my_end, meteo_type))
 

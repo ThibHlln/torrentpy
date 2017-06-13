@@ -132,7 +132,7 @@ def main():
     dict_const = dict()
     dict_const["INCAL"] = sF.get_dict_constants_from_file("INCAL", specifications_folder)
 
-    # Set the initial conditions
+    # Set the initial conditions ('blank' warm up run)
     simulate(my__network, my__time_frame_warm_up,
              dict__data_frames_warm_up, dict__models,
              dict_meteo, dict_loadings, dict_desc, dict_param, dict_const,
@@ -141,7 +141,8 @@ def main():
     for link in my__network.links:  # set last values of warm up as initial conditions for actual simulation
         dict__data_frames[link].iloc[0] = dict__data_frames_warm_up[link].iloc[-1]
 
-    with open('{}{}_{}.log'.format(output_folder, catchment, outlet), 'w'):  # empty the log file due to warm up
+    with open('{}{}_{}.log'.format(output_folder, catchment, outlet), 'w'):
+        # empty the log file because lines in it only due to warm up run
         pass
 
     # Simulate
@@ -165,13 +166,6 @@ def main():
                                        columns=my_states, float_format='%e', index_label='Date')
         dict__data_frames[link].to_csv('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link),
                                        columns=my_outputs, float_format='%e', index_label='Date')
-
-        dict__data_frames_warm_up[link].to_csv('{}{}_{}.inputs2'.format(output_folder, catchment.capitalize(), link),
-                                               columns=my_inputs, float_format='%e', index_label='Date')
-        dict__data_frames_warm_up[link].to_csv('{}{}_{}.states2'.format(output_folder, catchment.capitalize(), link),
-                                               columns=my_states, float_format='%e', index_label='Date')
-        dict__data_frames_warm_up[link].to_csv('{}{}_{}.outputs2'.format(output_folder, catchment.capitalize(), link),
-                                               columns=my_outputs, float_format='%e', index_label='Date')
 
     # Save the DataFrames for the nodes
     for node in my__network.nodes:
