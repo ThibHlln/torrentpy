@@ -82,9 +82,9 @@ def run(waterbody, dict_data_frame,
     c_p_s = dict_param[waterbody]["c_p_s"]
     c_p_d = dict_param[waterbody]["c_p_d"]
     c_p_z = dict_param[waterbody]["c_p_z"]
-    c_p_sk = dict_param[waterbody]["c_p_sk"]
-    c_p_fk = dict_param[waterbody]["c_p_fk"]
-    c_p_gk = dict_param[waterbody]["c_p_gk"]
+    c_p_sk = dict_param[waterbody]["c_p_sk"] * 3600.0  # convert hours in seconds
+    c_p_fk = dict_param[waterbody]["c_p_fk"] * 3600.0  # convert hours in seconds
+    c_p_gk = dict_param[waterbody]["c_p_gk"] * 3600.0  # convert hours in seconds
 
     # # 1.2. Hydrological calculations
 

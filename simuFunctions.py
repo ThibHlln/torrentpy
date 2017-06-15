@@ -21,12 +21,12 @@ def infer_parameters_from_descriptors(obj_network, dict_desc, logger):
         my_dict['c_p_t'] = 1.0
 
         # Parameter C: Evaporation decay parameter
-        my_dict['c_p_c'] = log(9.04064 * dict_desc[waterbody]['SAAR'] ** (-0.71009) *
+        my_dict['c_p_c'] = log((9.04064 * dict_desc[waterbody]['SAAR'] ** (-0.71009) *
                                dict_desc[waterbody]['Q.mm'] ** 0.57326 *
                                dict_desc[waterbody]['FLATWET'] ** (-0.75321) *
                                (dict_desc[waterbody]['AlluvMIN'] + 1.0) * (-3.3778) *
                                (dict_desc[waterbody]['FOREST'] + 1.0) * (-0.71328) *
-                               ((dict_desc[waterbody]['Pu'] + dict_desc[waterbody]['Pl']) ** 0.5 + 1.0) ** 0.22084 -
+                               ((dict_desc[waterbody]['Pu'] + dict_desc[waterbody]['Pl']) ** 0.5 + 1.0) ** 0.22084) -
                                1.0)
         if my_dict['c_p_c'] < 0.1:
             my_dict['c_p_c'] = 0.1
@@ -34,18 +34,18 @@ def infer_parameters_from_descriptors(obj_network, dict_desc, logger):
             my_dict['c_p_c'] = 1.0
 
         # Parameter H: Quick runoff coefficient
-        my_dict['c_p_h'] = log(2.7886 * dict_desc[waterbody]['DRAIND'] ** 0.15655 *
+        my_dict['c_p_h'] = log((2.7886 * dict_desc[waterbody]['DRAIND'] ** 0.15655 *
                                dict_desc[waterbody]['WtdReCoMod'] ** 0.03626 *
                                (dict_desc[waterbody]['PoorDrain'] + 1.0) ** (-0.08069) *
                                (dict_desc[waterbody]['Water'] ** 0.25 + 1.0) ** 0.10238 *
                                (dict_desc[waterbody]['ModP'] + 1.0) ** (-0.14992) *
                                ((dict_desc[waterbody]['Rkc'] + dict_desc[waterbody]['Rk']) + 1.0) ** (-0.14598) *
                                ((dict_desc[waterbody]['Pu'] + dict_desc[waterbody]['Pl']) ** 0.5 + 1.0) ** (-0.17896) *
-                               ((dict_desc[waterbody]['Lg'] + dict_desc[waterbody]['Rg']) ** 0.5 + 1.0) ** 0.22405 -
+                               ((dict_desc[waterbody]['Lg'] + dict_desc[waterbody]['Rg']) ** 0.5 + 1.0) ** 0.22405) -
                                1.0)
 
         # Parameter S: Drain flow parameter - fraction of saturation excess diverted to drain flow
-        drain_eff_factor = 0.75
+        drain_eff_factor = 0.6
         my_dict['c_p_s'] = dict_desc[waterbody]['land_drain_ratio'] * drain_eff_factor
 
         # Parameter D: Soil outflow coefficient
@@ -113,9 +113,9 @@ def infer_parameters_from_descriptors(obj_network, dict_desc, logger):
         q = 0.7 * dict_desc[waterbody]['SAAR'] * dict_desc[waterbody]['area'] * 3.171e-5
         slp = dict_desc[waterbody]['TAYSLO'] / 1000.0
         n = 0.04
-        r_in_sec = l / (
+        rk = l / (
             (q ** (2.0 / 5.0) * slp ** (3.0 / 10.0)) / ((3.67 * q ** 0.45) ** (2.0 / 5.0) * n ** (3.0 / 5.0)))
-        my_dict['r_p_k_h2o'] = r_in_sec / 3600.0  # convert sec in hours
+        my_dict['r_p_k_h2o'] = rk
 
         # INCA LAND MODEL
 
@@ -203,7 +203,7 @@ def infer_parameters_from_descriptors(obj_network, dict_desc, logger):
                     'GK = {}\n'
                     'RK = {}'.format(waterbody, my_dict['c_p_t'],  my_dict['c_p_c'], my_dict['c_p_h'], my_dict['c_p_s'],
                                      my_dict['c_p_d'], my_dict['c_p_z'], my_dict['c_p_sk'], my_dict['c_p_fk'],
-                                     my_dict['c_p_gk'], my_dict['c_p_rk']))
+                                     my_dict['c_p_gk'], my_dict['r_p_k_h2o']))
 
         dict_parameters[waterbody] = my_dict
 
