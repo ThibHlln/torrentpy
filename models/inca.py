@@ -12,7 +12,7 @@ def run_on_land(waterbody, dict_data_frame,
     Catchment model * c_ *
     _ Water Quality
     ___ Inputs * in_ *
-    _____ c_in_temp             water temperature [degree celsius]
+    _____ c_in_temp             soil temperature [degree celsius]
     _____ c_in_m_no3            nitrate loading on land [kg/ha/time step]
     _____ c_in_m_nh4            ammonia loading on land [kg/ha/time step]
     _____ c_in_m_p_ino          inorganic phosphorus loading on land [kg/ha/time step]
@@ -144,7 +144,7 @@ def run_on_land(waterbody, dict_data_frame,
     dict_outputs_hd = my_dict_hydro['dict_outputs_hd']
 
     # # 2.2. Collect inputs, states, parameters, and constants
-    c_in_temp = dict_meteo[waterbody].loc[datetime_time_step, "temp"]
+    c_in_temp = dict_meteo[waterbody].loc[datetime_time_step, "soit"]
     mass_n = \
         dict_loads[waterbody].loc[datetime_time_step, "org_n_grassland"] * \
         dict_desc[waterbody]["grassland_ratio"] * dict_desc[waterbody]["area"] * 100 + \
@@ -598,7 +598,7 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
     r_s_v_h2o = dict_data_frame[waterbody].loc[datetime_time_step, "r_s_v_h2o"]
 
     # # 2.2. Collect inputs, states, and parameters
-    r_in_temp = dict_meteo[waterbody].loc[datetime_time_step, "temp"]
+    r_in_temp = dict_meteo[waterbody].loc[datetime_time_step, "airt"]
     r_in_c_no3 = dict_data_frame[node_up].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_no3"]
     r_in_c_nh4 = dict_data_frame[node_up].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_no3"]
     r_in_c_dph = dict_data_frame[node_up].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_no3"]

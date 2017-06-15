@@ -10,7 +10,7 @@ def get_data_frame_for_daily_meteo_data(catchment, link, time_steps, in_folder):
     # use 1, not 0 because 0 was artificially created in TimeFrame object for initial conditions
     my_end = '%04d' % time_steps[-1].year + '%02d' % time_steps[-1].month + '%02d' % time_steps[-1].day
 
-    my_meteo_data_types = ["rain", "peva", "temp"]
+    my_meteo_data_types = ["rain", "peva", "airt", "soit"]
 
     my__data_frame = DataFrame(index=time_steps, columns=my_meteo_data_types).fillna(0.0)
 
