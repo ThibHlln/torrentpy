@@ -33,7 +33,6 @@ def run(waterbody, dict_data_frame,
     _____ c_p_sk                SK: surface routing parameter [s]
     _____ c_p_fk                FK: inter flow routing parameter [s]
     _____ c_p_gk                GK: groundwater routing parameter [s]
-    _____ c_p_rk                RK: river routing parameter [s]
     ___ Outputs * out_ *
     _____ c_out_aeva            actual evapotranspiration [mm]
     _____ c_out_q_h2o_ove       overland flow [m3/s]
@@ -86,7 +85,6 @@ def run(waterbody, dict_data_frame,
     c_p_sk = dict_param[waterbody]["c_p_sk"]
     c_p_fk = dict_param[waterbody]["c_p_fk"]
     c_p_gk = dict_param[waterbody]["c_p_gk"]
-    c_p_rk = dict_param[waterbody]["c_p_rk"]
 
     # # 1.2. Hydrological calculations
 
