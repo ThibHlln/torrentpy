@@ -117,10 +117,10 @@ def run(waterbody, dict_data_frame,
     if excess_rain >= 0.0:  # excess rainfall available for runoff and infiltration
         # actual evapotranspiration = potential evapotranspiration
         c_out_aeva += c_in_peva
-        # calculate surface runoff using H and Y parameters
+        # calculate surface runoff using H parameter
         h_prime = c_p_h * (lvl_total_start / c_p_z)
         overland_flow = h_prime * excess_rain  # surface runoff
-        excess_rain = excess_rain - overland_flow  # remainder that infiltrates
+        excess_rain -= overland_flow  # remainder that infiltrates
         # calculate percolation through soil layers
         for i in [1, 2, 3, 4, 5, 6]:
             space_in_lyr = dict_z_lyr[i] - dict_lvl_lyr[i]
@@ -256,7 +256,7 @@ def run(waterbody, dict_data_frame,
         'int': c_s_v_h2o_int,
         'sgw': c_s_v_h2o_sgw,
         'dgw': c_s_v_h2o_dgw
-    }  # volumes in stores at beginning of time step
+    }  # volumes in stores at end of time step
 
     dict_outputs_hd = {
         'ove': c_out_q_h2o_ove,

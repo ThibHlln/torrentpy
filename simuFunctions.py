@@ -110,7 +110,7 @@ def infer_parameters_from_descriptors(obj_network, dict_desc, logger):
 
         # Parameter RK: River routing parameter (hours)
         l = dict_desc[waterbody]['stream_length']
-        q = 0.7 * dict_desc[waterbody]['SAAR'] * dict_desc[waterbody]['area'] * 3.171e-5
+        q = 0.7 * dict_desc[waterbody]['SAAR'] * (dict_desc[waterbody]['area'] / 1e6) * 3.171e-5
         slp = dict_desc[waterbody]['TAYSLO'] / 1000.0
         n = 0.04
         rk = l / (
