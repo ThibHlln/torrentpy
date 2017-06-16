@@ -24,8 +24,8 @@ def infer_parameters_from_descriptors(obj_network, dict_desc, logger):
         my_dict['c_p_c'] = log((9.04064 * dict_desc[waterbody]['SAAR'] ** (-0.71009) *
                                dict_desc[waterbody]['Q.mm'] ** 0.57326 *
                                dict_desc[waterbody]['FLATWET'] ** (-0.75321) *
-                               (dict_desc[waterbody]['AlluvMIN'] + 1.0) * (-3.3778) *
-                               (dict_desc[waterbody]['FOREST'] + 1.0) * (-0.71328) *
+                               (dict_desc[waterbody]['AlluvMIN'] + 1.0) ** (-3.3778) *
+                               (dict_desc[waterbody]['FOREST'] + 1.0) ** (-0.71328) *
                                ((dict_desc[waterbody]['Pu'] + dict_desc[waterbody]['Pl']) ** 0.5 + 1.0) ** 0.22084) -
                                1.0)
         if my_dict['c_p_c'] < 0.1:
@@ -114,7 +114,8 @@ def infer_parameters_from_descriptors(obj_network, dict_desc, logger):
         slp = dict_desc[waterbody]['TAYSLO'] / 1000.0
         n = 0.04
         rk = l / (
-            (q ** (2.0 / 5.0) * slp ** (3.0 / 10.0)) / ((3.67 * q ** 0.45) ** (2.0 / 5.0) * n ** (3.0 / 5.0)))
+            (q ** 0.4 * slp ** 0.3) / ((3.67 * q ** 0.45) ** 0.4 * (n ** 0.6))
+        )
         my_dict['r_p_k_h2o'] = rk
 
         # INCA LAND MODEL
