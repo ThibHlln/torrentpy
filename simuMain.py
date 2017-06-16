@@ -62,6 +62,8 @@ def main():
     handler.setLevel(logging.WARNING)
     logger.addHandler(handler)
 
+    logger.info("{} # Initialising.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+
     # Create a TimeFrame object
     my__time_frame = TimeFrame(datetime_start, datetime_end, int(time_step_in_minutes))
     my__time_frame_warm_up = TimeFrame(my__time_frame.start, my__time_frame.start +
@@ -133,25 +135,30 @@ def main():
     dict_const["INCAL"] = sF.get_dict_constants_from_file("INCAL", specifications_folder)
 
     # Set the initial conditions ('blank' warm up run)
-    simulate(my__network, my__time_frame_warm_up,
-             dict__data_frames_warm_up, dict__models,
-             dict_meteo, dict_loadings, dict_desc, dict_param, dict_const,
-             logger)
+    if not warm_up_in_days == 0.0:
+        logger.info("{} # Determining initial conditions.".format(datetime.datetime.now().strftime('%d/%m/%Y '
+                                                                                                   '%H:%M:%S')))
+        simulate(my__network, my__time_frame_warm_up,
+                 dict__data_frames_warm_up, dict__models,
+                 dict_meteo, dict_loadings, dict_desc, dict_param, dict_const,
+                 logger)
 
-    for link in my__network.links:  # set last values of warm up as initial conditions for actual simulation
-        dict__data_frames[link].iloc[0] = dict__data_frames_warm_up[link].iloc[-1]
+        for link in my__network.links:  # set last values of warm up as initial conditions for actual simulation
+            dict__data_frames[link].iloc[0] = dict__data_frames_warm_up[link].iloc[-1]
 
-    with open('{}{}_{}.log'.format(output_folder, catchment, outlet), 'w'):
-        # empty the log file because lines in it only due to warm up run
-        pass
+        with open('{}{}_{}.log'.format(output_folder, catchment, outlet), 'w'):
+            # empty the log file because lines in it only due to warm up run
+            pass
 
     # Simulate
+    logger.info("{} # Simulating.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
     simulate(my__network, my__time_frame,
              dict__data_frames, dict__models,
              dict_meteo, dict_loadings, dict_desc, dict_param, dict_const,
              logger)
 
     # Save the DataFrames for the links (separating inputs, states, and outputs)
+    logger.info("{} # Saving results in files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
     for link in my__network.links:
         my_inputs = list()
         my_states = list()
