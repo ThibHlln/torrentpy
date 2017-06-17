@@ -40,50 +40,46 @@ def get_data_frame_for_daily_meteo_data(catchment, link, time_steps, in_folder):
     return my__data_frame
 
 
-def get_dict_parameters_from_file(catchment, outlet, obj_network, dict__model, in_folder):
+def get_dict_parameters_from_file(catchment, outlet, link, model, in_folder):
 
     try:
-        with open("{}{}_{}.parameters".format(in_folder, catchment, outlet)) as my_file:
-            my_dict_param = dict()
-            my_reader = csv.DictReader(my_file)
-            found = list()
-            for row in my_reader:
-                if row["EU_CD"] in obj_network.links:
-                    my_dict = dict()
-                    for model in dict__model[row["EU_CD"]]:
-                        for param in model.parameter_names:
-                            try:
-                                my_dict[param] = float(row[param])
-                            except KeyError:
-                                sys.exit("The parameter {} is not available for {}.".format(param, row["EU_CD"]))
-                    my_dict_param[row["EU_CD"]] = my_dict
-                    found.append(row["EU_CD"])
-                else:
-                    print "The waterbody {} in the parameter file is not in the network file.".format(row["EU_CD"])
+        my_file = "{}{}_{}.{}.parameters".format(in_folder, catchment, outlet, model.identifier)
+        my_df_parameters = pandas.read_csv(my_file, index_col=0)
 
-            missing = [elem for elem in obj_network.links if elem not in found]
-            if missing:
-                sys.exit("The following waterbodies are not in the parameter file: {}.".format(missing))
+        my_dict_param = dict()
+
+        for param in model.parameter_names:
+            try:
+                my_dict_param[param] = float(my_df_parameters.loc[link, param])
+            except KeyError:
+                sys.exit("The {} model parameter {} is not available for {}.".format(model.identifier, param, link))
 
         return my_dict_param
 
     except IOError:
-        sys.exit("{}{}_{}.parameters does not exist.".format(in_folder, catchment, outlet))
+        sys.exit("{}{}_{}.{}.parameters".format(in_folder, catchment, outlet, model.identifier))
 
 
 def get_dict_constants_from_file(model, specs_folder):
 
-    try:
-        with open("{}{}.const".format(specs_folder, model.upper())) as my_file:
+    if not model.constant_names[0] == '':
+        try:
+            my_file = "{}{}.const".format(specs_folder, model.identifier)
+            my_df_constants = pandas.read_csv(my_file, index_col=0)
+
             my_dict_cst = dict()
-            my_reader = csv.reader(my_file)
-            for row in my_reader:
-                my_dict_cst[row[0]] = float(row[1])
 
-        return my_dict_cst
+            for constant in model.constant_names:
+                try:
+                    my_dict_cst[constant] = float(my_df_constants.loc[constant, 'constant_value'])
+                except KeyError:
+                    sys.exit("The constant {} is not available for {}.".format(constant, model.identifier))
 
-    except IOError:
-        sys.exit("{}{}.const".format(specs_folder, model.upper()))
+            return my_dict_cst
+
+        except IOError:
+            print model.constant_names
+            sys.exit("{}{}.const does not exist.".format(specs_folder, model.identifier))
 
 
 def get_dict_floats_from_file(variables, catchment, outlet, obj_network, folder):

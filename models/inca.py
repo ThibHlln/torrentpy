@@ -7,7 +7,7 @@ def run_on_land(waterbody, dict_data_frame,
                 dict_desc, dict_param, dict_const, dict_meteo, dict_loads,
                 datetime_time_step, time_gap,
                 logger,
-                my_dict_hydro):
+                hydro_model_name, my_dict_hydro):
     """
     Catchment model * c_ *
     _ Water Quality
@@ -180,7 +180,7 @@ def run_on_land(waterbody, dict_data_frame,
     dict_mass_applied['p_ino'] = c_in_m_p_ino
     dict_mass_applied['p_org'] = c_in_m_p_org
 
-    c_p_z = dict_param[waterbody]["c_p_z"]
+    c_p_z = dict_param[waterbody][hydro_model_name]["c_p_z"]
 
     dict_states_wq = dict()  # for states of the stores + soil
     dict_c_outflow = dict()  # for outflow concentrations from stores
@@ -196,8 +196,8 @@ def run_on_land(waterbody, dict_data_frame,
                                                                     datetime.timedelta(minutes=-time_gap),
                                                                     "c_s_c_{}_{}".format(contaminant, store)]
             my_dict_2[contaminant] = 0.0
-            my_dict_3[contaminant] = dict_param[waterbody]["c_p_att_{}_{}".format(contaminant, store)] * time_factor
-            my_dict_4[contaminant] = dict_const["INCAL"]["c_cst_mob_{}_{}".format(contaminant, store)]
+            my_dict_3[contaminant] = dict_param[waterbody]['INCAL']["c_p_att_{}_{}".format(contaminant, store)] * time_factor
+            my_dict_4[contaminant] = dict_const['INCAL']["c_cst_mob_{}_{}".format(contaminant, store)]
         dict_states_wq[store] = my_dict_1
         dict_c_outflow[store] = my_dict_2
         dict_att_factors[store] = my_dict_3
@@ -209,7 +209,7 @@ def run_on_land(waterbody, dict_data_frame,
                                                                 datetime.timedelta(minutes=-time_gap),
                                                                 "c_s_{}_{}_soil".format(soil_contaminants[contaminant],
                                                                                         contaminant)]
-        my_dict_6[contaminant] = dict_param[waterbody]["c_p_att_{}_soil".format(contaminant)] * time_factor
+        my_dict_6[contaminant] = dict_param[waterbody]['INCAL']["c_p_att_{}_soil".format(contaminant)] * time_factor
     dict_states_wq['soil'] = my_dict_5
     # create 'artificial' states (in dictionary only) to sum organic and inorganic DPH and PPH
     dict_states_wq['soil']['dph'] = dict_states_wq['soil']['p_org_ra'] + dict_states_wq['soil']['p_ino_ra']  # [kg/m3]
@@ -611,11 +611,11 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
     r_s_m_pph = dict_data_frame[waterbody].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap), "r_s_m_pph"]
     r_s_m_sed = dict_data_frame[waterbody].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap), "r_s_m_sed"]
 
-    r_p_att_no3 = dict_param[waterbody]["r_p_att_no3"]
-    r_p_att_nh4 = dict_param[waterbody]["r_p_att_nh4"]
-    r_p_att_dph = dict_param[waterbody]["r_p_att_dph"]
-    r_p_att_pph = dict_param[waterbody]["r_p_att_pph"]
-    r_p_att_sed = dict_param[waterbody]["r_p_att_sed"]
+    r_p_att_no3 = dict_param[waterbody]['INCAS']["r_p_att_no3"]
+    r_p_att_nh4 = dict_param[waterbody]['INCAS']["r_p_att_nh4"]
+    r_p_att_dph = dict_param[waterbody]['INCAS']["r_p_att_dph"]
+    r_p_att_pph = dict_param[waterbody]['INCAS']["r_p_att_pph"]
+    r_p_att_sed = dict_param[waterbody]['INCAS']["r_p_att_sed"]
 
     # # 2.3. Water quality calculations
 
@@ -769,3 +769,74 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
     dict_data_frame[waterbody].set_value(datetime_time_step, "r_out_c_dph", r_out_c_dph)
     dict_data_frame[waterbody].set_value(datetime_time_step, "r_out_c_pph", r_out_c_pph)
     dict_data_frame[waterbody].set_value(datetime_time_step, "r_out_c_sed", r_out_c_sed)
+
+
+def infer_land_parameters(dict_desc, my_dict_param):
+    # INCA LAND MODEL
+    # overland flow attenuation
+    my_dict_param['c_p_att_no3_ove'] = 1.0
+    my_dict_param['c_p_att_nh4_ove'] = 1.0
+    my_dict_param['c_p_att_dph_ove'] = 1.0
+    my_dict_param['c_p_att_pph_ove'] = 0.5
+    my_dict_param['c_p_att_sed_ove'] = 0.5
+    my_dict_param['c_p_att_no3_dra'] = 1.0
+    my_dict_param['c_p_att_nh4_dra'] = 1.0
+    my_dict_param['c_p_att_dph_dra'] = 0.8
+    my_dict_param['c_p_att_pph_dra'] = 0.8
+    my_dict_param['c_p_att_sed_dra'] = 0.8
+    # inter flow attenuation
+    factor = 1.0 * (dict_desc['N_subsoil_transport'] / 100.0) * \
+             (dict_desc['N_near_surface_delivery'] / 100.0)
+    if factor < 0.0001:
+        factor = 0.0001
+    elif factor > 1.0:
+        factor = 1.0
+    factor = factor ** 0.04
+    my_dict_param['c_p_att_no3_int'] = factor
+    my_dict_param['c_p_att_nh4_int'] = factor
+    factor = 1.0 * (dict_desc['P_subsoil_transport'] / 100.0) * \
+             (dict_desc['P_near_surface_delivery'] / 100.0)
+    if factor < 0.0001:
+        factor = 0.0001
+    elif factor > 1.0:
+        factor = 1.0
+    factor = factor ** 0.04
+    my_dict_param['c_p_att_dph_int'] = factor
+    my_dict_param['c_p_att_pph_int'] = 1.0
+    my_dict_param['c_p_att_sed_int'] = 1.0
+    # shallow ground water attenuation
+    factor = 1.0 * (dict_desc['N_bedrock_transport'] / 100.0)
+    if factor < 0.01:
+        factor = 0.01
+    elif factor > 1.0:
+        factor = 1.0
+    factor = factor ** 0.02
+    my_dict_param['c_p_att_no3_sgw'] = factor
+    my_dict_param['c_p_att_nh4_sgw'] = factor
+    my_dict_param['c_p_att_dph_sgw'] = 0.6
+    my_dict_param['c_p_att_pph_sgw'] = 0.0
+    my_dict_param['c_p_att_sed_sgw'] = 0.0
+    # deep ground water attenuation
+    my_dict_param['c_p_att_no3_dgw'] = factor
+    my_dict_param['c_p_att_nh4_dgw'] = factor
+    my_dict_param['c_p_att_dph_dgw'] = 0.5
+    my_dict_param['c_p_att_pph_dgw'] = 0.0
+    my_dict_param['c_p_att_sed_dgw'] = 0.0
+    # soil attenuation
+    my_dict_param['c_p_att_no3_soil'] = 1.0
+    my_dict_param['c_p_att_nh4_soil'] = 1.0
+    my_dict_param['c_p_att_p_org_ra_soil'] = 0.15
+    my_dict_param['c_p_att_p_ino_ra_soil'] = 0.15
+    my_dict_param['c_p_att_p_org_fb_soil'] = 1.0
+    my_dict_param['c_p_att_p_ino_fb_soil'] = 1.0
+    my_dict_param['c_p_att_sed_soil'] = 1.0
+
+
+def infer_stream_parameters(my_dict_param):
+    # INCA STREAM MODEL
+    # linear reservoir attenuation
+    my_dict_param['r_p_att_no3'] = 0.9
+    my_dict_param['r_p_att_nh4'] = 0.9
+    my_dict_param['r_p_att_dph'] = 0.9
+    my_dict_param['r_p_att_pph'] = 1.0
+    my_dict_param['r_p_att_sed'] = 1.0

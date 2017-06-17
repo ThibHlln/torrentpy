@@ -26,7 +26,7 @@ def run(obj_network, waterbody, dict_data_frame,
     # # 1.1. Collect inputs, states, and parameters
     r_in_q_h2o = dict_data_frame[node_up].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap), "q_h2o"]
     r_s_v_h2o = dict_data_frame[waterbody].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap), "r_s_v_h2o"]
-    r_p_k_h2o = dict_param[waterbody]["r_p_k_h2o"] * 3600.0  # convert hours in seconds
+    r_p_k_h2o = dict_param[waterbody]['LINRES']["r_p_k_h2o"] * 3600.0  # convert hours in seconds
 
     # # 1.2. Hydrological calculations
 
@@ -50,3 +50,16 @@ def run(obj_network, waterbody, dict_data_frame,
     dict_data_frame[waterbody].set_value(datetime_time_step, "r_in_q_h2o", r_in_q_h2o)
     dict_data_frame[waterbody].set_value(datetime_time_step, "r_s_v_h2o", r_s_v_h2o)
     dict_data_frame[waterbody].set_value(datetime_time_step, "r_out_q_h2o", r_out_q_h2o)
+
+
+def infer_parameters(dict_desc, my_dict_param):
+    # LINEAR RESERVOIR
+    # Parameter RK: River routing parameter (hours)
+    l = dict_desc['stream_length']
+    q = 0.7 * dict_desc['SAAR'] * (dict_desc['area'] / 1e6) * 3.171e-5
+    slp = dict_desc['TAYSLO'] / 1000.0
+    n = 0.04
+    rk = l / (
+        (q ** 0.4 * slp ** 0.3) / ((3.67 * q ** 0.45) ** 0.4 * (n ** 0.6))
+    )
+    my_dict_param['r_p_k_h2o'] = rk

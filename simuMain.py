@@ -81,14 +81,13 @@ def main():
     for node in my__network.nodes:
         dict__data_frames[node] = \
             DataFrame(index=my__time_frame.series, columns=my__network.variables).fillna(0.0)
-        dict__data_frames_warm_up[node] = \
-            DataFrame(index=my__time_frame_warm_up.series, columns=my__network.variables).fillna(0.0)
+        if not warm_up_in_days == 0.0:
+            dict__data_frames_warm_up[node] = \
+                DataFrame(index=my__time_frame_warm_up.series, columns=my__network.variables).fillna(0.0)
 
-    # Create Models for links
-    # Collect meteorological data for the links
-    dict_meteo = dict()  # key: waterbody, value: data frame (x: time step, y: meteo data type)
+    # Create Models and DataFrames for the links
     for link in my__network.links:
-        # Declare Model objects and get meteo DataFrame
+        # Declare Model objects
         if my__network.categories[link] == "11":  # river headwater
             dict__models[link] = [Model("CATCHMENT", "SMART_INCAL", specifications_folder),
                                   Model("RIVER", "LINRES_INCAS", specifications_folder)]
@@ -103,36 +102,65 @@ def main():
             sys.exit("Waterbody {}: {} is not a registered type of waterbody.".format(link,
                                                                                       my__network.categories[link]))
 
-        dict_meteo[link] = sF.get_data_frame_for_daily_meteo_data(catchment, link, my__time_frame.series, input_folder)
-
         # Create DataFrames for the links
         my_headers = list()
         for model in dict__models[link]:
             my_headers += model.input_names + model.state_names + model.output_names
         dict__data_frames[link] = DataFrame(index=my__time_frame.series, columns=my_headers).fillna(0.0)
-        dict__data_frames_warm_up[link] = DataFrame(index=my__time_frame_warm_up.series, columns=my_headers).fillna(0.0)
+        if not warm_up_in_days == 0.0:
+            dict__data_frames_warm_up[link] = DataFrame(index=my__time_frame_warm_up.series,
+                                                        columns=my_headers).fillna(0.0)
 
     # Read the parameters file, or read the descriptors file, generate the parameters, and generate the parameters file
-    if os.path.isfile('{}{}_{}.smart.parameters'.format(input_folder, catchment, outlet)):
-        dict_param = sF.get_dict_parameters_from_file(catchment, outlet, my__network, dict__models, input_folder)
-        dict_desc = sF.get_dict_floats_from_file("descriptors", catchment, outlet, my__network, input_folder)
-    elif os.path.isfile('{}{}_{}.descriptors'.format(input_folder, catchment, outlet)):
-        dict_desc = sF.get_dict_floats_from_file("descriptors", catchment, outlet, my__network, input_folder)
-        dict_param = sFn.infer_parameters_from_descriptors(my__network, dict_desc, logger)
-        df_param = DataFrame.from_dict(dict_param, orient='index')
-        df_param.to_csv('{}{}_{}.smart.parameters'.format(output_folder, catchment.capitalize(), outlet))
-    else:
-        sys.exit("SMART parameters are not available from files.")
+    logger.info("{} # Parameterising.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    dict_desc = sF.get_dict_floats_from_file("descriptors", catchment, outlet, my__network, input_folder)
+    dict_param = dict()
+    my_dict_for_file = dict()
+    for link in my__network.links:
+        dict_param[link] = dict()
+        for models in dict__models[link]:
+            for model_name in models.identifier.split('_'):
+                # For parameters
+                try:
+                    my_dict_for_file[model_name]
+                except KeyError:
+                    my_dict_for_file[model_name] = dict()
+                if os.path.isfile('{}{}_{}.{}.parameters'.format(input_folder, catchment, outlet, model_name)):
+                    my__model = Model("SPECIMEN", model_name, specifications_folder)
+                    dict_param[link][model_name] = sF.get_dict_parameters_from_file(catchment, outlet, link, my__model,
+                                                                                    input_folder)
+                    my_dict_for_file[model_name].update({link: dict_param[link][model_name]})
+                else:
+                    dict_param[link][model_name] = sFn.infer_parameters_from_descriptors(dict_desc[link], model_name)
+                    my_dict_for_file[model_name].update({link: dict_param[link][model_name]})
+
+    for model_name in my_dict_for_file:
+        df_param = DataFrame.from_dict(my_dict_for_file[model_name], orient='index')
+        df_param.to_csv('{}{}_{}.{}.parameters'.format(output_folder, catchment.capitalize(),
+                                                       outlet, model_name))
+
+    # Read the constants files if model has constants
+    dict_const = dict()
+    logger.info("{} # Reading constants files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    for model_name in ["SMART", "LINRES", "INCAS", "INCAL"]:
+        my__model = Model("SPECIMEN", model_name, specifications_folder)
+        dict_const[model_name] = sF.get_dict_constants_from_file(my__model, specifications_folder)
+
+    # Read the meteorological input files
+    logger.info("{} # Reading meteorological files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    dict_meteo = dict()  # key: waterbody, value: data frame (x: time step, y: meteo data type)
+    for link in my__network.links:
+        dict_meteo[link] = sF.get_data_frame_for_daily_meteo_data(catchment, link, my__time_frame.series, input_folder)
 
     # Read the annual loadings file and the application files to distribute the loadings for each time step
+    logger.info("{} # Reading loadings files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    dict_loadings = dict()
     dict_annual_loads = sF.get_dict_floats_from_file("loadings", catchment, outlet, my__network, input_folder)
     dict_applications = sF.get_dict_strings_from_file("applications", catchment, outlet, my__network, input_folder)
-    dict_loadings = sFn.distribute_loadings_across_year(my__network, dict_annual_loads, dict_applications,
-                                                        my__time_frame.series, specifications_folder)
-
-    # Read the constants files
-    dict_const = dict()
-    dict_const["INCAL"] = sF.get_dict_constants_from_file("INCAL", specifications_folder)
+    df_distributions = sF.get_df_distributions_from_file(specifications_folder)
+    for link in my__network.links:
+        dict_loadings[link] = sFn.distribute_loadings_across_year(dict_annual_loads, dict_applications,
+                                                                  df_distributions, link, my__time_frame.series)
 
     # Set the initial conditions ('blank' warm up run)
     if not warm_up_in_days == 0.0:
@@ -157,27 +185,8 @@ def main():
              dict_meteo, dict_loadings, dict_desc, dict_param, dict_const,
              logger)
 
-    # Save the DataFrames for the links (separating inputs, states, and outputs)
-    logger.info("{} # Saving results in files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
-    for link in my__network.links:
-        my_inputs = list()
-        my_states = list()
-        my_outputs = list()
-        for model in dict__models[link]:
-            my_inputs += model.input_names
-            my_states += model.state_names
-            my_outputs += model.output_names
-        dict__data_frames[link].to_csv('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link),
-                                       columns=my_inputs, float_format='%e', index_label='Date')
-        dict__data_frames[link].to_csv('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link),
-                                       columns=my_states, float_format='%e', index_label='Date')
-        dict__data_frames[link].to_csv('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link),
-                                       columns=my_outputs, float_format='%e', index_label='Date')
-
-    # Save the DataFrames for the nodes
-    for node in my__network.nodes:
-        dict__data_frames[node].to_csv('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node),
-                                       float_format='%e', index_label='Date')
+    # Save the DataFrames for the links and nodes (separating inputs, states, and outputs)
+    save_simulation_files(my__network, catchment, dict__data_frames, dict__models, output_folder, logger)
 
 
 def simulate(my__network, my__time_frame,
@@ -237,6 +246,30 @@ def simulate(my__network, my__time_frame,
                     dict__data_frames[node].set_value(step, variable,
                                                       my_dict_variables[variable] / my_dict_variables["q_h2o"])
                 my_dict_variables[variable] = 0.0
+
+
+def save_simulation_files(my__network, catchment, dict__data_frames, dict__models, output_folder, logger):
+    # Save the DataFrames for the links (separating inputs, states, and outputs)
+    logger.info("{} # Saving results in files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    for link in my__network.links:
+        my_inputs = list()
+        my_states = list()
+        my_outputs = list()
+        for model in dict__models[link]:
+            my_inputs += model.input_names
+            my_states += model.state_names
+            my_outputs += model.output_names
+        dict__data_frames[link].to_csv('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link),
+                                       columns=my_inputs, float_format='%e', index_label='Date')
+        dict__data_frames[link].to_csv('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link),
+                                       columns=my_states, float_format='%e', index_label='Date')
+        dict__data_frames[link].to_csv('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link),
+                                       columns=my_outputs, float_format='%e', index_label='Date')
+
+    # Save the DataFrames for the nodes
+    for node in my__network.nodes:
+        dict__data_frames[node].to_csv('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node),
+                                       float_format='%e', index_label='Date')
 
 
 if __name__ == "__main__":
