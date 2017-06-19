@@ -121,7 +121,8 @@ class Model:
                         sys.exit("There is more than one {} specifications line in {}{}.".format(specs_type,
                                                                                                  specs_folder,
                                                                                                  component))
-                    my_list.extend(my_string.split(";"))
+                    if not my_string == '':
+                        my_list.extend(my_string.split(";"))
 
             except IOError:
                 sys.exit("There is no specifications file for {} in {}.".format(component, specs_folder))
