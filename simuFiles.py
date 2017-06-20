@@ -62,7 +62,7 @@ def get_dict_parameters_from_file(catchment, outlet, link, model, in_folder):
 
 def get_dict_constants_from_file(model, specs_folder):
 
-    if not model.constant_names[0] == '':
+    if model.constant_names:
         try:
             my_file = "{}{}.const".format(specs_folder, model.identifier)
             my_df_constants = pandas.read_csv(my_file, index_col=0)
