@@ -59,7 +59,7 @@ def main():
     if os.path.isfile('{}{}_{}.log'.format(output_folder, catchment, outlet)):
         os.remove('{}{}_{}.log'.format(output_folder, catchment, outlet))
     handler = logging.FileHandler('{}{}_{}.log'.format(output_folder, catchment, outlet))
-    handler.setLevel(logging.WARNING)
+    handler.setLevel(logging.DEBUG)
     logger.addHandler(handler)
 
     logger.info("{} # Initialising.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))

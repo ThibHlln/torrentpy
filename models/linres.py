@@ -46,7 +46,7 @@ def run(obj_network, waterbody, dict_data_frame,
     else:
         r_s_v_h2o = r_s_v_h2o_temp  # temporary storage becomes final storage
 
-    # # 1.3 Save inputs, states, and outputs
+    # # 1.3. Save inputs, states, and outputs
     dict_data_frame[waterbody].set_value(datetime_time_step, "r_in_q_h2o", r_in_q_h2o)
     dict_data_frame[waterbody].set_value(datetime_time_step, "r_s_v_h2o", r_s_v_h2o)
     dict_data_frame[waterbody].set_value(datetime_time_step, "r_out_q_h2o", r_out_q_h2o)

@@ -31,9 +31,9 @@ def run(waterbody, dict_data_frame,
     _____ c_p_s                 S: drain flow parameter - fraction of saturation excess diverted to drain flow
     _____ c_p_d                 D: soil outflow coefficient
     _____ c_p_z                 Z: effective soil depth [mm]
-    _____ c_p_sk                SK: surface routing parameter [s]
-    _____ c_p_fk                FK: inter flow routing parameter [s]
-    _____ c_p_gk                GK: groundwater routing parameter [s]
+    _____ c_p_sk                SK: surface routing parameter [hours]
+    _____ c_p_fk                FK: inter flow routing parameter [hours]
+    _____ c_p_gk                GK: groundwater routing parameter [hours]
     ___ Outputs * out_ *
     _____ c_out_aeva            actual evapotranspiration [mm]
     _____ c_out_q_h2o_ove       overland flow [m3/s]
