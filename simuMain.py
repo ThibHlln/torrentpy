@@ -137,7 +137,7 @@ def main():
     for model_name in my_dict_for_file:
         df_param = DataFrame.from_dict(my_dict_for_file[model_name], orient='index')
         df_param.to_csv('{}{}_{}.{}.parameters'.format(output_folder, catchment.capitalize(),
-                                                       outlet, model_name))
+                                                       outlet, model_name), index_label='EU_CD')
 
     # Read the constants files if model has constants
     dict_const = dict()
@@ -260,16 +260,16 @@ def save_simulation_files(my__network, catchment, dict__data_frames, dict__model
             my_states += model.state_names
             my_outputs += model.output_names
         dict__data_frames[link].to_csv('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link),
-                                       columns=my_inputs, float_format='%e', index_label='Date')
+                                       columns=my_inputs, float_format='%e', index_label='DateTime')
         dict__data_frames[link].to_csv('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link),
-                                       columns=my_states, float_format='%e', index_label='Date')
+                                       columns=my_states, float_format='%e', index_label='DateTime')
         dict__data_frames[link].to_csv('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link),
-                                       columns=my_outputs, float_format='%e', index_label='Date')
+                                       columns=my_outputs, float_format='%e', index_label='DateTime')
 
     # Save the DataFrames for the nodes
     for node in my__network.nodes:
         dict__data_frames[node].to_csv('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node),
-                                       float_format='%e', index_label='Date')
+                                       float_format='%e', index_label='DateTime')
 
 
 if __name__ == "__main__":
