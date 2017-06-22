@@ -1,10 +1,12 @@
 import os
 import logging
+import pandas
 from pandas import DataFrame
 
 from simuClasses import *
 import simuFiles as sF
 import simuFunctions as sFn
+import simuPlot as sP
 
 
 def main():
@@ -20,36 +22,12 @@ def main():
     question_catch = raw_input('Name of the catchment? ')
     catchment = question_catch.capitalize()
 
-    question_catch = raw_input('European Code (EU_CD) of the catchment? [format IE_XX_##X######] ')
-    outlet = question_catch.upper()
+    question_outlet = raw_input('European Code (EU_CD) of the catchment? [format IE_XX_##X######] ')
+    outlet = question_outlet.upper()
 
     if not os.path.isfile('{}{}_{}.network'.format(input_folder, catchment, outlet)):
         # Check if combination catchment/outlet is coherent by using the name of the network file
         sys.exit("The combination [ {} - {} ] is incorrect.".format(catchment, outlet))
-
-    question_start = raw_input('Starting date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
-    try:
-        datetime_start = datetime.datetime.strptime(question_start, '%d/%m/%Y %H:%M:%S')
-    except ValueError:
-        sys.exit("The starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
-
-    question_end = raw_input('Ending date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
-    try:
-        datetime_end = datetime.datetime.strptime(question_end, '%d/%m/%Y %H:%M:%S')
-    except ValueError:
-        sys.exit("The ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
-
-    question_time_step = raw_input('Time step for simulation? [integer in minutes] ')
-    try:
-        time_step_in_minutes = float(int(question_time_step))
-    except ValueError:
-        sys.exit("The time step is invalid. [not an integer]")
-
-    question_warm_up_duration = raw_input('Warm-up duration? [integer in days] ')
-    try:
-        warm_up_in_days = float(int(question_warm_up_duration))
-    except ValueError:
-        sys.exit("The time step is invalid. [not an integer]")
 
     # Create a logger
     # # Logger levels: debug < info < warning < error < critical
@@ -61,6 +39,48 @@ def main():
     handler = logging.FileHandler('{}{}_{}.log'.format(output_folder, catchment, outlet))
     handler.setLevel(logging.DEBUG)
     logger.addHandler(handler)
+
+    try:  # see if there is a .simulation file to set up the simulation
+        my_answers_df = pandas.read_csv("{}{}_{}.simulation".format(input_folder, catchment, outlet), index_col=0)
+    except IOError:
+        my_answers_df = DataFrame()
+        logger.info("There is not {}{}_{}.simulation available.".format(input_folder, catchment, outlet))
+
+    try:
+        question_start = my_answers_df.loc['start_datetime', 'ANSWER']
+    except KeyError:
+        question_start = raw_input('Starting date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
+    try:
+        datetime_start = datetime.datetime.strptime(question_start, '%d/%m/%Y %H:%M:%S')
+    except ValueError:
+        sys.exit("The starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+
+    try:
+        question_end = my_answers_df.loc['end_datetime', 'ANSWER']
+    except KeyError:
+        question_end = raw_input('Ending date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
+    try:
+        datetime_end = datetime.datetime.strptime(question_end, '%d/%m/%Y %H:%M:%S')
+    except ValueError:
+        sys.exit("The ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+
+    try:
+        question_time_step = my_answers_df.loc['time_step_min', 'ANSWER']
+    except KeyError:
+        question_time_step = raw_input('Time step for simulation? [integer in minutes] ')
+    try:
+        time_step_in_minutes = float(int(question_time_step))
+    except ValueError:
+        sys.exit("The time step is invalid. [not an integer]")
+
+    try:
+        question_warm_up_duration = my_answers_df.loc['warm_up_days', 'ANSWER']
+    except KeyError:
+        question_warm_up_duration = raw_input('Warm-up duration? [integer in days] ')
+    try:
+        warm_up_in_days = float(int(question_warm_up_duration))
+    except ValueError:
+        sys.exit("The time step is invalid. [not an integer]")
 
     logger.info("{} # Initialising.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
 
