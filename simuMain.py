@@ -172,6 +172,10 @@ def main():
     for link in my__network.links:
         dict_meteo[link] = sF.get_data_frame_for_daily_meteo_data(catchment, link, my__time_frame.series, input_folder)
 
+    sP.plot_hydro_hyeto(my__network, my__time_frame, dict_meteo, dict_desc, dict__data_frames,
+                        input_folder, catchment, outlet,
+                        logger)
+
     # Read the annual loadings file and the application files to distribute the loadings for each time step
     logger.info("{} # Reading loadings files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
     dict_loadings = dict()
