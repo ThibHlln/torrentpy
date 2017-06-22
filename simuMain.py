@@ -6,7 +6,6 @@ from pandas import DataFrame
 from simuClasses import *
 import simuFiles as sF
 import simuFunctions as sFn
-import simuPlot as sP
 
 
 def main():
@@ -170,11 +169,7 @@ def main():
     logger.info("{} # Reading meteorological files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
     dict_meteo = dict()  # key: waterbody, value: data frame (x: time step, y: meteo data type)
     for link in my__network.links:
-        dict_meteo[link] = sF.get_data_frame_for_daily_meteo_data(catchment, link, my__time_frame.series, input_folder)
-
-    sP.plot_hydro_hyeto(my__network, my__time_frame, dict_meteo, dict_desc, dict__data_frames,
-                        input_folder, catchment, outlet,
-                        logger)
+        dict_meteo[link] = sF.get_df_for_daily_meteo_data(catchment, link, my__time_frame.series, input_folder)
 
     # Read the annual loadings file and the application files to distribute the loadings for each time step
     logger.info("{} # Reading loadings files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))

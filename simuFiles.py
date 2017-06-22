@@ -4,7 +4,7 @@ import sys
 import csv
 
 
-def get_data_frame_for_daily_meteo_data(catchment, link, time_steps, in_folder):
+def get_df_for_daily_meteo_data(catchment, link, time_steps, in_folder):
 
     my_start = '%04d' % time_steps[1].year + '%02d' % time_steps[1].month + '%02d' % time_steps[1].day
     # use 1, not 0 because 0 was artificially created in TimeFrame object for initial conditions
