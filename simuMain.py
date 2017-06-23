@@ -52,7 +52,7 @@ def main():
     try:
         datetime_start_data = datetime.datetime.strptime(question_start_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        sys.exit("The data starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
         question_end_data = my_answers_df.loc['end_datetime_data', 'ANSWER']
@@ -61,7 +61,7 @@ def main():
     try:
         datetime_end_data = datetime.datetime.strptime(question_end_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        sys.exit("The data ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
         question_start_simu = my_answers_df.loc['start_datetime_simulation', 'ANSWER']
@@ -70,7 +70,7 @@ def main():
     try:
         datetime_start_simu = datetime.datetime.strptime(question_start_simu, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        sys.exit("The simulation starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
         question_end_simu = my_answers_df.loc['end_datetime_simulation', 'ANSWER']
@@ -79,7 +79,7 @@ def main():
     try:
         datetime_end_simu = datetime.datetime.strptime(question_end_simu, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        sys.exit("The simulation ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
         question_time_step = my_answers_df.loc['time_step_min', 'ANSWER']
@@ -225,6 +225,16 @@ def main():
 
     # Save the DataFrames for the links and nodes (separating inputs, states, and outputs)
     save_simulation_files(my__network, catchment, dict__data_frames, dict__models, output_folder, logger)
+
+    # Generate gauged flow file in output folder (could be identical to input file if date ranges identical)
+    sF.get_df_for_daily_flow_data(
+        catchment, outlet, my__time_frame.series,
+        datetime_start_data, datetime_end_data, input_folder).to_csv('{}{}_{}.flow'.format(output_folder,
+                                                                                           catchment.capitalize(),
+                                                                                           outlet),
+                                                                     header='FLOW',
+                                                                     float_format='%e',
+                                                                     index_label='DateTime')
 
 
 def simulate(my__network, my__time_frame,

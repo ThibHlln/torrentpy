@@ -52,22 +52,22 @@ def main():
         logger.info("There is not {}{}_{}.simulation available.".format(input_folder, catchment, outlet))
 
     try:
-        question_start_data = my_answers_df.loc['start_datetime', 'ANSWER']
+        question_start_data = my_answers_df.loc['start_datetime_simulation', 'ANSWER']
     except KeyError:
         question_start_data = raw_input('Starting date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
     try:
         datetime_start_data = datetime.datetime.strptime(question_start_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        sys.exit("The data starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
-        question_end_data = my_answers_df.loc['end_datetime', 'ANSWER']
+        question_end_data = my_answers_df.loc['end_datetime_simulation', 'ANSWER']
     except KeyError:
         question_end_data = raw_input('Ending date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
     try:
         datetime_end_data = datetime.datetime.strptime(question_end_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        sys.exit("The data ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
         question_time_step = my_answers_df.loc['time_step_min', 'ANSWER']
@@ -78,17 +78,23 @@ def main():
     except ValueError:
         sys.exit("The time step is invalid. [not an integer]")
 
-    question_start_plot = raw_input('Starting date for plot? [format DD/MM/YYYY HH:MM:SS] ')
+    try:
+        question_start_plot = my_answers_df.loc['start_datetime_plot', 'ANSWER']
+    except KeyError:
+        question_start_plot = raw_input('Starting date for plot? [format DD/MM/YYYY HH:MM:SS] ')
     try:
         datetime_start_plot = datetime.datetime.strptime(question_start_plot, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        sys.exit("The plot starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
-    question_end_plot = raw_input('Ending date for plot? [format DD/MM/YYYY HH:MM:SS] ')
+    try:
+        question_end_plot = my_answers_df.loc['end_datetime_plot', 'ANSWER']
+    except ValueError:
+        question_end_plot = raw_input('Ending date for plot? [format DD/MM/YYYY HH:MM:SS] ')
     try:
         datetime_end_plot = datetime.datetime.strptime(question_end_plot, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        sys.exit("The plot ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     logger.info("{} # Initialising.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
 
@@ -139,9 +145,8 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     gauged_flow_m3s = np.empty(shape=(len(my__time_frame.series), 0), dtype=np.float64)
     gauged_flow_m3s = \
         np.c_[gauged_flow_m3s,
-              np.append(np.zeros(shape=(1, 1), dtype=np.float64),
-                        [np.asarray(pandas.read_csv("{}{}_{}.flow".format(in_folder, catchment, outlet),
-                                                    index_col=0)['FLOW'].tolist())])]
+              np.asarray(pandas.read_csv("{}{}_{}.flow".format(out_folder, catchment, outlet),
+                                         index_col=0)['flow'].tolist())]
 
     logger.info("{} # Plotting.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
 
@@ -175,7 +180,7 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     fig1 = fig.add_axes([0.1, 0.7, 0.8, 0.2])  # give location of the graph (%: from left, from bottom, width, height)
 
     fig1.bar(my__time_frame.series[index_start:index_end], rainfall[index_start:index_end],
-             label='Hyetograph', width=1.0, facecolor='#4ec4f2', edgecolor='#ababab')
+             label='Hyetograph', width=1.0, facecolor='#4ec4f2', edgecolor='#4ec4f2')
     fig1.patch.set_facecolor('none')
 
     # Get the current axis limits in a tuple (xmin, xmax, ymin, ymax)
