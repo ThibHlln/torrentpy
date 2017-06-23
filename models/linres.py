@@ -59,7 +59,8 @@ def infer_parameters(dict_desc, my_dict_param):
     q = 0.7 * dict_desc['SAAR'] * (dict_desc['area'] / 1e6) * 3.171e-5
     slp = dict_desc['TAYSLO'] / 1000.0
     n = 0.04
-    rk = l / (
-        (q ** 0.4 * slp ** 0.3) / ((3.67 * q ** 0.45) ** 0.4 * (n ** 0.6))
-    )
+    # rk = l / (
+    #     (q ** 0.4 * slp ** 0.3) / ((3.67 * q ** 0.45) ** 0.4 * (n ** 0.6))
+    # )
+    rk = l / 1.0
     my_dict_param['r_p_k_h2o'] = rk
