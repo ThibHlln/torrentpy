@@ -4,11 +4,12 @@ import sys
 import csv
 
 
-def get_df_for_daily_meteo_data(catchment, link, time_steps, in_folder):
+def get_df_for_daily_meteo_data(catchment, link, time_steps,
+                                dt_start_data, dt_end_data, in_folder):
 
-    my_start = '%04d' % time_steps[1].year + '%02d' % time_steps[1].month + '%02d' % time_steps[1].day
+    my_start = '%04d' % dt_start_data.year + '%02d' % dt_start_data.month + '%02d' % dt_start_data.day
     # use 1, not 0 because 0 was artificially created in TimeFrame object for initial conditions
-    my_end = '%04d' % time_steps[-1].year + '%02d' % time_steps[-1].month + '%02d' % time_steps[-1].day
+    my_end = '%04d' % dt_end_data.year + '%02d' % dt_end_data.month + '%02d' % dt_end_data.day
 
     my_meteo_data_types = ["rain", "peva", "airt", "soit"]
 

@@ -46,20 +46,38 @@ def main():
         logger.info("There is not {}{}_{}.simulation available.".format(input_folder, catchment, outlet))
 
     try:
-        question_start = my_answers_df.loc['start_datetime', 'ANSWER']
+        question_start_data = my_answers_df.loc['start_datetime_data', 'ANSWER']
     except KeyError:
-        question_start = raw_input('Starting date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
+        question_start_data = raw_input('Starting date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
     try:
-        datetime_start = datetime.datetime.strptime(question_start, '%d/%m/%Y %H:%M:%S')
+        datetime_start_data = datetime.datetime.strptime(question_start_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
         sys.exit("The starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
-        question_end = my_answers_df.loc['end_datetime', 'ANSWER']
+        question_end_data = my_answers_df.loc['end_datetime_data', 'ANSWER']
     except KeyError:
-        question_end = raw_input('Ending date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
+        question_end_data = raw_input('Ending date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
     try:
-        datetime_end = datetime.datetime.strptime(question_end, '%d/%m/%Y %H:%M:%S')
+        datetime_end_data = datetime.datetime.strptime(question_end_data, '%d/%m/%Y %H:%M:%S')
+    except ValueError:
+        sys.exit("The ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+
+    try:
+        question_start_simu = my_answers_df.loc['start_datetime_simulation', 'ANSWER']
+    except KeyError:
+        question_start_simu = raw_input('Starting date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
+    try:
+        datetime_start_simu = datetime.datetime.strptime(question_start_simu, '%d/%m/%Y %H:%M:%S')
+    except ValueError:
+        sys.exit("The starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+
+    try:
+        question_end_simu = my_answers_df.loc['end_datetime_simulation', 'ANSWER']
+    except KeyError:
+        question_end_simu = raw_input('Ending date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
+    try:
+        datetime_end_simu = datetime.datetime.strptime(question_end_simu, '%d/%m/%Y %H:%M:%S')
     except ValueError:
         sys.exit("The ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
@@ -84,7 +102,7 @@ def main():
     logger.info("{} # Initialising.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
 
     # Create a TimeFrame object
-    my__time_frame = TimeFrame(datetime_start, datetime_end, int(time_step_in_minutes))
+    my__time_frame = TimeFrame(datetime_start_simu, datetime_end_simu, int(time_step_in_minutes))
     my__time_frame_warm_up = TimeFrame(my__time_frame.start, my__time_frame.start +
                                        datetime.timedelta(days=warm_up_in_days - 1), int(time_step_in_minutes))
 
@@ -169,7 +187,8 @@ def main():
     logger.info("{} # Reading meteorological files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
     dict_meteo = dict()  # key: waterbody, value: data frame (x: time step, y: meteo data type)
     for link in my__network.links:
-        dict_meteo[link] = sF.get_df_for_daily_meteo_data(catchment, link, my__time_frame.series, input_folder)
+        dict_meteo[link] = sF.get_df_for_daily_meteo_data(catchment, link, my__time_frame.series,
+                                                          datetime_start_data, datetime_end_data, input_folder)
 
     # Read the annual loadings file and the application files to distribute the loadings for each time step
     logger.info("{} # Reading loadings files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
