@@ -145,19 +145,13 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
 
     logger.info("{} # Plotting.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
 
-    # __________________ Parameters __________________
-
-    # File title without extension
-    file_title = "{}{}"
-
-    # __________________ Plot __________________
+    # Plot
 
     # Create a general figure
     fig = plt.figure(facecolor='white')
     fig.patch.set_facecolor('#ffffff')
-    # fig.suptitle(graph_title)
 
-    dt_start_data = my__time_frame.series[0]
+    dt_start_data = my__time_frame.series[1]
     dt_end_data = my__time_frame.series[-1]
 
     pyplot_start_data = dates.date2num(dt_start_plot)
@@ -165,20 +159,20 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
 
     if dt_start_data <= dt_start_plot:
         start_diff = dt_start_plot - dt_start_data
-        index_start = start_diff.days
+        index_start = 1 + start_diff.days
     else:
         sys.exit("The start date for plotting is out of bound.")
 
     if dt_end_plot <= dt_end_data:
         end_diff = dt_end_data - dt_end_plot
-        index_end = end_diff.days
+        index_end = - (1 + end_diff.days)
     else:
         sys.exit("The end date for plotting is out of bound.")
 
     # __________________ Hyetograph __________________
 
     # Create a sub-figure for the hyetograph
-    fig1 = fig.add_axes([0.1, 0.7, 0.8, 0.2])  # give the location of the graph (%: from left, from bottom, width, height)
+    fig1 = fig.add_axes([0.1, 0.7, 0.8, 0.2])  # give location of the graph (%: from left, from bottom, width, height)
 
     fig1.bar(my__time_frame.series[index_start:index_end], rainfall[index_start:index_end],
              label='Hyetograph', width=1.0, facecolor='#4ec4f2', edgecolor='#ababab')
@@ -245,8 +239,8 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     # fig2.set_yticks([0, 10, 20, 30, 40, 50])
 
     # fig2.set_xlabel("Time")
-    # fig2.set_ylabel(u"Discharge (m{}/s)".format(u"\u00B3"))
-    fig2.set_ylabel("River Discharge at the outlet (mm)")
+    fig2.set_ylabel(u"River Discharge at the outlet (m{}/s)".format(u"\u00B3"))
+    # fig2.set_ylabel("River Discharge at the outlet (mm)")
 
     # leg = fig2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), frameon=False)
 
