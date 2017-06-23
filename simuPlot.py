@@ -52,7 +52,7 @@ def main():
         logger.info("There is not {}{}_{}.simulation available.".format(input_folder, catchment, outlet))
 
     try:
-        question_start_data = my_answers_df.loc['start_datetime_simulation', 'ANSWER']
+        question_start_data = my_answers_df.loc['start_datetime_simu', 'ANSWER']
     except KeyError:
         question_start_data = raw_input('Starting date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
     try:
@@ -61,7 +61,7 @@ def main():
         sys.exit("The data starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
-        question_end_data = my_answers_df.loc['end_datetime_simulation', 'ANSWER']
+        question_end_data = my_answers_df.loc['end_datetime_simu', 'ANSWER']
     except KeyError:
         question_end_data = raw_input('Ending date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
     try:
@@ -70,11 +70,20 @@ def main():
         sys.exit("The data ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
-        question_time_step = my_answers_df.loc['time_step_min', 'ANSWER']
+        question_data_time_step = my_answers_df.loc['data_time_step_min', 'ANSWER']
     except KeyError:
-        question_time_step = raw_input('Time step for simulation? [integer in minutes] ')
+        question_data_time_step = raw_input('Time step for simulation? [integer in minutes] ')
     try:
-        time_step_in_minutes = float(int(question_time_step))
+        data_time_step_in_min = float(int(question_data_time_step))
+    except ValueError:
+        sys.exit("The data time step is invalid. [not an integer]")
+
+    try:
+        question_simu_time_step = my_answers_df.loc['simu_time_step_min', 'ANSWER']
+    except KeyError:
+        question_simu_time_step = raw_input('Time step for simulation? [integer in minutes] ')
+    try:
+        simu_time_step_in_min = float(int(question_simu_time_step))
     except ValueError:
         sys.exit("The time step is invalid. [not an integer]")
 
@@ -99,7 +108,8 @@ def main():
     logger.info("{} # Initialising.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
 
     # Create a TimeFrame object
-    my__time_frame = TimeFrame(datetime_start_data, datetime_end_data, int(time_step_in_minutes))
+    my__time_frame = TimeFrame(datetime_start_data, datetime_end_data,
+                               int(data_time_step_in_min), int(simu_time_step_in_min))
 
     # Create a Network object from network and waterBodies files
     my__network = Network(catchment, outlet, input_folder, specifications_folder)
@@ -119,7 +129,7 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     logger.info("{} # Reading results files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
 
     # Get the average rainfall data over the catchment
-    my_rain_mm = np.empty(shape=(len(my__time_frame.series), 0), dtype=np.float64)
+    my_rain_mm = np.empty(shape=(len(my__time_frame.series_data), 0), dtype=np.float64)
     my_area_m2 = np.empty(shape=(0, 1), dtype=np.float64)
 
     my_dict_desc = sF.get_dict_floats_from_file("descriptors", catchment, outlet, my__network, in_folder)
@@ -137,12 +147,12 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     rainfall *= 1e3/catchment_area  # get rainfall in mm
 
     # Get the simulated flow at the outlet of the catchment
-    simu_flow_m3s = np.empty(shape=(len(my__time_frame.series), 0), dtype=np.float64)
+    simu_flow_m3s = np.empty(shape=(len(my__time_frame.series_data), 0), dtype=np.float64)
     my_df_node = pandas.read_csv("{}{}_0000.node".format(out_folder, catchment), index_col=0)
     simu_flow_m3s = np.c_[simu_flow_m3s, np.asarray(my_df_node['q_h2o'].tolist())]
 
     # Get the measured flow near the outlet of the catchment
-    gauged_flow_m3s = np.empty(shape=(len(my__time_frame.series), 0), dtype=np.float64)
+    gauged_flow_m3s = np.empty(shape=(len(my__time_frame.series_data), 0), dtype=np.float64)
     gauged_flow_m3s = \
         np.c_[gauged_flow_m3s,
               np.asarray(pandas.read_csv("{}{}_{}.flow".format(out_folder, catchment, outlet),
@@ -156,8 +166,8 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     fig = plt.figure(facecolor='white')
     fig.patch.set_facecolor('#ffffff')
 
-    dt_start_data = my__time_frame.series[1]
-    dt_end_data = my__time_frame.series[-1]
+    dt_start_data = my__time_frame.series_data[1]
+    dt_end_data = my__time_frame.series_data[-1]
 
     pyplot_start_data = dates.date2num(dt_start_plot)
     pyplot_end_data = dates.date2num(dt_end_plot)
@@ -179,7 +189,7 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     # Create a sub-figure for the hyetograph
     fig1 = fig.add_axes([0.1, 0.7, 0.8, 0.2])  # give location of the graph (%: from left, from bottom, width, height)
 
-    fig1.bar(my__time_frame.series[index_start:index_end], rainfall[index_start:index_end],
+    fig1.bar(my__time_frame.series_data[index_start:index_end], rainfall[index_start:index_end],
              label='Hyetograph', width=1.0, facecolor='#4ec4f2', edgecolor='#4ec4f2')
     fig1.patch.set_facecolor('none')
 
@@ -213,10 +223,10 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     fig2 = fig.add_axes([0.1, 0.2, 0.8, 0.7])
 
     # Plot the simulated flows as lines
-    fig2.plot(my__time_frame.series[index_start:index_end], simu_flow_m3s[index_start:index_end], color='#898989')
+    fig2.plot(my__time_frame.series_data[index_start:index_end], simu_flow_m3s[index_start:index_end], color='#898989')
 
     # Plot the measured flows as points
-    fig2.plot(my__time_frame.series[index_start:index_end], gauged_flow_m3s[index_start:index_end],
+    fig2.plot(my__time_frame.series_data[index_start:index_end], gauged_flow_m3s[index_start:index_end],
               'x', markersize=2.0, label='Measured Flows', color='#ffc511')
 
     ax2 = plt.axis()  # Get the current axis limits in a tuple (xmin, xmax, ymin, ymax)

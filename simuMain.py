@@ -64,7 +64,7 @@ def main():
         sys.exit("The data ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
-        question_start_simu = my_answers_df.loc['start_datetime_simulation', 'ANSWER']
+        question_start_simu = my_answers_df.loc['start_datetime_simu', 'ANSWER']
     except KeyError:
         question_start_simu = raw_input('Starting date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
     try:
@@ -73,7 +73,7 @@ def main():
         sys.exit("The simulation starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
-        question_end_simu = my_answers_df.loc['end_datetime_simulation', 'ANSWER']
+        question_end_simu = my_answers_df.loc['end_datetime_simu', 'ANSWER']
     except KeyError:
         question_end_simu = raw_input('Ending date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
     try:
@@ -82,13 +82,22 @@ def main():
         sys.exit("The simulation ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
-        question_time_step = my_answers_df.loc['time_step_min', 'ANSWER']
+        question_data_time_step = my_answers_df.loc['data_time_step_min', 'ANSWER']
     except KeyError:
-        question_time_step = raw_input('Time step for simulation? [integer in minutes] ')
+        question_data_time_step = raw_input('Time step for simulation? [integer in minutes] ')
     try:
-        time_step_in_minutes = float(int(question_time_step))
+        data_time_step_in_min = float(int(question_data_time_step))
     except ValueError:
-        sys.exit("The time step is invalid. [not an integer]")
+        sys.exit("The data time step is invalid. [not an integer]")
+
+    try:
+        question_simu_time_step = my_answers_df.loc['simu_time_step_min', 'ANSWER']
+    except KeyError:
+        question_simu_time_step = raw_input('Time step for simulation? [integer in minutes] ')
+    try:
+        simu_time_step_in_min = float(int(question_simu_time_step))
+    except ValueError:
+        sys.exit("The simulation time step is invalid. [not an integer]")
 
     try:
         question_warm_up_duration = my_answers_df.loc['warm_up_days', 'ANSWER']
@@ -97,14 +106,24 @@ def main():
     try:
         warm_up_in_days = float(int(question_warm_up_duration))
     except ValueError:
-        sys.exit("The time step is invalid. [not an integer]")
+        sys.exit("The warm-up duration is invalid. [not an integer]")
 
     logger.info("{} # Initialising.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
 
+    # Check if temporal information is consistent
+    if datetime_start_simu < datetime_start_data:
+        sys.exit("The simulation start is earlier than the data start.")
+    if datetime_end_simu > datetime_end_data:
+        sys.exit("The simulation end is later than the data end.")
+    if data_time_step_in_min % simu_time_step_in_min != 0.0:
+        sys.exit("The data time step is not a multiple of the simulation time step.")
+
     # Create a TimeFrame object
-    my__time_frame = TimeFrame(datetime_start_simu, datetime_end_simu, int(time_step_in_minutes))
+    my__time_frame = TimeFrame(datetime_start_simu, datetime_end_simu,
+                               int(data_time_step_in_min), int(simu_time_step_in_min))
     my__time_frame_warm_up = TimeFrame(my__time_frame.start, my__time_frame.start +
-                                       datetime.timedelta(days=warm_up_in_days - 1), int(time_step_in_minutes))
+                                       datetime.timedelta(days=warm_up_in_days - 1),
+                                       int(data_time_step_in_min), int(simu_time_step_in_min))
 
     # Declare all the dictionaries that will be needed, all using the waterbody code as a key
     dict__models = dict()  # key: waterbody, value: list of model objects
@@ -117,10 +136,10 @@ def main():
     # Create DataFrames for the nodes
     for node in my__network.nodes:
         dict__data_frames[node] = \
-            DataFrame(index=my__time_frame.series, columns=my__network.variables).fillna(0.0)
+            DataFrame(index=my__time_frame.series_simu, columns=my__network.variables).fillna(0.0)
         if not warm_up_in_days == 0.0:
             dict__data_frames_warm_up[node] = \
-                DataFrame(index=my__time_frame_warm_up.series, columns=my__network.variables).fillna(0.0)
+                DataFrame(index=my__time_frame_warm_up.series_simu, columns=my__network.variables).fillna(0.0)
 
     # Create Models and DataFrames for the links
     for link in my__network.links:
@@ -143,9 +162,9 @@ def main():
         my_headers = list()
         for model in dict__models[link]:
             my_headers += model.input_names + model.state_names + model.output_names
-        dict__data_frames[link] = DataFrame(index=my__time_frame.series, columns=my_headers).fillna(0.0)
+        dict__data_frames[link] = DataFrame(index=my__time_frame.series_simu, columns=my_headers).fillna(0.0)
         if not warm_up_in_days == 0.0:
-            dict__data_frames_warm_up[link] = DataFrame(index=my__time_frame_warm_up.series,
+            dict__data_frames_warm_up[link] = DataFrame(index=my__time_frame_warm_up.series_simu,
                                                         columns=my_headers).fillna(0.0)
 
     # Read the parameters file, or read the descriptors file, generate the parameters, and generate the parameters file
@@ -187,7 +206,7 @@ def main():
     logger.info("{} # Reading meteorological files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
     dict_meteo = dict()  # key: waterbody, value: data frame (x: time step, y: meteo data type)
     for link in my__network.links:
-        dict_meteo[link] = sF.get_df_for_daily_meteo_data(catchment, link, my__time_frame.series,
+        dict_meteo[link] = sF.get_df_for_daily_meteo_data(catchment, link, my__time_frame,
                                                           datetime_start_data, datetime_end_data, input_folder)
 
     # Read the annual loadings file and the application files to distribute the loadings for each time step
@@ -198,7 +217,7 @@ def main():
     df_distributions = sF.get_df_distributions_from_file(specifications_folder)
     for link in my__network.links:
         dict_loadings[link] = sFn.distribute_loadings_across_year(dict_annual_loads, dict_applications,
-                                                                  df_distributions, link, my__time_frame.series)
+                                                                  df_distributions, link, my__time_frame)
 
     # Set the initial conditions ('blank' warm up run)
     if not warm_up_in_days == 0.0:
@@ -228,7 +247,7 @@ def main():
 
     # Generate gauged flow file in output folder (could be identical to input file if date ranges identical)
     sF.get_df_for_daily_flow_data(
-        catchment, outlet, my__time_frame.series,
+        catchment, outlet, my__time_frame.series_simu,
         datetime_start_data, datetime_end_data, input_folder).to_csv('{}{}_{}.flow'.format(output_folder,
                                                                                            catchment.capitalize(),
                                                                                            outlet),
@@ -244,13 +263,13 @@ def simulate(my__network, my__time_frame,
     my_dict_variables = dict()
     for variable in my__network.variables:
         my_dict_variables[variable] = 0.0
-    for step in my__time_frame.series[1:]:  # ignore the index 0 because it is the initial conditions
+    for step in my__time_frame.series_simu[1:]:  # ignore the index 0 because it is the initial conditions
         # Calculate runoff and concentrations for each link
         for link in my__network.links:
             for model in dict__models[link]:
                 model.run(my__network, link, dict__data_frames,
                           dict_desc, dict_param, dict_const, dict_meteo, dict_loadings,
-                          step, my__time_frame.step,
+                          step, my__time_frame.step_simu,
                           logger)
         # Sum up everything coming from upstream for each node
         for node in my__network.nodes:

@@ -151,18 +151,21 @@ class Model:
 
 class TimeFrame:
     """"""
-    def __init__(self, datetime_start, datetime_end, increment_in_minutes):
+    def __init__(self, datetime_start, datetime_end, data_increment_in_minutes, simu_increment_in_minutes):
         self.start = datetime_start
         self.end = datetime_end
-        self.step = increment_in_minutes
-        self.series = TimeFrame.get_list_datetime(self)
+        self.step_data = data_increment_in_minutes
+        self.step_simu = simu_increment_in_minutes
+        self.series_data = TimeFrame.get_list_datetime(self, 'data')
+        self.series_simu = TimeFrame.get_list_datetime(self, 'simu')
 
-    def get_list_datetime(self):
+    def get_list_datetime(self, option):
         gap = self.end - self.start
-        end_index = int(gap.total_seconds() // (self.step * 60)) + 1
+        options = {'data': self.step_data, 'simu': self.step_simu}
+        end_index = int(gap.total_seconds() // (options[option] * 60)) + 1
         my_list_datetime = list()
         for factor in range(-1, end_index, 1):  # add one datetime before start
-            my_datetime = self.start + datetime.timedelta(minutes=factor * self.step)
+            my_datetime = self.start + datetime.timedelta(minutes=factor * options[option])
             my_list_datetime.append(my_datetime)
 
         return my_list_datetime
