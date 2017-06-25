@@ -48,7 +48,7 @@ def main():
     try:
         question_start_data = my_answers_df.loc['start_datetime_data', 'ANSWER']
     except KeyError:
-        question_start_data = raw_input('Starting date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
+        question_start_data = raw_input('Starting date for data? [format DD/MM/YYYY HH:MM:SS] ')
     try:
         datetime_start_data = datetime.datetime.strptime(question_start_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
@@ -57,7 +57,7 @@ def main():
     try:
         question_end_data = my_answers_df.loc['end_datetime_data', 'ANSWER']
     except KeyError:
-        question_end_data = raw_input('Ending date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
+        question_end_data = raw_input('Ending date for data? [format DD/MM/YYYY HH:MM:SS] ')
     try:
         datetime_end_data = datetime.datetime.strptime(question_end_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
@@ -84,7 +84,7 @@ def main():
     try:
         question_data_time_step = my_answers_df.loc['data_time_step_min', 'ANSWER']
     except KeyError:
-        question_data_time_step = raw_input('Time step for simulation? [integer in minutes] ')
+        question_data_time_step = raw_input('Time step for data? [integer in minutes] ')
     try:
         data_time_step_in_min = float(int(question_data_time_step))
     except ValueError:
@@ -243,17 +243,20 @@ def main():
              logger)
 
     # Save the DataFrames for the links and nodes (separating inputs, states, and outputs)
-    save_simulation_files(my__network, catchment, dict__data_frames, dict__models, output_folder, logger)
+    save_simulation_files(my__network, my__time_frame, catchment,
+                          dict__data_frames, dict__models, output_folder, logger)
 
     # Generate gauged flow file in output folder (could be identical to input file if date ranges identical)
     sF.get_df_for_daily_flow_data(
-        catchment, outlet, my__time_frame.series_simu,
+        catchment, outlet, my__time_frame,
         datetime_start_data, datetime_end_data, input_folder).to_csv('{}{}_{}.flow'.format(output_folder,
                                                                                            catchment.capitalize(),
                                                                                            outlet),
                                                                      header='FLOW',
                                                                      float_format='%e',
                                                                      index_label='DateTime')
+
+    logger.info("{} # Ending.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
 
 
 def simulate(my__network, my__time_frame,
@@ -315,7 +318,8 @@ def simulate(my__network, my__time_frame,
                 my_dict_variables[variable] = 0.0
 
 
-def save_simulation_files(my__network, catchment, dict__data_frames, dict__models, output_folder, logger):
+def save_simulation_files(my__network, my__time_frame, catchment,
+                          dict__data_frames, dict__models, output_folder, logger):
     # Save the DataFrames for the links (separating inputs, states, and outputs)
     logger.info("{} # Saving results in files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
     for link in my__network.links:
@@ -326,17 +330,21 @@ def save_simulation_files(my__network, catchment, dict__data_frames, dict__model
             my_inputs += model.input_names
             my_states += model.state_names
             my_outputs += model.output_names
-        dict__data_frames[link].to_csv('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link),
-                                       columns=my_inputs, float_format='%e', index_label='DateTime')
-        dict__data_frames[link].to_csv('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link),
-                                       columns=my_states, float_format='%e', index_label='DateTime')
-        dict__data_frames[link].to_csv('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link),
-                                       columns=my_outputs, float_format='%e', index_label='DateTime')
+        dict__data_frames[link].loc[my__time_frame.series_data[1:]].to_csv(
+            '{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link),
+            columns=my_inputs, float_format='%e', index_label='DateTime')
+        dict__data_frames[link].loc[my__time_frame.series_data[1:]].to_csv(
+            '{}{}_{}.states'.format(output_folder, catchment.capitalize(), link),
+            columns=my_states, float_format='%e', index_label='DateTime')
+        dict__data_frames[link].loc[my__time_frame.series_data[1:]].to_csv(
+            '{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link),
+            columns=my_outputs, float_format='%e', index_label='DateTime')
 
     # Save the DataFrames for the nodes
     for node in my__network.nodes:
-        dict__data_frames[node].to_csv('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node),
-                                       float_format='%e', index_label='DateTime')
+        dict__data_frames[node].loc[my__time_frame.series_data[1:]].to_csv(
+            '{}{}_{}.node'.format(output_folder, catchment.capitalize(), node),
+            float_format='%e', index_label='DateTime')
 
 
 if __name__ == "__main__":

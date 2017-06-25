@@ -1,10 +1,6 @@
 import matplotlib.pyplot as plt
-import csv
-import time
-import datetime
-import calendar
-import sys
 import os
+import datetime
 import logging
 from pandas import DataFrame
 import pandas
@@ -52,18 +48,18 @@ def main():
         logger.info("There is not {}{}_{}.simulation available.".format(input_folder, catchment, outlet))
 
     try:
-        question_start_data = my_answers_df.loc['start_datetime_simu', 'ANSWER']
+        question_start_data = my_answers_df.loc['start_datetime_data', 'ANSWER']
     except KeyError:
-        question_start_data = raw_input('Starting date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
+        question_start_data = raw_input('Starting date for data? [format DD/MM/YYYY HH:MM:SS] ')
     try:
         datetime_start_data = datetime.datetime.strptime(question_start_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
         sys.exit("The data starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
-        question_end_data = my_answers_df.loc['end_datetime_simu', 'ANSWER']
+        question_end_data = my_answers_df.loc['end_datetime_data', 'ANSWER']
     except KeyError:
-        question_end_data = raw_input('Ending date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
+        question_end_data = raw_input('Ending date for data? [format DD/MM/YYYY HH:MM:SS] ')
     try:
         datetime_end_data = datetime.datetime.strptime(question_end_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
@@ -72,7 +68,7 @@ def main():
     try:
         question_data_time_step = my_answers_df.loc['data_time_step_min', 'ANSWER']
     except KeyError:
-        question_data_time_step = raw_input('Time step for simulation? [integer in minutes] ')
+        question_data_time_step = raw_input('Time step for data? [integer in minutes] ')
     try:
         data_time_step_in_min = float(int(question_data_time_step))
     except ValueError:
@@ -85,7 +81,7 @@ def main():
     try:
         simu_time_step_in_min = float(int(question_simu_time_step))
     except ValueError:
-        sys.exit("The time step is invalid. [not an integer]")
+        sys.exit("The simulation time step is invalid. [not an integer]")
 
     try:
         question_start_plot = my_answers_df.loc['start_datetime_plot', 'ANSWER']
@@ -117,28 +113,38 @@ def main():
     # Plot the desired graphs
     plot_daily_hydro_hyeto(my__network, my__time_frame,
                            input_folder, output_folder, catchment, outlet,
+                           datetime_start_data, datetime_end_data,
                            datetime_start_plot, datetime_end_plot,
                            logger)
 
 
 def plot_daily_hydro_hyeto(my__network, my__time_frame,
                            in_folder, out_folder, catchment, outlet,
+                           dt_start_data, dt_end_data,
                            dt_start_plot, dt_end_plot,
                            logger):
 
     logger.info("{} # Reading results files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
 
+    my_time_dt = my__time_frame.series_data[1:]
+    my_time_st = [my_dt.strftime('%Y-%m-%d %H:%M:%S') for my_dt in my_time_dt]
+
     # Get the average rainfall data over the catchment
-    my_rain_mm = np.empty(shape=(len(my__time_frame.series_data), 0), dtype=np.float64)
+    my_rain_mm = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
     my_area_m2 = np.empty(shape=(0, 1), dtype=np.float64)
 
     my_dict_desc = sF.get_dict_floats_from_file("descriptors", catchment, outlet, my__network, in_folder)
     for link in my__network.links:
         try:
-            my_df_inputs = pandas.read_csv("{}{}_{}.inputs".format(out_folder, catchment, link), index_col=0)
+            my_df_inputs = pandas.read_csv("{}{}_{}_{}_{}.rain".format(in_folder, catchment, link,
+                                                                       dt_start_data.strftime("%Y%m%d"),
+                                                                       dt_end_data.strftime("%Y%m%d")),
+                                           index_col=0)
         except IOError:
-            sys.exit("No inputs summary for {}_{} in {}.".format(catchment, link, out_folder))
-        my_rain_mm = np.c_[my_rain_mm, np.asarray(my_df_inputs['c_in_rain'].tolist())]
+            sys.exit("No rainfall file for {}_{}_{}_{} in {}.".format(catchment, link,
+                                                                      dt_start_data.strftime("%Y%m%d"),
+                                                                      dt_end_data.strftime("%Y%m%d"), in_folder))
+        my_rain_mm = np.c_[my_rain_mm, np.asarray(my_df_inputs['RAIN'].loc[my_time_st].tolist())]
 
         my_area_m2 = np.r_[my_area_m2, np.array([[my_dict_desc[link]['area']]])]
     my_rain_m = my_rain_mm / 1e3  # convert mm to m of rainfall
@@ -147,16 +153,16 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     rainfall *= 1e3/catchment_area  # get rainfall in mm
 
     # Get the simulated flow at the outlet of the catchment
-    simu_flow_m3s = np.empty(shape=(len(my__time_frame.series_data), 0), dtype=np.float64)
+    simu_flow_m3s = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
     my_df_node = pandas.read_csv("{}{}_0000.node".format(out_folder, catchment), index_col=0)
-    simu_flow_m3s = np.c_[simu_flow_m3s, np.asarray(my_df_node['q_h2o'].tolist())]
+    simu_flow_m3s = np.c_[simu_flow_m3s, np.asarray(my_df_node['q_h2o'].loc[my_time_st].tolist())]
 
     # Get the measured flow near the outlet of the catchment
-    gauged_flow_m3s = np.empty(shape=(len(my__time_frame.series_data), 0), dtype=np.float64)
+    gauged_flow_m3s = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
     gauged_flow_m3s = \
         np.c_[gauged_flow_m3s,
               np.asarray(pandas.read_csv("{}{}_{}.flow".format(out_folder, catchment, outlet),
-                                         index_col=0)['flow'].tolist())]
+                                         index_col=0)['flow'].loc[my_time_st].tolist())]
 
     logger.info("{} # Plotting.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
 
@@ -166,15 +172,15 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     fig = plt.figure(facecolor='white')
     fig.patch.set_facecolor('#ffffff')
 
-    dt_start_data = my__time_frame.series_data[1]
-    dt_end_data = my__time_frame.series_data[-1]
+    dt_start_data = my_time_dt[0]
+    dt_end_data = my_time_dt[-1]
 
     pyplot_start_data = dates.date2num(dt_start_plot)
     pyplot_end_data = dates.date2num(dt_end_plot)
 
     if dt_start_data <= dt_start_plot:
         start_diff = dt_start_plot - dt_start_data
-        index_start = 1 + start_diff.days
+        index_start = start_diff.days
     else:
         sys.exit("The start date for plotting is out of bound.")
 
@@ -189,7 +195,7 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     # Create a sub-figure for the hyetograph
     fig1 = fig.add_axes([0.1, 0.7, 0.8, 0.2])  # give location of the graph (%: from left, from bottom, width, height)
 
-    fig1.bar(my__time_frame.series_data[index_start:index_end], rainfall[index_start:index_end],
+    fig1.bar(my_time_dt[index_start:index_end], rainfall[index_start:index_end],
              label='Hyetograph', width=1.0, facecolor='#4ec4f2', edgecolor='#4ec4f2')
     fig1.patch.set_facecolor('none')
 
@@ -223,10 +229,10 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     fig2 = fig.add_axes([0.1, 0.2, 0.8, 0.7])
 
     # Plot the simulated flows as lines
-    fig2.plot(my__time_frame.series_data[index_start:index_end], simu_flow_m3s[index_start:index_end], color='#898989')
+    fig2.plot(my_time_dt[index_start:index_end], simu_flow_m3s[index_start:index_end], color='#898989')
 
     # Plot the measured flows as points
-    fig2.plot(my__time_frame.series_data[index_start:index_end], gauged_flow_m3s[index_start:index_end],
+    fig2.plot(my_time_dt[index_start:index_end], gauged_flow_m3s[index_start:index_end],
               'x', markersize=2.0, label='Measured Flows', color='#ffc511')
 
     ax2 = plt.axis()  # Get the current axis limits in a tuple (xmin, xmax, ymin, ymax)
@@ -268,6 +274,8 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     fig.set_size_inches(11, 6)
     fig.savefig('{}{}_{}.png'.format(out_folder, catchment, outlet),
                 dpi=1500, facecolor=fig.get_facecolor(), edgecolor='none')
+
+    logger.info("{} # Ending.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
 
 
 if __name__ == '__main__':

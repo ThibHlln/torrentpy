@@ -8,9 +8,8 @@ import csv
 def get_df_for_daily_meteo_data(catchment, link, my_tf,
                                 dt_start_data, dt_end_data, in_folder):
 
-    my_start = '%04d' % dt_start_data.year + '%02d' % dt_start_data.month + '%02d' % dt_start_data.day
-    # use 1, not 0 because 0 was artificially created in TimeFrame object for initial conditions
-    my_end = '%04d' % dt_end_data.year + '%02d' % dt_end_data.month + '%02d' % dt_end_data.day
+    my_start = dt_start_data.strftime("%Y%m%d")
+    my_end = dt_end_data.strftime("%Y%m%d")
 
     my_meteo_data_types = ["rain", "peva", "airt", "soit"]
 
@@ -38,7 +37,10 @@ def get_df_for_daily_meteo_data(catchment, link, my_tf,
                                                                meteo_type, my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
                 for my_sub_step in range(0, divisor, 1):
                     my_dt_simu = my_dt_data + datetime.timedelta(minutes=my_sub_step * my_tf.step_simu)
-                    my__data_frame.set_value(my_dt_simu, meteo_type, float(my_portion))
+                    if (meteo_type == 'rain') or (meteo_type == 'peva'):
+                        my__data_frame.set_value(my_dt_simu, meteo_type, float(my_portion))
+                    else:
+                        my__data_frame.set_value(my_dt_simu, meteo_type, float(my_value))
 
         except IOError:
             sys.exit("{}{}_{}_{}_{}.{} does not exist.".format(in_folder, catchment,
@@ -47,34 +49,33 @@ def get_df_for_daily_meteo_data(catchment, link, my_tf,
     return my__data_frame
 
 
-def get_df_for_daily_flow_data(catchment, link, time_steps,
+def get_df_for_daily_flow_data(catchment, link, my_tf,
                                dt_start_data, dt_end_data, in_folder):
 
-    my_start = '%04d' % dt_start_data.year + '%02d' % dt_start_data.month + '%02d' % dt_start_data.day
-    # use 1, not 0 because 0 was artificially created in TimeFrame object for initial conditions
-    my_end = '%04d' % dt_end_data.year + '%02d' % dt_end_data.month + '%02d' % dt_end_data.day
+    my_start = dt_start_data.strftime("%Y%m%d")
+    my_end = dt_end_data.strftime("%Y%m%d")
 
     flow_label = 'flow'
 
-    my__data_frame = DataFrame(index=time_steps, columns=[flow_label]).fillna(0.0)
+    my__data_frame = DataFrame(index=my_tf.series_data, columns=[flow_label]).fillna(0.0)
 
     try:
         my_flow_df = pandas.read_csv("{}{}_{}_{}_{}.{}".format(in_folder, catchment,
                                                                link, my_start, my_end, flow_label),
                                      index_col=0)
 
-        for my_datetime in time_steps[1:]:  # ignore first value which is for the initial conditions
+        for my_dt_data in my_tf.series_data[1:]:  # ignore first value which is for the initial conditions
             try:
-                my_value = my_flow_df.loc[my_datetime.strftime("%Y-%m-%d %H:%M:%S"), flow_label.upper()]
-                my__data_frame.set_value(my_datetime, flow_label, float(my_value))
+                my_value = my_flow_df.loc[my_dt_data.strftime("%Y-%m-%d %H:%M:%S"), flow_label.upper()]
+                my__data_frame.set_value(my_dt_data, flow_label, float(my_value))
             except KeyError:  # could only be raised for .loc[], when index or column does not exist
                 sys.exit("{}{}_{}_{}_{}.{} does not "
                          "contain any value for {}.".format(in_folder, catchment, link, my_start, my_end,
-                                                            flow_label, my_datetime.strftime("%Y-%m-%d %H:%M:%S")))
+                                                            flow_label, my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
             except ValueError:  # could only be raised for float(), when my_value is not a number
                 sys.exit("{}{}_{}_{}_{}.{} contains "
                          "an invalid value for {}.".format(in_folder, catchment, link, my_start, my_end,
-                                                           flow_label, my_datetime.strftime("%Y-%m-%d %H:%M:%S")))
+                                                           flow_label, my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
 
     except IOError:
         sys.exit("{}{}_{}_{}_{}.{} does not exist.".format(in_folder, catchment,
