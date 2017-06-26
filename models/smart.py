@@ -2,6 +2,7 @@ import datetime
 from math import exp, log
 
 
+@profile
 def run(waterbody, dict_data_frame,
         dict_desc, dict_param, dict_meteo,
         datetime_time_step, time_gap,
@@ -51,31 +52,31 @@ def run(waterbody, dict_data_frame,
     time_step_sec = time_gap * 60.0  # [seconds]
 
     # # 1.1. Collect inputs, states, and parameters
-    c_in_rain = dict_meteo[waterbody].loc[datetime_time_step, "rain"]
-    c_in_peva = dict_meteo[waterbody].loc[datetime_time_step, "peva"]
+    c_in_rain = dict_meteo[waterbody].get_value(datetime_time_step, "rain")
+    c_in_peva = dict_meteo[waterbody].get_value(datetime_time_step, "peva")
 
-    c_s_v_h2o_ove = dict_data_frame[waterbody].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                   "c_s_v_h2o_ove"]
-    c_s_v_h2o_dra = dict_data_frame[waterbody].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                   "c_s_v_h2o_dra"]
-    c_s_v_h2o_int = dict_data_frame[waterbody].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                   "c_s_v_h2o_int"]
-    c_s_v_h2o_sgw = dict_data_frame[waterbody].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                   "c_s_v_h2o_sgw"]
-    c_s_v_h2o_dgw = dict_data_frame[waterbody].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                   "c_s_v_h2o_dgw"]
-    c_s_v_h2o_ly1 = dict_data_frame[waterbody].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                   "c_s_v_h2o_ly1"]
-    c_s_v_h2o_ly2 = dict_data_frame[waterbody].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                   "c_s_v_h2o_ly2"]
-    c_s_v_h2o_ly3 = dict_data_frame[waterbody].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                   "c_s_v_h2o_ly3"]
-    c_s_v_h2o_ly4 = dict_data_frame[waterbody].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                   "c_s_v_h2o_ly4"]
-    c_s_v_h2o_ly5 = dict_data_frame[waterbody].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                   "c_s_v_h2o_ly5"]
-    c_s_v_h2o_ly6 = dict_data_frame[waterbody].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                   "c_s_v_h2o_ly6"]
+    c_s_v_h2o_ove = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
+                                                         "c_s_v_h2o_ove")
+    c_s_v_h2o_dra = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
+                                                         "c_s_v_h2o_dra")
+    c_s_v_h2o_int = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
+                                                         "c_s_v_h2o_int")
+    c_s_v_h2o_sgw = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
+                                                         "c_s_v_h2o_sgw")
+    c_s_v_h2o_dgw = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
+                                                         "c_s_v_h2o_dgw")
+    c_s_v_h2o_ly1 = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
+                                                         "c_s_v_h2o_ly1")
+    c_s_v_h2o_ly2 = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
+                                                         "c_s_v_h2o_ly2")
+    c_s_v_h2o_ly3 = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
+                                                         "c_s_v_h2o_ly3")
+    c_s_v_h2o_ly4 = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
+                                                         "c_s_v_h2o_ly4")
+    c_s_v_h2o_ly5 = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
+                                                         "c_s_v_h2o_ly5")
+    c_s_v_h2o_ly6 = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
+                                                         "c_s_v_h2o_ly6")
 
     c_p_t = dict_param[waterbody]['SMART']["c_p_t"]
     c_p_c = dict_param[waterbody]['SMART']["c_p_c"]
@@ -191,40 +192,40 @@ def run(waterbody, dict_data_frame,
     c_s_v_h2o_ove_old = c_s_v_h2o_ove
     c_s_v_h2o_ove += (overland_flow / 1e3 * area_m2) - (c_out_q_h2o_ove * time_step_sec)  # [m3] - [m3]
     if c_s_v_h2o_ove < 0.0:
-        logger.debug("{}: {} - Volume in OVE Store has gone negative, volume reset "
-                     "to zero.".format(waterbody, datetime_time_step))
+        logger.debug(''.join([
+            waterbody, ': ', datetime_time_step, ' - Volume in OVE Store has gone negative, volume reset to zero.']))
         c_s_v_h2o_ove = 0.0
     # route drain flow
     c_out_q_h2o_dra = c_s_v_h2o_dra / c_p_sk  # [m3/s]
     c_s_v_h2o_dra_old = c_s_v_h2o_dra
     c_s_v_h2o_dra += (drain_flow / 1e3 * area_m2) - (c_out_q_h2o_dra * time_step_sec)  # [m3] - [m3]
     if c_s_v_h2o_dra < 0.0:
-        logger.debug("{}: {} - Volume in DRA Store has gone negative, volume reset "
-                     "to zero.".format(waterbody, datetime_time_step))
+        logger.debug(''.join([
+            waterbody, ': ', datetime_time_step, ' - Volume in DRA Store has gone negative, volume reset to zero.']))
         c_s_v_h2o_dra = 0.0
     # route interflow
     c_out_q_h2o_int = c_s_v_h2o_int / c_p_fk  # [m3/s]
     c_s_v_h2o_int_old = c_s_v_h2o_int
     c_s_v_h2o_int += (inter_flow / 1e3 * area_m2) - (c_out_q_h2o_int * time_step_sec)  # [m3] - [m3]
     if c_s_v_h2o_int < 0.0:
-        logger.debug("{}: {} - Volume in INT Store has gone negative, volume reset "
-                     "to zero.".format(waterbody, datetime_time_step))
+        logger.debug(''.join([
+            waterbody, ': ', datetime_time_step, ' - Volume in INT Store has gone negative, volume reset to zero.']))
         c_s_v_h2o_int = 0.0
     # route shallow groundwater flow
     c_out_q_h2o_sgw = c_s_v_h2o_sgw / c_p_gk  # [m3/s]
     c_s_v_h2o_sgw_old = c_s_v_h2o_sgw
     c_s_v_h2o_sgw += (shallow_flow / 1e3 * area_m2) - (c_out_q_h2o_sgw * time_step_sec)  # [m3] - [m3]
     if c_s_v_h2o_sgw < 0.0:
-        logger.debug("{}: {} - Volume in SGW Store has gone negative, volume reset "
-                     "to zero.".format(waterbody, datetime_time_step))
+        logger.debug(''.join([
+            waterbody, ': ', datetime_time_step, ' - Volume in SGW Store has gone negative, volume reset to zero.']))
         c_s_v_h2o_sgw = 0.0
     # route deep groundwater flow
     c_out_q_h2o_dgw = c_s_v_h2o_dgw / c_p_gk  # [m3/s]
     c_s_v_h2o_dgw_old = c_s_v_h2o_dgw
     c_s_v_h2o_dgw += (deep_flow / 1e3 * area_m2) - (c_out_q_h2o_dgw * time_step_sec)  # [m3] - [m3]
     if c_s_v_h2o_dgw < 0.0:
-        logger.debug("{}: {} - Volume in DGW Store has gone negative, volume reset "
-                     "to zero.".format(waterbody, datetime_time_step))
+        logger.debug(''.join([
+            waterbody, ': ', datetime_time_step, ' - Volume in DGW Store has gone negative, volume reset to zero.']))
         c_s_v_h2o_dgw = 0.0
     # calculate total outflow
     c_out_q_h2o = c_out_q_h2o_ove + c_out_q_h2o_dra + c_out_q_h2o_int + c_out_q_h2o_sgw + c_out_q_h2o_dgw  # [m3/s]
@@ -337,54 +338,54 @@ def infer_parameters(dict_desc, my_dict_param):
     my_dict_param['c_p_s'] = dict_desc['land_drain_ratio'] * drain_eff_factor
     # Parameter D: Soil outflow coefficient
     my_dict_param['c_p_d'] = 8.61144e-14 * dict_desc['SAAR'] ** 3.207 * \
-                             dict_desc['AVG.SLOPE'] ** (-1.089) * \
-                             (dict_desc['BFIsoil'] ** 2.0 + 1.0) ** (-3.765) * \
-                             (dict_desc['URBEXT'] ** 0.5 + 1.0) ** 17.515 * \
-                             (dict_desc['FOREST'] + 1.0) ** 9.544 * \
-                             (dict_desc['WellDrain'] + 1.0) ** 5.654 * \
-                             (dict_desc['HighP'] ** 0.5 + 1.0) ** (-6.206) * \
-                             ((dict_desc['Rkd'] + dict_desc['Lk']) + 1.0) ** 1.553 * \
-                             ((dict_desc['Lm'] + dict_desc['Rf']) + 1.0) ** 4.251 * \
-                             exp(dict_desc['Ll']) ** (-1.186)
+        dict_desc['AVG.SLOPE'] ** (-1.089) * \
+        (dict_desc['BFIsoil'] ** 2.0 + 1.0) ** (-3.765) * \
+        (dict_desc['URBEXT'] ** 0.5 + 1.0) ** 17.515 * \
+        (dict_desc['FOREST'] + 1.0) ** 9.544 * \
+        (dict_desc['WellDrain'] + 1.0) ** 5.654 * \
+        (dict_desc['HighP'] ** 0.5 + 1.0) ** (-6.206) * \
+        ((dict_desc['Rkd'] + dict_desc['Lk']) + 1.0) ** 1.553 * \
+        ((dict_desc['Lm'] + dict_desc['Rf']) + 1.0) ** 4.251 * \
+        exp(dict_desc['Ll']) ** (-1.186)
     # Parameter Z: Effective soil depth (mm)
     my_dict_param['c_p_z'] = 9183325.942 * dict_desc['SAAR'] ** (-1.8501) * \
-                             dict_desc['DRAIND'] ** 0.6332 * \
-                             (dict_desc['BFIsoil'] ** 2.0 + 1.0) ** 1.7288 * \
-                             dict_desc['FARL'] ** (-2.9124) * \
-                             (dict_desc['URBEXT'] ** 0.5 + 1.0) ** (-5.6337) * \
-                             (dict_desc['HighP'] ** 0.5 + 1.0) ** 3.0505 * \
-                             ((dict_desc['Lm'] + dict_desc['Rf']) + 1.0) ** (-2.1927) * \
-                             exp(dict_desc['Ll']) ** 0.5544 + \
-                             1.0
+        dict_desc['DRAIND'] ** 0.6332 * \
+        (dict_desc['BFIsoil'] ** 2.0 + 1.0) ** 1.7288 * \
+        dict_desc['FARL'] ** (-2.9124) * \
+        (dict_desc['URBEXT'] ** 0.5 + 1.0) ** (-5.6337) * \
+        (dict_desc['HighP'] ** 0.5 + 1.0) ** 3.0505 * \
+        ((dict_desc['Lm'] + dict_desc['Rf']) + 1.0) ** (-2.1927) * \
+        exp(dict_desc['Ll']) ** 0.5544 + \
+        1.0
     # Parameter SK: Surface routing parameter (hours)
     my_dict_param['c_p_sk'] = 14612.0 * (dict_desc['BFIsoil'] ** 2.0 + 1.0) ** 2.015 * \
-                              dict_desc['FARL'] ** (-6.859) * \
-                              dict_desc['SAAR'] ** (-0.825) * \
-                              (dict_desc['ARTDRAIN2'] + 1.0) ** (-1.052) * \
-                              (dict_desc['PoorDrain'] + 1.0) ** (-1.467) + \
-                              1.0
+        dict_desc['FARL'] ** (-6.859) * \
+        dict_desc['SAAR'] ** (-0.825) * \
+        (dict_desc['ARTDRAIN2'] + 1.0) ** (-1.052) * \
+        (dict_desc['PoorDrain'] + 1.0) ** (-1.467) + \
+        1.0
     # Parameter FK: Interflow routing parameter (hours)
     my_dict_param['c_p_fk'] = 5.67e-7 * dict_desc['SAAR'] ** 5.6188 * \
-                              dict_desc['Q.mm'] ** (-3.0367) * \
-                              (dict_desc['ARTDRAIN2'] + 1.0) ** (-1.2787) * \
-                              (dict_desc['BFIsoil'] ** 2.0 + 1.0) ** 3.0169 * \
-                              ((dict_desc['VulX'] + dict_desc['VulE']) ** 0.5 + 1.0) ** (-2.8231) * \
-                              ((dict_desc['VulM'] + dict_desc['VulL']) + 1.0) ** 2.7265 * \
-                              (dict_desc['URBEXT'] ** 0.5 + 1.0) ** (-10.386) * \
-                              (dict_desc['FOREST'] + 1.0) ** (-2.4304) * \
-                              (dict_desc['HighP'] ** 0.5 + 1.0) ** 6.0892 * \
-                              (dict_desc['PNA'] + 1.0) ** 2.7813 * \
-                              ((dict_desc['Rkc'] + dict_desc['Rk']) + 1.0) ** (-1.6107) + \
-                              1.0
+        dict_desc['Q.mm'] ** (-3.0367) * \
+        (dict_desc['ARTDRAIN2'] + 1.0) ** (-1.2787) * \
+        (dict_desc['BFIsoil'] ** 2.0 + 1.0) ** 3.0169 * \
+        ((dict_desc['VulX'] + dict_desc['VulE']) ** 0.5 + 1.0) ** (-2.8231) * \
+        ((dict_desc['VulM'] + dict_desc['VulL']) + 1.0) ** 2.7265 * \
+        (dict_desc['URBEXT'] ** 0.5 + 1.0) ** (-10.386) * \
+        (dict_desc['FOREST'] + 1.0) ** (-2.4304) * \
+        (dict_desc['HighP'] ** 0.5 + 1.0) ** 6.0892 * \
+        (dict_desc['PNA'] + 1.0) ** 2.7813 * \
+        ((dict_desc['Rkc'] + dict_desc['Rk']) + 1.0) ** (-1.6107) + \
+        1.0
     # Parameter GK: Groundwater routing parameter (hours)
     my_dict_param['c_p_gk'] = 46950.0 + dict_desc['SlopeLow'] * 8676.0 + \
-                              dict_desc['SAAPE'] * (-82.27) + \
-                              (dict_desc['Rkc'] + dict_desc['Rk']) * (-7204.0) + \
-                              (dict_desc['Pu'] + dict_desc['Pl']) * (-1911.0) + \
-                              dict_desc['Made'] * (-127800.0) + \
-                              dict_desc['WtdReCoMod'] * (-49470.0) + \
-                              dict_desc['FOREST'] * 9257.0 + \
-                              dict_desc['SAAR'] * (-5.379) + \
-                              dict_desc['WtdReCoMod'] * dict_desc['SAAR'] * 41.68
+        dict_desc['SAAPE'] * (-82.27) + \
+        (dict_desc['Rkc'] + dict_desc['Rk']) * (-7204.0) + \
+        (dict_desc['Pu'] + dict_desc['Pl']) * (-1911.0) + \
+        dict_desc['Made'] * (-127800.0) + \
+        dict_desc['WtdReCoMod'] * (-49470.0) + \
+        dict_desc['FOREST'] * 9257.0 + \
+        dict_desc['SAAR'] * (-5.379) + \
+        dict_desc['WtdReCoMod'] * dict_desc['SAAR'] * 41.68
     if my_dict_param['c_p_gk'] < 0.3 * my_dict_param['c_p_fk']:
         my_dict_param['c_p_gk'] = 3.0 * my_dict_param['c_p_fk']

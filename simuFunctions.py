@@ -33,9 +33,9 @@ def distribute_loadings_across_year(dict_annual_loads, dict_applications, df_dis
 
     for contaminant in dict_applications[link]:
         for my_dt_data in my_tf.series_data:
-            day_of_year = float(my_dt_data.timetuple().tm_yday)
+            day_of_year = my_dt_data.timetuple().tm_yday
             my_value = dict_annual_loads[link][contaminant] * \
-                df_distributions.loc[day_of_year, dict_applications[link][contaminant]]
+                df_distributions.get_value(day_of_year, dict_applications[link][contaminant])
             my_portion = float(my_value) / divisor
             for my_sub_step in range(0, divisor, 1):
                 my_dt_simu = my_dt_data + datetime.timedelta(minutes=my_sub_step * my_tf.step_simu)

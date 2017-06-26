@@ -1,6 +1,7 @@
 import datetime
 
 
+@profile
 def run(obj_network, waterbody, dict_data_frame,
         dict_param,
         datetime_time_step, time_gap,
@@ -24,8 +25,9 @@ def run(obj_network, waterbody, dict_data_frame,
     time_step_sec = time_gap * 60.0  # [seconds]
 
     # # 1.1. Collect inputs, states, and parameters
-    r_in_q_h2o = dict_data_frame[node_up].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap), "q_h2o"]
-    r_s_v_h2o = dict_data_frame[waterbody].loc[datetime_time_step + datetime.timedelta(minutes=-time_gap), "r_s_v_h2o"]
+    r_in_q_h2o = dict_data_frame[node_up].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap), "q_h2o")
+    r_s_v_h2o = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
+                                                     "r_s_v_h2o")
     r_p_k_h2o = dict_param[waterbody]['LINRES']["r_p_k_h2o"]  # in seconds
 
     # # 1.2. Hydrological calculations
@@ -37,8 +39,9 @@ def run(obj_network, waterbody, dict_data_frame,
     r_s_v_h2o_temp = r_s_v_h2o_old + (r_in_q_h2o - r_out_q_h2o) * time_step_sec
     # check if storage has gone negative
     if r_s_v_h2o_temp < 0.0:  # temporary cannot be used
-        logger.debug("{}: {} - Volume in River Store has gone negative, outflow constrained "
-                     "to 95% of what is in store.". format(waterbody, datetime_time_step))
+        logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+                              ' - Volume in River Store has gone negative, '
+                              'outflow constrained to 95% of what is in store.']))
         # constrain outflow: allow maximum outflow at 95% of what was in store
         r_out_q_h2o = 0.95 * (r_in_q_h2o + r_s_v_h2o_old / time_step_sec)
         # calculate final storage with constrained outflow

@@ -25,9 +25,9 @@ def get_df_for_daily_meteo_data(catchment, link, my_tf,
 
             for my_dt_data in my_tf.series_data[1:]:  # ignore first value which is for the initial conditions
                 try:
-                    my_value = my_meteo_df.loc[my_dt_data.strftime("%Y-%m-%d %H:%M:%S"), meteo_type.upper()]
+                    my_value = my_meteo_df.get_value(my_dt_data.strftime("%Y-%m-%d %H:%M:%S"), meteo_type.upper())
                     my_portion = float(my_value) / divisor
-                except KeyError:  # could only be raised for .loc[], when index or column does not exist
+                except KeyError:  # could only be raised for .get_value(), when index or column does not exist
                     sys.exit("{}{}_{}_{}_{}.{} does not "
                              "contain any value for {}.".format(in_folder, catchment, link, my_start, my_end,
                                                                 meteo_type, my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
@@ -66,9 +66,9 @@ def get_df_for_daily_flow_data(catchment, link, my_tf,
 
         for my_dt_data in my_tf.series_data[1:]:  # ignore first value which is for the initial conditions
             try:
-                my_value = my_flow_df.loc[my_dt_data.strftime("%Y-%m-%d %H:%M:%S"), flow_label.upper()]
+                my_value = my_flow_df.get_value(my_dt_data.strftime("%Y-%m-%d %H:%M:%S"), flow_label.upper())
                 my__data_frame.set_value(my_dt_data, flow_label, float(my_value))
-            except KeyError:  # could only be raised for .loc[], when index or column does not exist
+            except KeyError:  # could only be raised for .get_value(), when index or column does not exist
                 sys.exit("{}{}_{}_{}_{}.{} does not "
                          "contain any value for {}.".format(in_folder, catchment, link, my_start, my_end,
                                                             flow_label, my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
@@ -94,7 +94,7 @@ def get_dict_parameters_from_file(catchment, outlet, link, model, in_folder):
 
         for param in model.parameter_names:
             try:
-                my_dict_param[param] = float(my_df_parameters.loc[link, param])
+                my_dict_param[param] = float(my_df_parameters.get_value(link, param))
             except KeyError:
                 sys.exit("The {} model parameter {} is not available for {}.".format(model.identifier, param, link))
 
@@ -115,7 +115,7 @@ def get_dict_constants_from_file(model, specs_folder):
 
             for constant in model.constant_names:
                 try:
-                    my_dict_cst[constant] = float(my_df_constants.loc[constant, 'constant_value'])
+                    my_dict_cst[constant] = float(my_df_constants.get_value(constant, 'constant_value'))
                 except KeyError:
                     sys.exit("The constant {} is not available for {}.".format(constant, model.identifier))
 
