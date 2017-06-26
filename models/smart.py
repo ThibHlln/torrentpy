@@ -213,7 +213,7 @@ def run(waterbody, dict_data_frame,
     # route shallow groundwater flow
     c_out_q_h2o_sgw = c_s_v_h2o_sgw / c_p_gk  # [m3/s]
     c_s_v_h2o_sgw_old = c_s_v_h2o_sgw
-    c_s_v_h2o_sgw += (inter_flow / 1e3 * area_m2) - (c_out_q_h2o_sgw * time_step_sec)  # [m3] - [m3]
+    c_s_v_h2o_sgw += (shallow_flow / 1e3 * area_m2) - (c_out_q_h2o_sgw * time_step_sec)  # [m3] - [m3]
     if c_s_v_h2o_sgw < 0.0:
         logger.debug("{}: {} - Volume in SGW Store has gone negative, volume reset "
                      "to zero.".format(waterbody, datetime_time_step))
@@ -221,7 +221,7 @@ def run(waterbody, dict_data_frame,
     # route deep groundwater flow
     c_out_q_h2o_dgw = c_s_v_h2o_dgw / c_p_gk  # [m3/s]
     c_s_v_h2o_dgw_old = c_s_v_h2o_dgw
-    c_s_v_h2o_dgw += (inter_flow / 1e3 * area_m2) - (c_out_q_h2o_dgw * time_step_sec)  # [m3] - [m3]
+    c_s_v_h2o_dgw += (deep_flow / 1e3 * area_m2) - (c_out_q_h2o_dgw * time_step_sec)  # [m3] - [m3]
     if c_s_v_h2o_dgw < 0.0:
         logger.debug("{}: {} - Volume in DGW Store has gone negative, volume reset "
                      "to zero.".format(waterbody, datetime_time_step))
