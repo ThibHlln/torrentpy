@@ -33,9 +33,9 @@ def main():
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
     # Create a file handler
-    if os.path.isfile('{}{}_{}.log'.format(output_folder, catchment, outlet)):
-        os.remove('{}{}_{}.log'.format(output_folder, catchment, outlet))
-    handler = logging.FileHandler('{}{}_{}.log'.format(output_folder, catchment, outlet))
+    if os.path.isfile('{}{}_{}.simu.log'.format(output_folder, catchment, outlet)):
+        os.remove('{}{}_{}.simu.log'.format(output_folder, catchment, outlet))
+    handler = logging.FileHandler('{}{}_{}.simu.log'.format(output_folder, catchment, outlet))
     handler.setLevel(logging.DEBUG)
     logger.addHandler(handler)
 
