@@ -280,16 +280,16 @@ def simulate(my__network, my__time_frame,
             for variable in ["q_h2o"]:
                 for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
                     if my__network.categories[link] == "11":
-                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "r_out_" + variable]
+                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "r_out_" + variable)
                     elif my__network.categories[link] == "10":
-                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "r_out_" + variable]
+                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "r_out_" + variable)
                     elif my__network.categories[link] == "20":
-                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "l_out_" + variable]
+                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "l_out_" + variable)
                 for link in my__network.adding.get(node):  # for the catchment of the link downstream of this node
                     if my__network.categories[link] == "11":
-                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "c_out_" + variable]
+                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "c_out_" + variable)
                     elif my__network.categories[link] == "10":
-                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "c_out_" + variable]
+                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "c_out_" + variable)
                 dict__data_frames[node].set_value(step, variable,
                                                   my_dict_variables[variable])
                 my_dict_variables[variable] = 0.0
@@ -297,21 +297,21 @@ def simulate(my__network, my__time_frame,
             for variable in ["c_no3", "c_nh4", "c_dph", "c_pph", "c_sed"]:
                 for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
                     if my__network.categories[link] == "11":
-                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "r_out_" + variable] * \
-                                                       dict__data_frames[link].loc[step, "r_out_q_h2o"]
+                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "r_out_" + variable) * \
+                                                       dict__data_frames[link].get_value(step, "r_out_q_h2o")
                     elif my__network.categories[link] == "10":
-                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "r_out_" + variable] * \
-                                                       dict__data_frames[link].loc[step, "r_out_q_h2o"]
+                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "r_out_" + variable) * \
+                                                       dict__data_frames[link].get_value(step, "r_out_q_h2o")
                     elif my__network.categories[link] == "20":
-                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "l_out_" + variable] * \
-                                                       dict__data_frames[link].loc[step, "l_out_q_h2o"]
+                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "l_out_" + variable) * \
+                                                       dict__data_frames[link].get_value(step, "l_out_q_h2o")
                 for link in my__network.adding.get(node):  # for the catchment of the link downstream of this node
                     if my__network.categories[link] == "11":
-                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "c_out_" + variable] * \
-                                                       dict__data_frames[link].loc[step, "c_out_q_h2o"]
+                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "c_out_" + variable) * \
+                                                       dict__data_frames[link].get_value(step, "c_out_q_h2o")
                     elif my__network.categories[link] == "10":
-                        my_dict_variables[variable] += dict__data_frames[link].loc[step, "c_out_" + variable] * \
-                                                       dict__data_frames[link].loc[step, "c_out_q_h2o"]
+                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "c_out_" + variable) * \
+                                                       dict__data_frames[link].get_value(step, "c_out_q_h2o")
                 if my_dict_variables["q_h2o"] > 0.0:
                     dict__data_frames[node].set_value(step, variable,
                                                       my_dict_variables[variable] / my_dict_variables["q_h2o"])
