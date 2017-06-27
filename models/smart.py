@@ -233,7 +233,7 @@ def run(waterbody, dict_data_frame,
     dict_lvl_soil = {
         'start': lvl_total_start,
         'end': lvl_total_end
-    }  # volumes in soil at beginning and end of time step
+    }  # levels in soil at beginning and end of time step [mm]
 
     dict_states_old_hd = {
         'ove': c_s_v_h2o_ove_old,
@@ -241,7 +241,7 @@ def run(waterbody, dict_data_frame,
         'int': c_s_v_h2o_int_old,
         'sgw': c_s_v_h2o_sgw_old,
         'dgw': c_s_v_h2o_dgw_old
-    }  # volumes in stores at beginning of time step
+    }  # volumes in stores at beginning of time step [m3]
 
     dict_flows_mm_hd = {
         'ove': overland_flow,
@@ -249,7 +249,7 @@ def run(waterbody, dict_data_frame,
         'int': inter_flow,
         'sgw': shallow_flow,
         'dgw': deep_flow
-    }  # flows leaking from soil layers to the different stores during time step
+    }  # flows leaking from soil layers to the different stores during time step [mm]
 
     dict_states_hd = {
         'ove': c_s_v_h2o_ove,
@@ -257,7 +257,7 @@ def run(waterbody, dict_data_frame,
         'int': c_s_v_h2o_int,
         'sgw': c_s_v_h2o_sgw,
         'dgw': c_s_v_h2o_dgw
-    }  # volumes in stores at end of time step
+    }  # volumes in stores at end of time step [m3]
 
     dict_outputs_hd = {
         'ove': c_out_q_h2o_ove,
@@ -265,7 +265,7 @@ def run(waterbody, dict_data_frame,
         'int': c_out_q_h2o_int,
         'sgw': c_out_q_h2o_sgw,
         'dgw': c_out_q_h2o_dgw
-    }  # flows leaving the different stores during time step
+    }  # flows leaving the different stores during time step [m3/s]
 
     # # 1.3. Save inputs, states, and outputs
     dict_data_frame[waterbody].set_value(datetime_time_step, "c_in_rain", c_in_rain)
