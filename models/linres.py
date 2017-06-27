@@ -1,7 +1,6 @@
 import datetime
 
 
-@profile
 def run(obj_network, waterbody, dict_data_frame,
         dict_param,
         datetime_time_step, time_gap,

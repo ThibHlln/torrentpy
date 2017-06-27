@@ -2,7 +2,6 @@ import datetime
 from math import exp, log
 
 
-@profile
 def run(waterbody, dict_data_frame,
         dict_desc, dict_param, dict_meteo,
         datetime_time_step, time_gap,

@@ -277,6 +277,7 @@ def simulate(my__network, my__time_frame,
         # Sum up everything coming from upstream for each node
         for node in my__network.nodes:
             # Sum up the flows
+            q_h2o = 0.0
             for variable in ["q_h2o"]:
                 for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
                     if my__network.categories[link] == "11":
@@ -290,8 +291,8 @@ def simulate(my__network, my__time_frame,
                         my_dict_variables[variable] += dict__data_frames[link].get_value(step, "c_out_" + variable)
                     elif my__network.categories[link] == "10":
                         my_dict_variables[variable] += dict__data_frames[link].get_value(step, "c_out_" + variable)
-                dict__data_frames[node].set_value(step, variable,
-                                                  my_dict_variables[variable])
+                q_h2o += my_dict_variables[variable]
+                dict__data_frames[node].set_value(step, variable, my_dict_variables[variable])
                 my_dict_variables[variable] = 0.0
             # Sum up the contaminants
             for variable in ["c_no3", "c_nh4", "c_dph", "c_pph", "c_sed"]:
@@ -312,9 +313,8 @@ def simulate(my__network, my__time_frame,
                     elif my__network.categories[link] == "10":
                         my_dict_variables[variable] += dict__data_frames[link].get_value(step, "c_out_" + variable) * \
                                                        dict__data_frames[link].get_value(step, "c_out_q_h2o")
-                if my_dict_variables["q_h2o"] > 0.0:
-                    dict__data_frames[node].set_value(step, variable,
-                                                      my_dict_variables[variable] / my_dict_variables["q_h2o"])
+                if q_h2o > 0.0:
+                    dict__data_frames[node].set_value(step, variable, my_dict_variables[variable] / q_h2o)
                 my_dict_variables[variable] = 0.0
 
 

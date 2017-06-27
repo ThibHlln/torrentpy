@@ -3,7 +3,6 @@ import datetime
 import calendar
 
 
-@profile
 def run_on_land(waterbody, dict_data_frame,
                 dict_desc, dict_param, dict_const, dict_meteo, dict_loads,
                 datetime_time_step, time_gap,
@@ -145,7 +144,7 @@ def run_on_land(waterbody, dict_data_frame,
     dict_outputs_hd = my_dict_hydro['dict_outputs_hd']
 
     # # 2.2. Collect inputs, states, parameters, and constants
-    c_in_temp = dict_meteo[waterbody].get_value(datetime_time_step, "soit")
+    c_in_temp = dict_meteo[waterbody].get_value(datetime_time_step, "airt")
     mass_n = \
         dict_loads[waterbody].get_value(datetime_time_step, "org_n_grassland") * \
         dict_desc[waterbody]["grassland_ratio"] * dict_desc[waterbody]["area"] * 100 + \
@@ -556,7 +555,6 @@ def run_on_land(waterbody, dict_data_frame,
                                              dict_states_wq['soil'][contaminant])
 
 
-@profile
 def run_in_stream(obj_network, waterbody, dict_data_frame,
                   dict_param, dict_meteo,
                   datetime_time_step, time_gap,
@@ -608,10 +606,10 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
     # # 2.2. Collect inputs, states, and parameters
     r_in_temp = dict_meteo[waterbody].get_value(datetime_time_step, "airt")
     r_in_c_no3 = dict_data_frame[node_up].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_no3")
-    r_in_c_nh4 = dict_data_frame[node_up].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_no3")
-    r_in_c_dph = dict_data_frame[node_up].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_no3")
-    r_in_c_pph = dict_data_frame[node_up].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_no3")
-    r_in_c_sed = dict_data_frame[node_up].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_no3")
+    r_in_c_nh4 = dict_data_frame[node_up].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_nh4")
+    r_in_c_dph = dict_data_frame[node_up].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_dph")
+    r_in_c_pph = dict_data_frame[node_up].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_pph")
+    r_in_c_sed = dict_data_frame[node_up].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_sed")
 
     r_s_m_no3 = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
                                                      "r_s_m_no3")
