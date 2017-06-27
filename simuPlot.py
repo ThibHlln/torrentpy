@@ -48,7 +48,7 @@ def main():
         logger.info("There is not {}{}_{}.simulation available.".format(input_folder, catchment, outlet))
 
     try:
-        question_start_data = my_answers_df.loc['start_datetime_data', 'ANSWER']
+        question_start_data = my_answers_df.get_value('start_datetime_data', 'ANSWER')
     except KeyError:
         question_start_data = raw_input('Starting date for data? [format DD/MM/YYYY HH:MM:SS] ')
     try:
@@ -57,7 +57,7 @@ def main():
         sys.exit("The data starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
-        question_end_data = my_answers_df.loc['end_datetime_data', 'ANSWER']
+        question_end_data = my_answers_df.get_value('end_datetime_data', 'ANSWER')
     except KeyError:
         question_end_data = raw_input('Ending date for data? [format DD/MM/YYYY HH:MM:SS] ')
     try:
@@ -66,7 +66,7 @@ def main():
         sys.exit("The data ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
-        question_data_time_step = my_answers_df.loc['data_time_step_min', 'ANSWER']
+        question_data_time_step = my_answers_df.get_value('data_time_step_min', 'ANSWER')
     except KeyError:
         question_data_time_step = raw_input('Time step for data? [integer in minutes] ')
     try:
@@ -75,7 +75,7 @@ def main():
         sys.exit("The data time step is invalid. [not an integer]")
 
     try:
-        question_simu_time_step = my_answers_df.loc['simu_time_step_min', 'ANSWER']
+        question_simu_time_step = my_answers_df.get_value('simu_time_step_min', 'ANSWER')
     except KeyError:
         question_simu_time_step = raw_input('Time step for simulation? [integer in minutes] ')
     try:
@@ -84,7 +84,7 @@ def main():
         sys.exit("The simulation time step is invalid. [not an integer]")
 
     try:
-        question_start_plot = my_answers_df.loc['start_datetime_plot', 'ANSWER']
+        question_start_plot = my_answers_df.get_value('start_datetime_plot', 'ANSWER')
     except KeyError:
         question_start_plot = raw_input('Starting date for plot? [format DD/MM/YYYY HH:MM:SS] ')
     try:
@@ -93,7 +93,7 @@ def main():
         sys.exit("The plot starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
-        question_end_plot = my_answers_df.loc['end_datetime_plot', 'ANSWER']
+        question_end_plot = my_answers_df.get_value('end_datetime_plot', 'ANSWER')
     except ValueError:
         question_end_plot = raw_input('Ending date for plot? [format DD/MM/YYYY HH:MM:SS] ')
     try:
