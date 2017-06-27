@@ -29,7 +29,7 @@ def catchment_model(identifier, waterbody, dict_data_frame,
 
 
 def river_model(identifier, obj_network, waterbody, dict_data_frame,
-                dict_param, dict_meteo,
+                dict_param, dict_const, dict_meteo,
                 datetime_time_step, time_gap,
                 logger):
 
@@ -39,7 +39,7 @@ def river_model(identifier, obj_network, waterbody, dict_data_frame,
                    datetime_time_step, time_gap,
                    logger)
         inca.run_in_stream(obj_network, waterbody, dict_data_frame,
-                           dict_param, dict_meteo,
+                           dict_param, dict_const, dict_meteo,
                            datetime_time_step, time_gap,
                            logger)
     elif identifier == "LINRES":

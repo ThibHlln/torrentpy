@@ -566,7 +566,7 @@ def run_on_land(waterbody, dict_data_frame,
 
 
 def run_in_stream(obj_network, waterbody, dict_data_frame,
-                  dict_param, dict_meteo,
+                  dict_param, dict_const, dict_meteo,
                   datetime_time_step, time_gap,
                   logger):
     """
@@ -613,7 +613,7 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
                                                          "r_s_v_h2o")
     r_s_v_h2o = dict_data_frame[waterbody].get_value(datetime_time_step, "r_s_v_h2o")
 
-    # # 2.2. Collect inputs, states, and parameters
+    # # 2.2. Collect inputs, states, parameters and constants
     r_in_temp = dict_meteo[waterbody].get_value(datetime_time_step, "airt")
     r_in_c_no3 = dict_data_frame[node_up].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_no3")
     r_in_c_nh4 = dict_data_frame[node_up].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_nh4")
@@ -637,6 +637,9 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
     r_p_att_dph = dict_param[waterbody]['INCAS']["r_p_att_dph"]
     r_p_att_pph = dict_param[waterbody]['INCAS']["r_p_att_pph"]
     r_p_att_sed = dict_param[waterbody]['INCAS']["r_p_att_sed"]
+
+    r_cst_c_dn = dict_const['INCAS']['r_cst_c_dn']
+    r_cst_c_ni = dict_const['INCAS']['r_cst_c_ni']
 
     # # 2.3. Water quality calculations
 
@@ -674,8 +677,8 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
             c10 = 0.0
             c11 = 0.0
         else:  # not frozen
-            c10 = 0.1 * (1.047 ** (r_in_temp - 20.0))
-            c11 = 0.06 * (1.047 ** (r_in_temp - 20.0))
+            c10 = r_cst_c_ni * (1.047 ** (r_in_temp - 20.0))
+            c11 = r_cst_c_dn * (1.047 ** (r_in_temp - 20.0))
             if c10 < 0.0:  # check if rate constant between 0 and 1
                 c10 = 0.0
             elif c10 > 1.0:
