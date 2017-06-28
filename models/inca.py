@@ -13,10 +13,10 @@ def run_on_land(waterbody, dict_data_frame,
     _ Water Quality
     ___ Inputs * in_ *
     _____ c_in_temp             soil temperature [degree celsius]
-    _____ c_in_m_no3            nitrate loading on land [kg/ha/time step]
-    _____ c_in_m_nh4            ammonia loading on land [kg/ha/time step]
-    _____ c_in_m_p_ino          inorganic phosphorus loading on land [kg/ha/time step]
-    _____ c_in_m_p_org          organic phosphorus loading on land [kg/ha/time step]
+    _____ c_in_m_no3            nitrate loading on land [kg/time step]
+    _____ c_in_m_nh4            ammonia loading on land [kg/time step]
+    _____ c_in_m_p_ino          inorganic phosphorus loading on land [kg/time step]
+    _____ c_in_m_p_org          organic phosphorus loading on land [kg/time step]
     ___ States * s_ *
     _____ c_s_c_no3_ove         concentration of nitrate in overland store [kg/m3]
     _____ c_s_c_no3_dra         concentration of nitrate in drain store [kg/m3]
@@ -111,7 +111,7 @@ def run_on_land(waterbody, dict_data_frame,
     _____ c_cst_mob_sed_dgw     mobilisation factor for sediment to deep groundwater flow [-]
     _____ c_cst_sed_daily_thr   daily flow threshold for sediment mobilisation [mm/day]
     _____ c_cst_sed_k           factor combining the effects of erodibility, topography, cover and support practice [?]
-    _____ c_cst_sed_p           required power of flow for sediment equation [-]
+    _____ c_cst_sed_p           required power of flow for sediment MUSLE equation [-]
     _____ c_cst_soil_test_p     soil test P [kg/kg]
     _____ c_cst_soil_c1n        rate coefficient for denitrification [m/day]
     _____ c_cst_soil_c3n        rate coefficient for NO3 plant uptake [m/day]
@@ -230,7 +230,7 @@ def run_on_land(waterbody, dict_data_frame,
     dict_states_wq = dict()  # for states of the stores + soil
     dict_c_outflow = dict()  # for outflow concentrations from stores
     dict_att_factors = dict()  # for attenuation factors in stores
-    dict_mob_factors = dict()  # for attenuation factors in stores
+    dict_mob_factors = dict()  # for mobilisation factors in stores
     for store in stores:
         my_dict_1 = dict()
         my_dict_2 = dict()
@@ -825,6 +825,7 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
 
     # # 2.4. Save inputs, states, and outputs
 
+    dict_data_frame[waterbody].set_value(datetime_time_step, "r_in_temp", r_in_temp)
     dict_data_frame[waterbody].set_value(datetime_time_step, "r_in_c_no3", r_in_c_no3)
     dict_data_frame[waterbody].set_value(datetime_time_step, "r_in_c_nh4", r_in_c_nh4)
     dict_data_frame[waterbody].set_value(datetime_time_step, "r_in_c_dph", r_in_c_dph)
@@ -849,7 +850,7 @@ def infer_land_parameters(dict_desc, my_dict_param):
     # overland flow attenuation
     my_dict_param['c_p_att_no3_ove'] = 1.0
     my_dict_param['c_p_att_nh4_ove'] = 1.0
-    my_dict_param['c_p_att_dph_ove'] = 1.0
+    my_dict_param['c_p_att_dph_ove'] = 0.1
     my_dict_param['c_p_att_pph_ove'] = 0.5
     my_dict_param['c_p_att_sed_ove'] = 0.5
     my_dict_param['c_p_att_no3_dra'] = 1.0
@@ -858,8 +859,7 @@ def infer_land_parameters(dict_desc, my_dict_param):
     my_dict_param['c_p_att_pph_dra'] = 0.8
     my_dict_param['c_p_att_sed_dra'] = 0.8
     # inter flow attenuation
-    factor = 1.0 * (dict_desc['N_subsoil_transport'] / 100.0) * \
-        (dict_desc['N_near_surface_delivery'] / 100.0)
+    factor = 1.0 * dict_desc['N_subsoil_transport'] * dict_desc['N_near_surface_delivery']
     if factor < 0.0001:
         factor = 0.0001
     elif factor > 1.0:
@@ -867,18 +867,17 @@ def infer_land_parameters(dict_desc, my_dict_param):
     factor = factor ** 0.04
     my_dict_param['c_p_att_no3_int'] = factor
     my_dict_param['c_p_att_nh4_int'] = factor
-    factor = 1.0 * (dict_desc['P_subsoil_transport'] / 100.0) * \
-        (dict_desc['P_near_surface_delivery'] / 100.0)
+    factor = 1.0 * dict_desc['P_subsoil_transport'] * dict_desc['P_near_surface_delivery']
     if factor < 0.0001:
         factor = 0.0001
     elif factor > 1.0:
         factor = 1.0
     factor = factor ** 0.04
     my_dict_param['c_p_att_dph_int'] = factor
-    my_dict_param['c_p_att_pph_int'] = 1.0
-    my_dict_param['c_p_att_sed_int'] = 1.0
+    my_dict_param['c_p_att_pph_int'] = 0.0
+    my_dict_param['c_p_att_sed_int'] = 0.0
     # shallow ground water attenuation
-    factor = 1.0 * (dict_desc['N_bedrock_transport'] / 100.0)
+    factor = 1.0 * dict_desc['N_bedrock_transport']
     if factor < 0.01:
         factor = 0.01
     elif factor > 1.0:
@@ -896,8 +895,8 @@ def infer_land_parameters(dict_desc, my_dict_param):
     my_dict_param['c_p_att_pph_dgw'] = 0.0
     my_dict_param['c_p_att_sed_dgw'] = 0.0
     # soil attenuation
-    my_dict_param['c_p_att_no3_soil'] = 1.0
-    my_dict_param['c_p_att_nh4_soil'] = 1.0
+    my_dict_param['c_p_att_no3_soil'] = 0.5
+    my_dict_param['c_p_att_nh4_soil'] = 0.5
     my_dict_param['c_p_att_p_org_ra_soil'] = 0.15
     my_dict_param['c_p_att_p_ino_ra_soil'] = 0.15
     my_dict_param['c_p_att_p_org_fb_soil'] = 1.0
