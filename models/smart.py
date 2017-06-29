@@ -51,31 +51,31 @@ def run(waterbody, dict_data_frame,
     time_step_sec = time_gap * 60.0  # [seconds]
 
     # # 1.1. Collect inputs, states, and parameters
-    c_in_rain = dict_meteo[waterbody].get_value(datetime_time_step, "rain")
-    c_in_peva = dict_meteo[waterbody].get_value(datetime_time_step, "peva")
+    c_in_rain = dict_meteo[waterbody][datetime_time_step]["rain"]
+    c_in_peva = dict_meteo[waterbody][datetime_time_step]["peva"]
 
-    c_s_v_h2o_ove = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                         "c_s_v_h2o_ove")
-    c_s_v_h2o_dra = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                         "c_s_v_h2o_dra")
-    c_s_v_h2o_int = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                         "c_s_v_h2o_int")
-    c_s_v_h2o_sgw = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                         "c_s_v_h2o_sgw")
-    c_s_v_h2o_dgw = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                         "c_s_v_h2o_dgw")
-    c_s_v_h2o_ly1 = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                         "c_s_v_h2o_ly1")
-    c_s_v_h2o_ly2 = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                         "c_s_v_h2o_ly2")
-    c_s_v_h2o_ly3 = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                         "c_s_v_h2o_ly3")
-    c_s_v_h2o_ly4 = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                         "c_s_v_h2o_ly4")
-    c_s_v_h2o_ly5 = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                         "c_s_v_h2o_ly5")
-    c_s_v_h2o_ly6 = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                         "c_s_v_h2o_ly6")
+    c_s_v_h2o_ove = \
+        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_ove"]
+    c_s_v_h2o_dra = \
+        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_dra"]
+    c_s_v_h2o_int = \
+        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_int"]
+    c_s_v_h2o_sgw = \
+        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_sgw"]
+    c_s_v_h2o_dgw = \
+        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_dgw"]
+    c_s_v_h2o_ly1 = \
+        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_ly1"]
+    c_s_v_h2o_ly2 = \
+        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_ly2"]
+    c_s_v_h2o_ly3 = \
+        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_ly3"]
+    c_s_v_h2o_ly4 = \
+        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_ly4"]
+    c_s_v_h2o_ly5 = \
+        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_ly5"]
+    c_s_v_h2o_ly6 = \
+        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_ly6"]
 
     c_p_t = dict_param[waterbody]['SMART']["c_p_t"]
     c_p_c = dict_param[waterbody]['SMART']["c_p_c"]
@@ -268,28 +268,28 @@ def run(waterbody, dict_data_frame,
     }  # flows leaving the different stores during time step [m3/s]
 
     # # 1.3. Save inputs, states, and outputs
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_in_rain", c_in_rain)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_in_peva", c_in_peva)
+    dict_data_frame[waterbody][datetime_time_step]["c_in_rain"] = c_in_rain
+    dict_data_frame[waterbody][datetime_time_step]["c_in_peva"] = c_in_peva
 
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ove", c_s_v_h2o_ove)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_dra", c_s_v_h2o_dra)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_int", c_s_v_h2o_int)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_sgw", c_s_v_h2o_sgw)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_dgw", c_s_v_h2o_dgw)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ly1", dict_lvl_lyr[1] / 1e3 * area_m2)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ly2", dict_lvl_lyr[2] / 1e3 * area_m2)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ly3", dict_lvl_lyr[3] / 1e3 * area_m2)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ly4", dict_lvl_lyr[4] / 1e3 * area_m2)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ly5", dict_lvl_lyr[5] / 1e3 * area_m2)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_s_v_h2o_ly6", dict_lvl_lyr[6] / 1e3 * area_m2)
+    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ove"] = c_s_v_h2o_ove
+    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_dra"] = c_s_v_h2o_dra
+    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_int"] = c_s_v_h2o_int
+    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_sgw"] = c_s_v_h2o_sgw
+    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_dgw"] = c_s_v_h2o_dgw
+    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly1"] = dict_lvl_lyr[1] / 1e3 * area_m2
+    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly2"] = dict_lvl_lyr[2] / 1e3 * area_m2
+    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly3"] = dict_lvl_lyr[3] / 1e3 * area_m2
+    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly4"] = dict_lvl_lyr[4] / 1e3 * area_m2
+    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly5"] = dict_lvl_lyr[5] / 1e3 * area_m2
+    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly6"] = dict_lvl_lyr[6] / 1e3 * area_m2
 
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_out_aeva", c_out_aeva)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_out_q_h2o_ove", c_out_q_h2o_ove)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_out_q_h2o_dra", c_out_q_h2o_dra)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_out_q_h2o_int", c_out_q_h2o_int)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_out_q_h2o_sgw", c_out_q_h2o_sgw)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_out_q_h2o_dgw", c_out_q_h2o_dgw)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_out_q_h2o", c_out_q_h2o)
+    dict_data_frame[waterbody][datetime_time_step]["c_out_aeva"] = c_out_aeva
+    dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o_ove"] = c_out_q_h2o_ove
+    dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o_dra"] = c_out_q_h2o_dra
+    dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o_int"] = c_out_q_h2o_int
+    dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o_sgw"] = c_out_q_h2o_sgw
+    dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o_dgw"] = c_out_q_h2o_dgw
+    dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o"] = c_out_q_h2o
 
     return {
         'dict_lvl_soil': dict_lvl_soil,

@@ -45,6 +45,7 @@ def main():
         my_answers_df = DataFrame()
         logger.info("There is not {}{}_{}.simulation available.".format(input_folder, catchment, outlet))
 
+    # Get the set-up information either from the file, or from console
     try:
         question_start_data = my_answers_df.get_value('start_datetime_data', 'ANSWER')
     except KeyError:
@@ -127,19 +128,19 @@ def main():
 
     # Declare all the dictionaries that will be needed, all using the waterbody code as a key
     dict__models = dict()  # key: waterbody, value: list of model objects
-    dict__data_frames = dict()  # key: waterbody, value: data frame (x: time step, y: data type)
-    dict__data_frames_warm_up = dict()
+    dict__dbl_dict_data = dict()  # key: waterbody, value: data frame (x: time step, y: data type)
+    dict__dbl_dict_data_warm_up = dict()
 
     # Create a Network object from network and waterBodies files
     my__network = Network(catchment, outlet, input_folder, specifications_folder)
 
     # Create DataFrames for the nodes
     for node in my__network.nodes:
-        dict__data_frames[node] = \
-            DataFrame(index=my__time_frame.series_simu, columns=my__network.variables).fillna(0.0)
+        dict__dbl_dict_data[node] = \
+            {i: {c: 0.0 for c in my__network.variables} for i in my__time_frame.series_simu}
         if not warm_up_in_days == 0.0:
-            dict__data_frames_warm_up[node] = \
-                DataFrame(index=my__time_frame_warm_up.series_simu, columns=my__network.variables).fillna(0.0)
+            dict__dbl_dict_data_warm_up[node] = \
+                {i: {c: 0.0 for c in my__network.variables} for i in my__time_frame_warm_up.series_simu}
 
     # Create Models and DataFrames for the links
     for link in my__network.links:
@@ -162,10 +163,11 @@ def main():
         my_headers = list()
         for model in dict__models[link]:
             my_headers += model.input_names + model.state_names + model.output_names
-        dict__data_frames[link] = DataFrame(index=my__time_frame.series_simu, columns=my_headers).fillna(0.0)
+        dict__dbl_dict_data[link] = \
+            {i: {c: 0.0 for c in my_headers} for i in my__time_frame.series_simu}
         if not warm_up_in_days == 0.0:
-            dict__data_frames_warm_up[link] = DataFrame(index=my__time_frame_warm_up.series_simu,
-                                                        columns=my_headers).fillna(0.0)
+            dict__dbl_dict_data_warm_up[link] = \
+                {i: {c: 0.0 for c in my_headers} for i in my__time_frame_warm_up.series_simu}
 
     # Read the parameters file, or read the descriptors file, generate the parameters, and generate the parameters file
     logger.info("{} # Parameterising.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
@@ -224,12 +226,12 @@ def main():
         logger.info("{} # Determining initial conditions.".format(datetime.datetime.now().strftime('%d/%m/%Y '
                                                                                                    '%H:%M:%S')))
         simulate(my__network, my__time_frame_warm_up,
-                 dict__data_frames_warm_up, dict__models,
+                 dict__dbl_dict_data_warm_up, dict__models,
                  dict_meteo, dict_loadings, dict_desc, dict_param, dict_const,
                  logger)
 
         for link in my__network.links:  # set last values of warm up as initial conditions for actual simulation
-            dict__data_frames[link].iloc[0] = dict__data_frames_warm_up[link].iloc[-1]
+            dict__dbl_dict_data[link].iloc[0] = dict__dbl_dict_data_warm_up[link].iloc[-1]
 
         with open('{}{}_{}.log'.format(output_folder, catchment, outlet), 'w'):
             # empty the log file because lines in it only due to warm up run
@@ -238,13 +240,13 @@ def main():
     # Simulate
     logger.info("{} # Simulating.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
     simulate(my__network, my__time_frame,
-             dict__data_frames, dict__models,
+             dict__dbl_dict_data, dict__models,
              dict_meteo, dict_loadings, dict_desc, dict_param, dict_const,
              logger)
 
     # Save the DataFrames for the links and nodes (separating inputs, states, and outputs)
     save_simulation_files(my__network, my__time_frame, catchment,
-                          dict__data_frames, dict__models, output_folder, logger)
+                          dict__dbl_dict_data, dict__models, output_folder, logger)
 
     # Generate gauged flow file in output folder (could be identical to input file if date ranges identical)
     sF.get_df_for_daily_flow_data(
@@ -260,7 +262,7 @@ def main():
 
 
 def simulate(my__network, my__time_frame,
-             dict__data_frames, dict__models,
+             dict__dbl_dict_data, dict__models,
              dict_meteo, dict_loadings, dict_desc, dict_param, dict_const,
              logger):
     my_dict_variables = dict()
@@ -270,56 +272,56 @@ def simulate(my__network, my__time_frame,
         # Calculate runoff and concentrations for each link
         for link in my__network.links:
             for model in dict__models[link]:
-                model.run(my__network, link, dict__data_frames,
+                model.run(my__network, link, dict__dbl_dict_data,
                           dict_desc, dict_param, dict_const, dict_meteo, dict_loadings,
                           step, my__time_frame.step_simu,
                           logger)
-        # Sum up everything coming from upstream for each node
+        # Sum up everything coming towards each node
         for node in my__network.nodes:
             # Sum up the flows
             q_h2o = 0.0
             for variable in ["q_h2o"]:
                 for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
                     if my__network.categories[link] == "11":
-                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "r_out_" + variable)
+                        my_dict_variables[variable] += dict__dbl_dict_data[link][step]["r_out_" + variable]
                     elif my__network.categories[link] == "10":
-                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "r_out_" + variable)
+                        my_dict_variables[variable] += dict__dbl_dict_data[link][step]["r_out_" + variable]
                     elif my__network.categories[link] == "20":
-                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "l_out_" + variable)
+                        my_dict_variables[variable] += dict__dbl_dict_data[link][step]["l_out_" + variable]
                 for link in my__network.adding.get(node):  # for the catchment of the link downstream of this node
                     if my__network.categories[link] == "11":
-                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "c_out_" + variable)
+                        my_dict_variables[variable] += dict__dbl_dict_data[link][step]["c_out_" + variable]
                     elif my__network.categories[link] == "10":
-                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "c_out_" + variable)
+                        my_dict_variables[variable] += dict__dbl_dict_data[link][step]["c_out_" + variable]
                 q_h2o += my_dict_variables[variable]
-                dict__data_frames[node].set_value(step, variable, my_dict_variables[variable])
+                dict__dbl_dict_data[node][step][variable] = my_dict_variables[variable]
                 my_dict_variables[variable] = 0.0
             # Sum up the contaminants
             for variable in ["c_no3", "c_nh4", "c_dph", "c_pph", "c_sed"]:
                 for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
                     if my__network.categories[link] == "11":
-                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "r_out_" + variable) * \
-                                                       dict__data_frames[link].get_value(step, "r_out_q_h2o")
+                        my_dict_variables[variable] += dict__dbl_dict_data[link][step][ "r_out_" + variable] * \
+                                                       dict__dbl_dict_data[link][step]["r_out_q_h2o"]
                     elif my__network.categories[link] == "10":
-                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "r_out_" + variable) * \
-                                                       dict__data_frames[link].get_value(step, "r_out_q_h2o")
+                        my_dict_variables[variable] += dict__dbl_dict_data[link][step]["r_out_" + variable] * \
+                                                       dict__dbl_dict_data[link][step]["r_out_q_h2o"]
                     elif my__network.categories[link] == "20":
-                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "l_out_" + variable) * \
-                                                       dict__data_frames[link].get_value(step, "l_out_q_h2o")
+                        my_dict_variables[variable] += dict__dbl_dict_data[link][step]["l_out_" + variable] * \
+                                                       dict__dbl_dict_data[link][step, "l_out_q_h2o"]
                 for link in my__network.adding.get(node):  # for the catchment of the link downstream of this node
                     if my__network.categories[link] == "11":
-                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "c_out_" + variable) * \
-                                                       dict__data_frames[link].get_value(step, "c_out_q_h2o")
+                        my_dict_variables[variable] += dict__dbl_dict_data[link][step]["c_out_" + variable] * \
+                                                       dict__dbl_dict_data[link][step]["c_out_q_h2o"]
                     elif my__network.categories[link] == "10":
-                        my_dict_variables[variable] += dict__data_frames[link].get_value(step, "c_out_" + variable) * \
-                                                       dict__data_frames[link].get_value(step, "c_out_q_h2o")
+                        my_dict_variables[variable] += dict__dbl_dict_data[link][step]["c_out_" + variable] * \
+                                                       dict__dbl_dict_data[link][step]["c_out_q_h2o"]
                 if q_h2o > 0.0:
-                    dict__data_frames[node].set_value(step, variable, my_dict_variables[variable] / q_h2o)
+                    dict__dbl_dict_data[node][step][variable] = my_dict_variables[variable] / q_h2o
                 my_dict_variables[variable] = 0.0
 
 
 def save_simulation_files(my__network, my__time_frame, catchment,
-                          dict__data_frames, dict__models, output_folder, logger):
+                          dict__dbl_dict_data, dict__models, output_folder, logger):
     # Save the DataFrames for the links (separating inputs, states, and outputs)
     logger.info("{} # Saving results in files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
     for link in my__network.links:
@@ -330,21 +332,33 @@ def save_simulation_files(my__network, my__time_frame, catchment,
             my_inputs += model.input_names
             my_states += model.state_names
             my_outputs += model.output_names
-        dict__data_frames[link].loc[my__time_frame.series_data[1:]].to_csv(
-            '{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link),
-            columns=my_inputs, float_format='%e', index_label='DateTime')
-        dict__data_frames[link].loc[my__time_frame.series_data[1:]].to_csv(
-            '{}{}_{}.states'.format(output_folder, catchment.capitalize(), link),
-            columns=my_states, float_format='%e', index_label='DateTime')
-        dict__data_frames[link].loc[my__time_frame.series_data[1:]].to_csv(
-            '{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link),
-            columns=my_outputs, float_format='%e', index_label='DateTime')
+        with open('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link), 'wb') as my_file:
+            my_writer = csv.writer(my_file, delimiter=',')
+            my_writer.writerow(['DateTime'] + my_inputs)
+            for step in my__time_frame.series_data[1:]:
+                my_writer.writerow([step] + ['%e' % dict__dbl_dict_data[link][step][my_input]
+                                             for my_input in my_inputs])
+        with open('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link), 'wb') as my_file:
+            my_writer = csv.writer(my_file, delimiter=',')
+            my_writer.writerow(['DateTime'] + my_states)
+            for step in my__time_frame.series_data[1:]:
+                my_writer.writerow([step] + ['%e' % dict__dbl_dict_data[link][step][my_state]
+                                             for my_state in my_states])
+        with open('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link), 'wb') as my_file:
+            my_writer = csv.writer(my_file, delimiter=',')
+            my_writer.writerow(['DateTime'] + my_outputs)
+            for step in my__time_frame.series_data[1:]:
+                my_writer.writerow([step] + ['%e' % dict__dbl_dict_data[link][step][my_output]
+                                             for my_output in my_outputs])
 
     # Save the DataFrames for the nodes
     for node in my__network.nodes:
-        dict__data_frames[node].loc[my__time_frame.series_data[1:]].to_csv(
-            '{}{}_{}.node'.format(output_folder, catchment.capitalize(), node),
-            float_format='%e', index_label='DateTime')
+        with open('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node), 'wb') as my_file:
+            my_writer = csv.writer(my_file, delimiter=',')
+            my_writer.writerow(['DateTime'] + my__network.variables)
+            for step in my__time_frame.series_data[1:]:
+                my_writer.writerow([step] + ['%e' % dict__dbl_dict_data[node][step][my_variable]
+                                             for my_variable in my__network.variables])
 
 
 if __name__ == "__main__":

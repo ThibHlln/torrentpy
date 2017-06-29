@@ -189,36 +189,36 @@ def run_on_land(waterbody, dict_data_frame,
     dict_outputs_hd = my_dict_hydro['dict_outputs_hd']
 
     # # 2.2. Collect inputs, states, parameters, and constants
-    c_in_temp = dict_meteo[waterbody].get_value(datetime_time_step, "airt")
+    c_in_temp = dict_meteo[waterbody][datetime_time_step]["airt"]
     mass_n = \
-        dict_loads[waterbody].get_value(datetime_time_step, "org_n_grassland") * \
+        dict_loads[waterbody][datetime_time_step]["org_n_grassland"] * \
         dict_desc[waterbody]["grassland_ratio"] * area_m2 * 1e-4 + \
-        dict_loads[waterbody].get_value(datetime_time_step, "ino_n_grassland") * \
+        dict_loads[waterbody][datetime_time_step]["ino_n_grassland"] * \
         dict_desc[waterbody]["grassland_ratio"] * area_m2 * 1e-4 + \
-        dict_loads[waterbody].get_value(datetime_time_step, "org_n_arable") * \
+        dict_loads[waterbody][datetime_time_step]["org_n_arable"] * \
         dict_desc[waterbody]["arable_ratio"] * area_m2 * 1e-4 + \
-        dict_loads[waterbody].get_value(datetime_time_step, "ino_n_arable") * \
+        dict_loads[waterbody][datetime_time_step]["ino_n_arable"] * \
         dict_desc[waterbody]["arable_ratio"] * area_m2 * 1e-4 + \
-        dict_loads[waterbody].get_value(datetime_time_step, "n_urban") * \
+        dict_loads[waterbody][datetime_time_step]["n_urban"] * \
         dict_desc[waterbody]["urban_ratio"] * area_m2 * 1e-4 + \
-        dict_loads[waterbody].get_value(datetime_time_step, "n_atm_deposition") * \
+        dict_loads[waterbody][datetime_time_step]["n_atm_deposition"] * \
         dict_desc[waterbody]["woodland_ratio"] * area_m2 * 1e-4 + \
-        dict_loads[waterbody].get_value(datetime_time_step, "n_septic_tanks")
+        dict_loads[waterbody][datetime_time_step]["n_septic_tanks"]
     c_in_m_no3 = mass_n * 0.70  # assumed 70% as nitrate
     c_in_m_nh4 = mass_n * 0.30  # assumed 30% as ammonia
-    c_in_m_p_ino = (dict_loads[waterbody].get_value(datetime_time_step, "ino_p_grassland") *
+    c_in_m_p_ino = (dict_loads[waterbody][datetime_time_step]["ino_p_grassland"] *
                     dict_desc[waterbody]["grassland_ratio"] * area_m2 * 1e-4 +
-                    dict_loads[waterbody].get_value(datetime_time_step, "ino_p_arable") *
+                    dict_loads[waterbody][datetime_time_step]["ino_p_arable"] *
                     dict_desc[waterbody]["arable_ratio"] * area_m2 * 1e-4 +
-                    dict_loads[waterbody].get_value(datetime_time_step, "p_urban") *
+                    dict_loads[waterbody][datetime_time_step]["p_urban"] *
                     dict_desc[waterbody]["urban_ratio"] * area_m2 * 1e-4 +
-                    dict_loads[waterbody].get_value(datetime_time_step, "p_atm_deposition") *
+                    dict_loads[waterbody][datetime_time_step]["p_atm_deposition"] *
                     dict_desc[waterbody]["woodland_ratio"] * area_m2 * 1e-4)
-    c_in_m_p_org = (dict_loads[waterbody].get_value(datetime_time_step, "org_p_grassland") *
+    c_in_m_p_org = (dict_loads[waterbody][datetime_time_step]["org_p_grassland"] *
                     dict_desc[waterbody]["grassland_ratio"] * area_m2 * 1e-4 +
-                    dict_loads[waterbody].get_value(datetime_time_step, "org_p_arable") *
+                    dict_loads[waterbody][datetime_time_step]["org_p_arable"] *
                     dict_desc[waterbody]["arable_ratio"] * area_m2 * 1e-4 +
-                    dict_loads[waterbody].get_value(datetime_time_step, "p_septic_tanks"))
+                    dict_loads[waterbody][datetime_time_step]["p_septic_tanks"])
     dict_mass_applied = dict()
     dict_mass_applied['no3'] = c_in_m_no3
     dict_mass_applied['nh4'] = c_in_m_nh4
@@ -237,9 +237,9 @@ def run_on_land(waterbody, dict_data_frame,
         my_dict_3 = dict()
         my_dict_4 = dict()
         for contaminant in stores_contaminants:
-            my_dict_1[contaminant] = dict_data_frame[waterbody].get_value(datetime_time_step +
-                                                                          datetime.timedelta(minutes=-time_gap),
-                                                                          ''.join(['c_s_c_', contaminant, '_', store]))
+            my_dict_1[contaminant] = \
+                dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)][
+                    ''.join(['c_s_c_', contaminant, '_', store])]
             my_dict_2[contaminant] = 0.0  # initialisation only
             my_dict_3[contaminant] = \
                 dict_param[waterbody]['INCAL'][''.join(['c_p_att_', contaminant, '_', store])] ** time_factor
@@ -252,9 +252,8 @@ def run_on_land(waterbody, dict_data_frame,
     my_dict_6 = dict()
     for contaminant in soil_contaminants:
         my_dict_5[contaminant] = \
-            dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                 ''.join(['c_s_', soil_contaminants[contaminant],
-                                                          '_', contaminant, '_soil']))
+            dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)][
+                ''.join(['c_s_', soil_contaminants[contaminant], '_', contaminant, '_soil'])]
         my_dict_6[contaminant] = \
             dict_param[waterbody]['INCAL'][''.join(['c_p_att_', contaminant, '_soil'])] ** time_factor
     dict_states_wq['soil'] = my_dict_5
@@ -584,30 +583,30 @@ def run_on_land(waterbody, dict_data_frame,
     # sediment: no calculation, unlimited availability assumed
 
     # # 2.4. Save inputs, states, and outputs
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_in_temp", c_in_temp)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_in_m_no3", c_in_m_no3)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_in_m_nh4", c_in_m_nh4)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_in_m_p_ino", c_in_m_p_ino)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "c_in_m_p_org", c_in_m_p_org)
+    dict_data_frame[waterbody][datetime_time_step]["c_in_temp"] = c_in_temp
+    dict_data_frame[waterbody][datetime_time_step]["c_in_m_no3"] = c_in_m_no3
+    dict_data_frame[waterbody][datetime_time_step]["c_in_m_nh4"] = c_in_m_nh4
+    dict_data_frame[waterbody][datetime_time_step]["c_in_m_p_ino"] = c_in_m_p_ino
+    dict_data_frame[waterbody][datetime_time_step]["c_in_m_p_org"] = c_in_m_p_org
 
     for contaminant in stores_contaminants:
         m_outflow = 0.0
         for store in stores:
-            dict_data_frame[waterbody].set_value(datetime_time_step, ''.join(['c_s_c_', contaminant, '_', store]),
-                                                 dict_states_wq[store][contaminant])
-            dict_data_frame[waterbody].set_value(datetime_time_step, ''.join(['c_out_c_', contaminant, '_', store]),
-                                                 dict_c_outflow[store][contaminant])
+            dict_data_frame[waterbody][datetime_time_step][''.join(['c_s_c_', contaminant, '_', store])] = \
+                dict_states_wq[store][contaminant]
+            dict_data_frame[waterbody][datetime_time_step][''.join(['c_out_c_', contaminant, '_', store])] = \
+                dict_c_outflow[store][contaminant]
             m_outflow += dict_c_outflow[store][contaminant] * \
-                dict_data_frame[waterbody].get_value(datetime_time_step, ''.join(['c_out_q_h2o_', store]))
-        if dict_data_frame[waterbody].get_value(datetime_time_step, "c_out_q_h2o") > 0.0:
-            c_outflow = m_outflow / dict_data_frame[waterbody].get_value(datetime_time_step, "c_out_q_h2o")
+                dict_data_frame[waterbody][datetime_time_step][''.join(['c_out_q_h2o_', store])]
+        if dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o"] > 0.0:
+            c_outflow = m_outflow / dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o"]
         else:
             c_outflow = 0.0
-        dict_data_frame[waterbody].set_value(datetime_time_step, ''.join(['c_out_c_', contaminant]), c_outflow)
+        dict_data_frame[waterbody][datetime_time_step][''.join(['c_out_c_', contaminant])] = c_outflow
     for contaminant in soil_contaminants:
-        dict_data_frame[waterbody].set_value(datetime_time_step, ''.join(['c_s_', soil_contaminants[contaminant], '_',
-                                                                          contaminant, '_soil']),
-                                             dict_states_wq['soil'][contaminant])
+        dict_data_frame[waterbody][datetime_time_step][''.join(['c_s_', soil_contaminants[contaminant], '_',
+                                                                contaminant, '_soil'])] = \
+            dict_states_wq['soil'][contaminant]
 
 
 def run_in_stream(obj_network, waterbody, dict_data_frame,
@@ -655,30 +654,24 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
     volume_tolerance = 1.0E-8
 
     # # 2.1. Define variables originating from hydraulic model
-    r_in_q_h2o = dict_data_frame[waterbody].get_value(datetime_time_step, "r_in_q_h2o")
-    r_out_q_h2o = dict_data_frame[waterbody].get_value(datetime_time_step, "r_out_q_h2o")
-    r_s_v_h2o_old = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                         "r_s_v_h2o")
-    r_s_v_h2o = dict_data_frame[waterbody].get_value(datetime_time_step, "r_s_v_h2o")
+    r_in_q_h2o = dict_data_frame[waterbody][datetime_time_step]["r_in_q_h2o"]
+    r_out_q_h2o = dict_data_frame[waterbody][datetime_time_step]["r_out_q_h2o"]
+    r_s_v_h2o_old = dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["r_s_v_h2o"]
+    r_s_v_h2o = dict_data_frame[waterbody][datetime_time_step]["r_s_v_h2o"]
 
     # # 2.2. Collect inputs, states, parameters and constants
-    r_in_temp = dict_meteo[waterbody].get_value(datetime_time_step, "airt")
-    r_in_c_no3 = dict_data_frame[node_up].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_no3")
-    r_in_c_nh4 = dict_data_frame[node_up].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_nh4")
-    r_in_c_dph = dict_data_frame[node_up].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_dph")
-    r_in_c_pph = dict_data_frame[node_up].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_pph")
-    r_in_c_sed = dict_data_frame[node_up].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap), "c_sed")
+    r_in_temp = dict_meteo[waterbody][datetime_time_step]["airt"]
+    r_in_c_no3 = dict_data_frame[node_up][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_no3"]
+    r_in_c_nh4 = dict_data_frame[node_up][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_nh4"]
+    r_in_c_dph = dict_data_frame[node_up][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_dph"]
+    r_in_c_pph = dict_data_frame[node_up][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_pph"]
+    r_in_c_sed = dict_data_frame[node_up][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_sed"]
 
-    r_s_m_no3 = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                     "r_s_m_no3")
-    r_s_m_nh4 = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                     "r_s_m_nh4")
-    r_s_m_dph = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                     "r_s_m_dph")
-    r_s_m_pph = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                     "r_s_m_pph")
-    r_s_m_sed = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                     "r_s_m_sed")
+    r_s_m_no3 = dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["r_s_m_no3"]
+    r_s_m_nh4 = dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["r_s_m_nh4"]
+    r_s_m_dph = dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["r_s_m_dph"]
+    r_s_m_pph = dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["r_s_m_pph"]
+    r_s_m_sed = dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["r_s_m_sed"]
 
     r_p_att_no3 = dict_param[waterbody]['INCAS']["r_p_att_no3"]
     r_p_att_nh4 = dict_param[waterbody]['INCAS']["r_p_att_nh4"]
@@ -825,24 +818,24 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
 
     # # 2.4. Save inputs, states, and outputs
 
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_in_temp", r_in_temp)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_in_c_no3", r_in_c_no3)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_in_c_nh4", r_in_c_nh4)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_in_c_dph", r_in_c_dph)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_in_c_pph", r_in_c_pph)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_in_c_sed", r_in_c_sed)
+    dict_data_frame[waterbody][datetime_time_step]["r_in_temp"] = r_in_temp
+    dict_data_frame[waterbody][datetime_time_step]["r_in_c_no3"] = r_in_c_no3
+    dict_data_frame[waterbody][datetime_time_step]["r_in_c_nh4"] = r_in_c_nh4
+    dict_data_frame[waterbody][datetime_time_step]["r_in_c_dph"] = r_in_c_dph
+    dict_data_frame[waterbody][datetime_time_step]["r_in_c_pph"] = r_in_c_pph
+    dict_data_frame[waterbody][datetime_time_step]["r_in_c_sed"] = r_in_c_sed
 
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_s_m_no3", r_s_m_no3)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_s_m_nh4", r_s_m_nh4)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_s_m_dph", r_s_m_dph)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_s_m_pph", r_s_m_pph)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_s_m_sed", r_s_m_sed)
+    dict_data_frame[waterbody][datetime_time_step]["r_s_m_no3"] = r_s_m_no3
+    dict_data_frame[waterbody][datetime_time_step]["r_s_m_nh4"] = r_s_m_nh4
+    dict_data_frame[waterbody][datetime_time_step]["r_s_m_dph"] = r_s_m_dph
+    dict_data_frame[waterbody][datetime_time_step]["r_s_m_pph"] = r_s_m_pph
+    dict_data_frame[waterbody][datetime_time_step]["r_s_m_sed"] = r_s_m_sed
 
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_out_c_no3", r_out_c_no3)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_out_c_nh4", r_out_c_nh4)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_out_c_dph", r_out_c_dph)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_out_c_pph", r_out_c_pph)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_out_c_sed", r_out_c_sed)
+    dict_data_frame[waterbody][datetime_time_step]["r_out_c_no3"] = r_out_c_no3
+    dict_data_frame[waterbody][datetime_time_step]["r_out_c_nh4"] = r_out_c_nh4
+    dict_data_frame[waterbody][datetime_time_step]["r_out_c_dph"] = r_out_c_dph
+    dict_data_frame[waterbody][datetime_time_step]["r_out_c_pph"] = r_out_c_pph
+    dict_data_frame[waterbody][datetime_time_step]["r_out_c_sed"] = r_out_c_sed
 
 
 def infer_land_parameters(dict_desc, my_dict_param):

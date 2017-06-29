@@ -24,9 +24,8 @@ def run(obj_network, waterbody, dict_data_frame,
     time_step_sec = time_gap * 60.0  # [seconds]
 
     # # 1.1. Collect inputs, states, and parameters
-    r_in_q_h2o = dict_data_frame[node_up].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap), "q_h2o")
-    r_s_v_h2o = dict_data_frame[waterbody].get_value(datetime_time_step + datetime.timedelta(minutes=-time_gap),
-                                                     "r_s_v_h2o")
+    r_in_q_h2o = dict_data_frame[node_up][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["q_h2o"]
+    r_s_v_h2o = dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["r_s_v_h2o"]
     r_p_k_h2o = dict_param[waterbody]['LINRES']["r_p_k_h2o"]  # in seconds
 
     # # 1.2. Hydrological calculations
@@ -49,9 +48,9 @@ def run(obj_network, waterbody, dict_data_frame,
         r_s_v_h2o = r_s_v_h2o_temp  # temporary storage becomes final storage
 
     # # 1.3. Save inputs, states, and outputs
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_in_q_h2o", r_in_q_h2o)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_s_v_h2o", r_s_v_h2o)
-    dict_data_frame[waterbody].set_value(datetime_time_step, "r_out_q_h2o", r_out_q_h2o)
+    dict_data_frame[waterbody][datetime_time_step]["r_in_q_h2o"] = r_in_q_h2o
+    dict_data_frame[waterbody][datetime_time_step]["r_s_v_h2o"] = r_s_v_h2o
+    dict_data_frame[waterbody][datetime_time_step]["r_out_q_h2o"] = r_out_q_h2o
 
 
 def infer_parameters(dict_desc, my_dict_param):

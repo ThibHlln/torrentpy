@@ -162,9 +162,10 @@ class TimeFrame:
     def get_list_datetime(self, option):
         gap = self.end - self.start
         options = {'data': self.step_data, 'simu': self.step_simu}
+        start_index = int(self.step_data / options[option])
         end_index = int(gap.total_seconds() // (options[option] * 60)) + 1
         my_list_datetime = list()
-        for factor in range(-1, end_index, 1):  # add one datetime before start
+        for factor in range(-start_index, end_index, 1):  # add one datetime before start
             my_datetime = self.start + datetime.timedelta(minutes=factor * options[option])
             my_list_datetime.append(my_datetime)
 

@@ -13,7 +13,7 @@ def get_df_for_daily_meteo_data(catchment, link, my_tf,
 
     my_meteo_data_types = ["rain", "peva", "airt", "soit"]
 
-    my__data_frame = DataFrame(index=my_tf.series_simu, columns=my_meteo_data_types).fillna(0.0)
+    my_dbl_dict = {i: {c: 0.0 for c in my_meteo_data_types} for i in my_tf.series_simu}
 
     divisor = my_tf.step_data / my_tf.step_simu
 
@@ -35,18 +35,18 @@ def get_df_for_daily_meteo_data(catchment, link, my_tf,
                     sys.exit("{}{}_{}_{}_{}.{} contains "
                              "an invalid value for {}.".format(in_folder, catchment, link, my_start, my_end,
                                                                meteo_type, my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
-                for my_sub_step in range(0, divisor, 1):
+                for my_sub_step in range(0, -divisor, -1):
                     my_dt_simu = my_dt_data + datetime.timedelta(minutes=my_sub_step * my_tf.step_simu)
                     if (meteo_type == 'rain') or (meteo_type == 'peva'):
-                        my__data_frame.set_value(my_dt_simu, meteo_type, float(my_portion))
+                        my_dbl_dict[my_dt_simu][meteo_type] = float(my_portion)
                     else:
-                        my__data_frame.set_value(my_dt_simu, meteo_type, float(my_value))
+                        my_dbl_dict[my_dt_simu][meteo_type] = float(my_value)
 
         except IOError:
             sys.exit("{}{}_{}_{}_{}.{} does not exist.".format(in_folder, catchment,
                                                                link, my_start, my_end, meteo_type))
 
-    return my__data_frame
+    return my_dbl_dict
 
 
 def get_df_for_daily_flow_data(catchment, link, my_tf,
