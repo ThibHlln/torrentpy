@@ -1,7 +1,5 @@
 import matplotlib.pyplot as plt
 import os
-import datetime
-import logging
 from pandas import DataFrame
 import pandas
 import numpy as np
@@ -9,6 +7,7 @@ from matplotlib import dates
 
 from simuClasses import *
 import simuFiles as sF
+import simuMain as sM
 
 
 def main():
@@ -31,77 +30,11 @@ def main():
         sys.exit("The combination [ {} - {} ] is incorrect.".format(catchment, outlet))
 
     # Create a logger
-    # # Logger levels: debug < info < warning < error < critical
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
-    # Create a file handler
-    if os.path.isfile('{}{}_{}.plot.log'.format(output_folder, catchment, outlet)):
-        os.remove('{}{}_{}.plot.log'.format(output_folder, catchment, outlet))
-    handler = logging.FileHandler('{}{}_{}.plot.log'.format(output_folder, catchment, outlet))
-    handler.setLevel(logging.DEBUG)
-    logger.addHandler(handler)
+    logger = sM.get_logger(catchment, outlet, 'plot', output_folder)
 
-    try:  # see if there is a .simulation file to set up the simulation
-        my_answers_df = pandas.read_csv("{}{}_{}.simulation".format(input_folder, catchment, outlet), index_col=0)
-    except IOError:
-        my_answers_df = DataFrame()
-        logger.info("There is not {}{}_{}.simulation available.".format(input_folder, catchment, outlet))
-
-    try:
-        question_start_data = my_answers_df.get_value('start_datetime_data', 'ANSWER')
-    except KeyError:
-        question_start_data = raw_input('Starting date for data? [format DD/MM/YYYY HH:MM:SS] ')
-    try:
-        datetime_start_data = datetime.datetime.strptime(question_start_data, '%d/%m/%Y %H:%M:%S')
-    except ValueError:
-        sys.exit("The data starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
-
-    try:
-        question_end_data = my_answers_df.get_value('end_datetime_data', 'ANSWER')
-    except KeyError:
-        question_end_data = raw_input('Ending date for data? [format DD/MM/YYYY HH:MM:SS] ')
-    try:
-        datetime_end_data = datetime.datetime.strptime(question_end_data, '%d/%m/%Y %H:%M:%S')
-    except ValueError:
-        sys.exit("The data ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
-
-    try:
-        question_data_time_step = my_answers_df.get_value('data_time_step_min', 'ANSWER')
-    except KeyError:
-        question_data_time_step = raw_input('Time step for data? [integer in minutes] ')
-    try:
-        data_time_step_in_min = float(int(question_data_time_step))
-    except ValueError:
-        sys.exit("The data time step is invalid. [not an integer]")
-
-    try:
-        question_simu_time_step = my_answers_df.get_value('simu_time_step_min', 'ANSWER')
-    except KeyError:
-        question_simu_time_step = raw_input('Time step for simulation? [integer in minutes] ')
-    try:
-        simu_time_step_in_min = float(int(question_simu_time_step))
-    except ValueError:
-        sys.exit("The simulation time step is invalid. [not an integer]")
-
-    try:
-        question_start_plot = my_answers_df.get_value('start_datetime_plot', 'ANSWER')
-    except KeyError:
-        question_start_plot = raw_input('Starting date for plot? [format DD/MM/YYYY HH:MM:SS] ')
-    try:
-        datetime_start_plot = datetime.datetime.strptime(question_start_plot, '%d/%m/%Y %H:%M:%S')
-    except ValueError:
-        sys.exit("The plot starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
-
-    try:
-        question_end_plot = my_answers_df.get_value('end_datetime_plot', 'ANSWER')
-    except ValueError:
-        question_end_plot = raw_input('Ending date for plot? [format DD/MM/YYYY HH:MM:SS] ')
-    try:
-        datetime_end_plot = datetime.datetime.strptime(question_end_plot, '%d/%m/%Y %H:%M:%S')
-    except ValueError:
-        sys.exit("The plot ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
-
-    logger.info("{} # Initialising.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    # Set up the plotting session
+    data_time_step_in_min, datetime_end_data, datetime_end_plot, datetime_start_data, datetime_start_plot, \
+        simu_time_step_in_min = set_up_plotting(catchment, outlet, input_folder, logger)
 
     # Create a TimeFrame object
     my__time_frame = TimeFrame(datetime_start_data, datetime_end_data,
@@ -116,6 +49,64 @@ def main():
                            datetime_start_data, datetime_end_data,
                            datetime_start_plot, datetime_end_plot,
                            logger)
+
+
+def set_up_plotting(catchment, outlet, input_folder, logger):
+    try:  # see if there is a .simulation file to set up the simulation
+        my_answers_df = pandas.read_csv("{}{}_{}.simulation".format(input_folder, catchment, outlet), index_col=0)
+    except IOError:
+        my_answers_df = DataFrame()
+        logger.info("There is not {}{}_{}.simulation available.".format(input_folder, catchment, outlet))
+    try:
+        question_start_data = my_answers_df.get_value('start_datetime_data', 'ANSWER')
+    except KeyError:
+        question_start_data = raw_input('Starting date for data? [format DD/MM/YYYY HH:MM:SS] ')
+    try:
+        datetime_start_data = datetime.datetime.strptime(question_start_data, '%d/%m/%Y %H:%M:%S')
+    except ValueError:
+        sys.exit("The data starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+    try:
+        question_end_data = my_answers_df.get_value('end_datetime_data', 'ANSWER')
+    except KeyError:
+        question_end_data = raw_input('Ending date for data? [format DD/MM/YYYY HH:MM:SS] ')
+    try:
+        datetime_end_data = datetime.datetime.strptime(question_end_data, '%d/%m/%Y %H:%M:%S')
+    except ValueError:
+        sys.exit("The data ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+    try:
+        question_data_time_step = my_answers_df.get_value('data_time_step_min', 'ANSWER')
+    except KeyError:
+        question_data_time_step = raw_input('Time step for data? [integer in minutes] ')
+    try:
+        data_time_step_in_min = float(int(question_data_time_step))
+    except ValueError:
+        sys.exit("The data time step is invalid. [not an integer]")
+    try:
+        question_simu_time_step = my_answers_df.get_value('simu_time_step_min', 'ANSWER')
+    except KeyError:
+        question_simu_time_step = raw_input('Time step for simulation? [integer in minutes] ')
+    try:
+        simu_time_step_in_min = float(int(question_simu_time_step))
+    except ValueError:
+        sys.exit("The simulation time step is invalid. [not an integer]")
+    try:
+        question_start_plot = my_answers_df.get_value('start_datetime_plot', 'ANSWER')
+    except KeyError:
+        question_start_plot = raw_input('Starting date for plot? [format DD/MM/YYYY HH:MM:SS] ')
+    try:
+        datetime_start_plot = datetime.datetime.strptime(question_start_plot, '%d/%m/%Y %H:%M:%S')
+    except ValueError:
+        sys.exit("The plot starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+    try:
+        question_end_plot = my_answers_df.get_value('end_datetime_plot', 'ANSWER')
+    except ValueError:
+        question_end_plot = raw_input('Ending date for plot? [format DD/MM/YYYY HH:MM:SS] ')
+    try:
+        datetime_end_plot = datetime.datetime.strptime(question_end_plot, '%d/%m/%Y %H:%M:%S')
+    except ValueError:
+        sys.exit("The plot ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+    logger.info("{} # Initialising.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    return data_time_step_in_min, datetime_end_data, datetime_end_plot, datetime_start_data, datetime_start_plot, simu_time_step_in_min
 
 
 def plot_daily_hydro_hyeto(my__network, my__time_frame,
@@ -133,7 +124,7 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     my_rain_mm = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
     my_area_m2 = np.empty(shape=(0, 1), dtype=np.float64)
 
-    my_dict_desc = sF.get_dict_floats_from_file("descriptors", catchment, outlet, my__network, in_folder)
+    my_dict_desc = sF.get_nd_from_file('descriptors', 'float', catchment, outlet, my__network, in_folder)
     for link in my__network.links:
         try:
             my_df_inputs = pandas.read_csv("{}{}_{}_{}_{}.rain".format(in_folder, catchment, link,

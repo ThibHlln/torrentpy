@@ -5,7 +5,7 @@ import sys
 import csv
 
 
-def get_df_for_daily_meteo_data(catchment, link, my_tf,
+def get_nd_meteo_data_from_file(catchment, link, my_tf,
                                 dt_start_data, dt_end_data, in_folder):
 
     my_start = dt_start_data.strftime("%Y%m%d")
@@ -49,7 +49,7 @@ def get_df_for_daily_meteo_data(catchment, link, my_tf,
     return my_dbl_dict
 
 
-def get_df_for_daily_flow_data(catchment, link, my_tf,
+def get_df_flow_data_from_file(catchment, link, my_tf,
                                dt_start_data, dt_end_data, in_folder):
 
     my_start = dt_start_data.strftime("%Y%m%d")
@@ -126,7 +126,11 @@ def get_dict_constants_from_file(model, specs_folder):
             sys.exit("{}{}.const does not exist.".format(specs_folder, model.identifier))
 
 
-def get_dict_floats_from_file(variables, catchment, outlet, obj_network, folder):
+def get_nd_from_file(variables, var_type, catchment, outlet, obj_network, folder):
+
+    valid_types = ['str', 'float', 'int']
+    if var_type.lower() not in valid_types:
+        sys.exit('The variable type {} is not registered for the function get_nest_dict_from_file.'.format(var_type))
 
     try:
         with open("{}{}_{}.{}".format(folder, catchment, outlet, variables)) as my_file:
@@ -138,37 +142,15 @@ def get_dict_floats_from_file(variables, catchment, outlet, obj_network, folder)
             for row in my_reader:
                 if row["EU_CD"] in obj_network.links:
                     my_dict = dict()
-                    for field in fields:
-                        my_dict[field] = float(row[field])
-                    my_dict_variables[row["EU_CD"]] = my_dict
-                    found.append(row["EU_CD"])
-                else:
-                    print "The waterbody {} in the {} file is not in the network file.".format(row["EU_CD"], variables)
-
-            missing = [elem for elem in obj_network.links if elem not in found]
-            if missing:
-                sys.exit("The following waterbodies are not in the {} file: {}.".format(missing, variables))
-
-        return my_dict_variables
-
-    except IOError:
-        sys.exit("{}{}_{}.{} does not exist.".format(folder, catchment, outlet, variables))
-
-
-def get_dict_strings_from_file(variables, catchment, outlet, obj_network, folder):
-
-    try:
-        with open("{}{}_{}.{}".format(folder, catchment, outlet, variables)) as my_file:
-            my_dict_variables = dict()
-            my_reader = csv.DictReader(my_file)
-            fields = my_reader.fieldnames[:]
-            fields.remove("EU_CD")
-            found = list()
-            for row in my_reader:
-                if row["EU_CD"] in obj_network.links:
-                    my_dict = dict()
-                    for field in fields:
-                        my_dict[field] = str(row[field])
+                    if var_type.lower() == 'str':
+                        for field in fields:
+                            my_dict[field] = str(row[field])
+                    elif var_type.lower() == 'float':
+                        for field in fields:
+                            my_dict[field] = float(row[field])
+                    elif var_type.lower() == 'int':
+                        for field in fields:
+                            my_dict[field] = int(row[field])
                     my_dict_variables[row["EU_CD"]] = my_dict
                     found.append(row["EU_CD"])
                 else:
