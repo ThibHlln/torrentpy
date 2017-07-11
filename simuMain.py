@@ -395,7 +395,7 @@ def simulate(my__network, my__time_frame,
                     elif my__network.categories[link] == "10":  # river
                         my_dict_variables[variable] += dict__nd_data[link][step]["".join(["c_out_", variable])] * \
                                                        dict__nd_data[link][step]["c_out_q_h2o"]
-                if q_h2o >= 0.01:
+                if q_h2o > 0.0:
                     dict__nd_data[node][step][variable] = my_dict_variables[variable] / q_h2o
                 my_dict_variables[variable] = 0.0
 
