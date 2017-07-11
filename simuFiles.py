@@ -50,7 +50,7 @@ def get_nd_meteo_data_from_file(catchment, link, my_tf,
 
 
 def get_df_flow_data_from_file(catchment, link, my_tf,
-                               dt_start_data, dt_end_data, in_folder):
+                               dt_start_data, dt_end_data, in_folder, logger):
 
     my_start = dt_start_data.strftime("%Y%m%d")
     my_end = dt_end_data.strftime("%Y%m%d")
@@ -78,8 +78,7 @@ def get_df_flow_data_from_file(catchment, link, my_tf,
                                                            flow_label, my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
 
     except IOError:
-        sys.exit("{}{}_{}_{}_{}.{} does not exist.".format(in_folder, catchment,
-                                                           link, my_start, my_end, flow_label))
+        logger.info("{}{}_{}_{}_{}.{} does not exist.".format(in_folder, catchment, link, my_start, my_end, flow_label))
 
     return my__data_frame
 

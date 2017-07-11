@@ -168,12 +168,13 @@ def main():
     # Generate gauged flow file in output folder (could be identical to input file if date ranges identical)
     sF.get_df_flow_data_from_file(
         catchment, outlet, my__time_frame,
-        datetime_start_data, datetime_end_data, input_folder).to_csv('{}{}_{}.flow'.format(output_folder,
-                                                                                           catchment.capitalize(),
-                                                                                           outlet),
-                                                                     header='FLOW',
-                                                                     float_format='%e',
-                                                                     index_label='DateTime')
+        datetime_start_data, datetime_end_data,
+        input_folder, logger).to_csv('{}{}_{}.flow'.format(output_folder,
+                                                           catchment.capitalize(),
+                                                           outlet),
+                                     header='FLOW',
+                                     float_format='%e',
+                                     index_label='DateTime')
 
     logger.info("{} # Ending.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
 
