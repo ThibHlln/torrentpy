@@ -168,11 +168,11 @@ def run_on_land(waterbody, dict_data_frame,
     time_factor = time_step_sec / 86400.0
     if time_factor < 0.005:
         time_factor = 0.005
-    flow_tolerance = 1.0E-2
-    volume_tolerance = 1.0E-8  # [m3]
+    flow_tolerance = dict_const["INCAL"]['c_cst_flow_tolerance']  # [m3/s]
+    volume_tolerance = dict_const["INCAL"]['c_cst_vol_tolerance']  # [m3]
     flow_threshold_for_erosion = {
-        'ove': 0.005,
-        'dra': 0.05
+        'ove': dict_const["INCAL"]['c_cst_flow_thr_mm_for_ero_ove'],  # [mm]
+        'dra': dict_const["INCAL"]['c_cst_flow_thr_mm_for_ero_dra']  # [mm]
     }
     stores = ['ove', 'dra', 'int', 'sgw', 'dgw']
     stores_contaminants = ['no3', 'nh4', 'dph', 'pph', 'sed']
@@ -656,8 +656,8 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
     # # 2.0. Define internal constants
     node_up = obj_network.connections[waterbody][1]
     time_step_sec = time_gap * 60.0  # [seconds]
-    flow_tolerance = 1E-2
-    volume_tolerance = 1E-2
+    flow_tolerance = dict_const['INCAS']['r_cst_flow_tolerance']
+    volume_tolerance = dict_const['INCAS']['r_cst_vol_tolerance']
 
     # # 2.1. Define variables originating from hydraulic model
     r_in_q_h2o = dict_data_frame[waterbody][datetime_time_step]["r_in_q_h2o"]
