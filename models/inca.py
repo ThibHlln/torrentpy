@@ -168,6 +168,7 @@ def run_on_land(waterbody, dict_data_frame,
     time_factor = time_step_sec / 86400.0
     if time_factor < 0.005:
         time_factor = 0.005
+    flow_tolerance = 1.0E-2
     volume_tolerance = 1.0E-8  # [m3]
     flow_threshold_for_erosion = {
         'ove': 0.005,
@@ -308,7 +309,7 @@ def run_on_land(waterbody, dict_data_frame,
             if (mobilisation < 0.0) or (mobilisation > 1.0):
                 mobilisation = 1.0
             m_mobilised = (dict_flows_mm_hd[store] / 1e3 * area_m2) * dict_states_wq['soil'][contaminant] * mobilisation
-            m_store = m_store_att + m_mobilised - dict_outputs_hd[store] * c_store
+            m_store = m_store_att + m_mobilised - dict_outputs_hd[store] * time_step_sec * c_store
             if (m_store < 0.0) or (dict_states_hd[store] < volume_tolerance):
                 logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"), ' - ',
                                       contaminant.upper(), ' Quantity in ',
@@ -328,9 +329,9 @@ def run_on_land(waterbody, dict_data_frame,
         elif attenuation < 0.0:
             attenuation = 0.0
         m_store_att = m_store * attenuation
-        m_sediment_per_area = 0.0
         if (dict_flows_mm_hd[store] < sediment_threshold) or \
                 (dict_flows_mm_hd[store] < flow_threshold_for_erosion[store]):
+            m_sediment_per_area = 0.0
             m_sediment = 0.0
             dict_c_outflow[store][contaminant] = 0.0
         else:
@@ -340,7 +341,8 @@ def run_on_land(waterbody, dict_data_frame,
         if store == 'ove':  # no mass balance, all sediment assumed gone
             dict_states_wq[store][contaminant] = 0.0
         elif store == 'dra':  # mass balance
-            m_store = m_store_att + m_sediment - dict_outputs_hd[store] * dict_c_outflow[store][contaminant]
+            m_store = \
+                m_store_att + m_sediment - dict_outputs_hd[store] * time_step_sec * dict_c_outflow[store][contaminant]
             if (m_store < 0.0) or (dict_states_hd[store] < volume_tolerance):
                 logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"), ' - ',
                                       contaminant.upper(), ' Quantity in ',
@@ -349,6 +351,7 @@ def run_on_land(waterbody, dict_data_frame,
             else:
                 dict_states_wq[store][contaminant] = m_store / dict_states_hd[store]
         dict_m_mobilised[contaminant] += m_sediment
+        dict_states_wq[store][contaminant] = 0.0
 
         # particulate phosphorus (firmly bound phosphorus)
         contaminant = 'pph'
@@ -366,7 +369,7 @@ def run_on_land(waterbody, dict_data_frame,
             dict_c_outflow[store][contaminant] = 0.0
         else:
             soil_loss = m_sediment_per_area * 1e4 * 3.1536e7 / time_step_sec  # [kg/ha/yr]
-            p_enrichment_ratio = math.exp(2.48 - 0.27 * math.log1p(soil_loss))  # [-]
+            p_enrichment_ratio = math.exp(2.48 - 0.27 * math.log(soil_loss))  # [-]  # soil loss cannot be equal to 0
             if p_enrichment_ratio < 0.1:
                 p_enrichment_ratio = 0.1
             elif p_enrichment_ratio > 6.0:
@@ -389,7 +392,8 @@ def run_on_land(waterbody, dict_data_frame,
                 dict_states_wq['soil']['p_ino_fb']
             m_particulate_p -= m_particulate_p_missing  # remove part of the demand that could not be satisfied by soil
             dict_c_outflow[store][contaminant] = m_particulate_p / (dict_flows_mm_hd[store] / 1e3 * area_m2)
-        m_store = m_store_att + m_particulate_p - dict_outputs_hd[store] * dict_c_outflow[store][contaminant]
+        m_store = \
+            m_store_att + m_particulate_p - dict_outputs_hd[store] * time_step_sec * dict_c_outflow[store][contaminant]
         if (m_store < 0.0) or (dict_states_hd[store] < volume_tolerance):
             logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"), ' - ',
                                   contaminant.upper(), ' Quantity in ',
@@ -401,7 +405,7 @@ def run_on_land(waterbody, dict_data_frame,
 
     # # 2.3.2. Interflow contamination, Shallow groundwater flow contamination, & Deep groundwater flow contamination
     for store in ['int', 'sgw', 'dgw']:
-        for contaminant in stores_contaminants:
+        for contaminant in ['no3', 'nh4', 'dph']:
             c_store = dict_states_wq[store][contaminant]
             m_store = c_store * dict_states_old_hd[store]
             dict_c_outflow[store][contaminant] = c_store
@@ -415,7 +419,7 @@ def run_on_land(waterbody, dict_data_frame,
             if (mobilisation < 0.0) or (mobilisation > 1.0):
                 mobilisation = 1.0
             m_mobilised = (dict_flows_mm_hd[store] / 1e3 * area_m2) * dict_states_wq['soil'][contaminant] * mobilisation
-            m_store = m_store_att + m_mobilised - dict_outputs_hd[store] * c_store
+            m_store = m_store_att + m_mobilised - dict_outputs_hd[store] * time_step_sec * c_store
             if (m_store < 0.0) or (dict_states_hd[store] < volume_tolerance):
                 logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"), ' - ',
                                       contaminant.upper(), ' Quantity in ',
@@ -423,6 +427,7 @@ def run_on_land(waterbody, dict_data_frame,
                 dict_states_wq[store][contaminant] = 0.0
             else:
                 dict_states_wq[store][contaminant] = m_store / dict_states_hd[store]
+            dict_m_mobilised[contaminant] += m_mobilised
 
     # # 2.3.3. Soil store contamination
     # nitrate
@@ -596,8 +601,9 @@ def run_on_land(waterbody, dict_data_frame,
                 dict_states_wq[store][contaminant]
             dict_data_frame[waterbody][datetime_time_step][''.join(['c_out_c_', contaminant, '_', store])] = \
                 dict_c_outflow[store][contaminant]
-            m_outflow += dict_c_outflow[store][contaminant] * \
-                dict_data_frame[waterbody][datetime_time_step][''.join(['c_out_q_h2o_', store])]
+            if dict_data_frame[waterbody][datetime_time_step][''.join(['c_out_q_h2o_', store])] >= flow_tolerance:
+                m_outflow += dict_c_outflow[store][contaminant] * \
+                    dict_data_frame[waterbody][datetime_time_step][''.join(['c_out_q_h2o_', store])]
         if dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o"] > 0.0:
             c_outflow = m_outflow / dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o"]
         else:
@@ -650,8 +656,8 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
     # # 2.0. Define internal constants
     node_up = obj_network.connections[waterbody][1]
     time_step_sec = time_gap * 60.0  # [seconds]
-    flow_tolerance = 1.0E-8
-    volume_tolerance = 1.0E-8
+    flow_tolerance = 1E-2
+    volume_tolerance = 1E-2
 
     # # 2.1. Define variables originating from hydraulic model
     r_in_q_h2o = dict_data_frame[waterbody][datetime_time_step]["r_in_q_h2o"]
@@ -738,11 +744,11 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
                                   ' - NO3 Quantity has gone negative in River Store, quantity reset to zero.']))
             r_s_m_no3 = 0.0
         # calculate outflow concentration
-        if r_s_v_h2o > volume_tolerance:
+        if (r_s_v_h2o > volume_tolerance) and (r_out_q_h2o > flow_tolerance):
             r_out_c_no3 = r_s_m_no3 / r_s_v_h2o
         else:
             logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
-                                  " - Volume in River Store too low, outflow NO3 concentration set to zero."]))
+                                  " - Volume/Flow in River Store too low, outflow NO3 concentration set to zero."]))
             r_out_c_no3 = 0.0
 
         # # 2.2.2. Ammonia NH4
@@ -755,11 +761,11 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
         if r_s_m_nh4 < 0.0:
             r_s_m_nh4 = 0.0
         # calculate outflow concentration
-        if r_s_v_h2o > volume_tolerance:
+        if (r_s_v_h2o > volume_tolerance) and (r_out_q_h2o > flow_tolerance):
             r_out_c_nh4 = r_s_m_nh4 / r_s_v_h2o
         else:
             logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
-                                  " - Volume in River Store too low, outflow NH4 concentration set to zero."]))
+                                  " - Volume/Flow in River Store too low, outflow NH4 concentration set to zero."]))
             r_out_c_nh4 = 0.0
 
         # # 2.2.3. Dissolved phosphorus DPH
@@ -773,11 +779,11 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
         # apply attenuation factor to store
         r_s_m_dph = r_s_m_dph * r_p_att_dph
         # calculate outflow concentration
-        if r_s_v_h2o > volume_tolerance:
+        if (r_s_v_h2o > volume_tolerance) and (r_out_q_h2o > flow_tolerance):
             r_out_c_dph = r_s_m_dph / r_s_v_h2o
         else:
             logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
-                                  " - Volume in River Store too low, outflow DPH concentration set to zero."]))
+                                  " - Volume/Flow in River Store too low, outflow DPH concentration set to zero."]))
             r_out_c_dph = 0.0
 
         # # 2.2.4. Particulate phosphorus PPH
@@ -791,11 +797,11 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
         # apply attenuation factor to store
         r_s_m_pph = r_s_m_pph * r_p_att_pph
         # calculate outflow concentration
-        if r_s_v_h2o > volume_tolerance:
+        if (r_s_v_h2o > volume_tolerance) and (r_out_q_h2o > flow_tolerance):
             r_out_c_pph = r_s_m_pph / r_s_v_h2o
         else:
             logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
-                                  " - Volume in River Store too low, outflow PPH concentration set to zero."]))
+                                  " - Volume/Flow in River Store too low, outflow PPH concentration set to zero."]))
             r_out_c_pph = 0.0
 
         # # 2.2.5. Sediments SED
@@ -809,11 +815,11 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
         # apply attenuation factor to store
         r_s_m_sed = r_s_m_sed * r_p_att_sed
         # calculate outflow concentration
-        if r_s_v_h2o > volume_tolerance:
+        if (r_s_v_h2o > volume_tolerance) and (r_out_q_h2o > flow_tolerance):
             r_out_c_sed = r_s_m_sed / r_s_v_h2o
         else:
             logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
-                                  " - Volume in River Store too low, outflow SED concentration set to zero."]))
+                                  " - Volume/Flow in River Store too low, outflow SED concentration set to zero."]))
             r_out_c_sed = 0.0
 
     # # 2.4. Save inputs, states, and outputs
