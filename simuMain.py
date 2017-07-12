@@ -133,10 +133,10 @@ def main():
     dict__nd_loadings = dict()
     dict_annual_loads = sF.get_nd_from_file('loadings', 'float', catchment, outlet, my__network, input_folder)
     dict_applications = sF.get_nd_from_file('applications', 'str', catchment, outlet, my__network, input_folder)
-    df_distributions = sF.get_df_distributions_from_file(specifications_folder)
+    nd_distributions = sF.get_nd_distributions_from_file(specifications_folder)
     for link in my__network.links:
         dict__nd_loadings[link] = sFn.distribute_loadings_across_year(dict_annual_loads, dict_applications,
-                                                                      df_distributions, link, my__time_frame)
+                                                                      nd_distributions, link, my__time_frame)
 
     # Set the initial conditions ('blank' warm up run)
     if not warm_up_in_days == 0.0:

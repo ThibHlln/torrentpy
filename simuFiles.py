@@ -165,12 +165,12 @@ def get_nd_from_file(variables, var_type, catchment, outlet, obj_network, folder
         sys.exit("{}{}_{}.{} does not exist.".format(folder, catchment, outlet, variables))
 
 
-def get_df_distributions_from_file(specs_folder):
+def get_nd_distributions_from_file(specs_folder):
 
     try:
         my_file = '{}LOADINGS.dist'.format(specs_folder)
-        my_df_distributions = pandas.read_csv(my_file, index_col=0)
-        return my_df_distributions
+        my_nd_distributions = pandas.read_csv(my_file, index_col=0).to_dict(orient='index')
+        return my_nd_distributions
 
     except IOError:
         sys.exit("{}LOADINGS.dist does not exist.".format(specs_folder))
