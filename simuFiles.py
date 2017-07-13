@@ -35,7 +35,7 @@ def get_nd_meteo_data_from_file(catchment, link, my_tf,
                     sys.exit("{}{}_{}_{}_{}.{} contains "
                              "an invalid value for {}.".format(in_folder, catchment, link, my_start, my_end,
                                                                meteo_type, my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
-                for my_sub_step in range(0, -divisor, -1):
+                for my_sub_step in xrange(0, -divisor, -1):
                     my_dt_simu = my_dt_data + datetime.timedelta(minutes=my_sub_step * my_tf.step_simu)
                     if (meteo_type == 'rain') or (meteo_type == 'peva'):
                         my_dbl_dict[my_dt_simu][meteo_type] = float(my_portion)
