@@ -1,6 +1,6 @@
-import math
-import datetime
-import calendar
+from math import exp, log, sin, pi
+from datetime import timedelta
+from calendar import isleap
 
 
 def run_on_land(waterbody, dict_data_frame,
@@ -239,7 +239,7 @@ def run_on_land(waterbody, dict_data_frame,
         my_dict_4 = dict()
         for contaminant in stores_contaminants:
             my_dict_1[contaminant] = \
-                dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)][
+                dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)][
                     ''.join(['c_s_c_', contaminant, '_', store])]
             my_dict_2[contaminant] = 0.0  # initialisation only
             my_dict_3[contaminant] = \
@@ -253,7 +253,7 @@ def run_on_land(waterbody, dict_data_frame,
     my_dict_6 = dict()
     for contaminant in soil_contaminants:
         my_dict_5[contaminant] = \
-            dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)][
+            dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)][
                 ''.join(['c_s_', soil_contaminants[contaminant], '_', contaminant, '_soil'])]
         my_dict_6[contaminant] = \
             dict_param[waterbody]['INCAL'][''.join(['c_p_att_', contaminant, '_soil'])] ** time_factor
@@ -270,7 +270,7 @@ def run_on_land(waterbody, dict_data_frame,
     soil_test_p = dict_const["INCAL"]['c_cst_soil_test_p']  # [kg/kg]
     day_growing_season = dict_const["INCAL"]['c_cst_day_grow']
     day_of_year = float(datetime_time_step.timetuple().tm_yday)
-    if calendar.isleap(datetime_time_step.timetuple().tm_year):
+    if isleap(datetime_time_step.timetuple().tm_year):
         days_in_year = 366.0
     else:
         days_in_year = 365.0
@@ -369,7 +369,7 @@ def run_on_land(waterbody, dict_data_frame,
             dict_c_outflow[store][contaminant] = 0.0
         else:
             soil_loss = m_sediment_per_area * 1e4 * 3.1536e7 / time_step_sec  # [kg/ha/yr]
-            p_enrichment_ratio = math.exp(2.48 - 0.27 * math.log(soil_loss))  # [-]  # soil loss cannot be equal to 0
+            p_enrichment_ratio = exp(2.48 - 0.27 * log(soil_loss))  # [-]  # soil loss cannot be equal to 0
             if p_enrichment_ratio < 0.1:
                 p_enrichment_ratio = 0.1
             elif p_enrichment_ratio > 6.0:
@@ -438,8 +438,7 @@ def run_on_land(waterbody, dict_data_frame,
         s1 = 1.0
     elif s1 < 0.0:
         s1 = 0.0
-    s2 = 0.66 + 0.34 * math.sin(2.0 * math.pi * (day_of_year - day_growing_season) /
-                                days_in_year)  # seasonal plant growth
+    s2 = 0.66 + 0.34 * sin(2.0 * pi * (day_of_year - day_growing_season) / days_in_year)  # seasonal plant growth
     c3_no3 = cst_c3n * (1.047 ** (c_in_temp - 20.0))
     pu_no3 = c3_no3 * s1 * s2  # plant uptake [-/day]
     c1 = cst_c1n * (1.047 ** (c_in_temp - 20.0))
@@ -662,22 +661,22 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
     # # 2.1. Define variables originating from hydraulic model
     r_in_q_h2o = dict_data_frame[waterbody][datetime_time_step]["r_in_q_h2o"]
     r_out_q_h2o = dict_data_frame[waterbody][datetime_time_step]["r_out_q_h2o"]
-    r_s_v_h2o_old = dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["r_s_v_h2o"]
+    r_s_v_h2o_old = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["r_s_v_h2o"]
     r_s_v_h2o = dict_data_frame[waterbody][datetime_time_step]["r_s_v_h2o"]
 
     # # 2.2. Collect inputs, states, parameters and constants
     r_in_temp = dict_meteo[waterbody][datetime_time_step]["airt"]
-    r_in_c_no3 = dict_data_frame[node_up][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_no3"]
-    r_in_c_nh4 = dict_data_frame[node_up][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_nh4"]
-    r_in_c_dph = dict_data_frame[node_up][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_dph"]
-    r_in_c_pph = dict_data_frame[node_up][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_pph"]
-    r_in_c_sed = dict_data_frame[node_up][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_sed"]
+    r_in_c_no3 = dict_data_frame[node_up][datetime_time_step + timedelta(minutes=-time_gap)]["c_no3"]
+    r_in_c_nh4 = dict_data_frame[node_up][datetime_time_step + timedelta(minutes=-time_gap)]["c_nh4"]
+    r_in_c_dph = dict_data_frame[node_up][datetime_time_step + timedelta(minutes=-time_gap)]["c_dph"]
+    r_in_c_pph = dict_data_frame[node_up][datetime_time_step + timedelta(minutes=-time_gap)]["c_pph"]
+    r_in_c_sed = dict_data_frame[node_up][datetime_time_step + timedelta(minutes=-time_gap)]["c_sed"]
 
-    r_s_m_no3 = dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["r_s_m_no3"]
-    r_s_m_nh4 = dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["r_s_m_nh4"]
-    r_s_m_dph = dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["r_s_m_dph"]
-    r_s_m_pph = dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["r_s_m_pph"]
-    r_s_m_sed = dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["r_s_m_sed"]
+    r_s_m_no3 = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["r_s_m_no3"]
+    r_s_m_nh4 = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["r_s_m_nh4"]
+    r_s_m_dph = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["r_s_m_dph"]
+    r_s_m_pph = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["r_s_m_pph"]
+    r_s_m_sed = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["r_s_m_sed"]
 
     r_p_att_no3 = dict_param[waterbody]['INCAS']["r_p_att_no3"]
     r_p_att_nh4 = dict_param[waterbody]['INCAS']["r_p_att_nh4"]

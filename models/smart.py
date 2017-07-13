@@ -1,4 +1,4 @@
-import datetime
+from datetime import timedelta
 from math import exp, log
 
 
@@ -55,27 +55,27 @@ def run(waterbody, dict_data_frame,
     c_in_peva = dict_meteo[waterbody][datetime_time_step]["peva"]
 
     c_s_v_h2o_ove = \
-        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_ove"]
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_ove"]
     c_s_v_h2o_dra = \
-        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_dra"]
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_dra"]
     c_s_v_h2o_int = \
-        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_int"]
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_int"]
     c_s_v_h2o_sgw = \
-        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_sgw"]
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_sgw"]
     c_s_v_h2o_dgw = \
-        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_dgw"]
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_dgw"]
     c_s_v_h2o_ly1 = \
-        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_ly1"]
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_ly1"]
     c_s_v_h2o_ly2 = \
-        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_ly2"]
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_ly2"]
     c_s_v_h2o_ly3 = \
-        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_ly3"]
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_ly3"]
     c_s_v_h2o_ly4 = \
-        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_ly4"]
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_ly4"]
     c_s_v_h2o_ly5 = \
-        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_ly5"]
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_ly5"]
     c_s_v_h2o_ly6 = \
-        dict_data_frame[waterbody][datetime_time_step + datetime.timedelta(minutes=-time_gap)]["c_s_v_h2o_ly6"]
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_ly6"]
 
     c_p_t = dict_param[waterbody]['SMART']["c_p_t"]
     c_p_c = dict_param[waterbody]['SMART']["c_p_c"]
