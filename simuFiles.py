@@ -83,26 +83,6 @@ def get_df_flow_data_from_file(catchment, link, my_tf,
     return my__data_frame
 
 
-def get_dict_parameters_from_file(catchment, outlet, link, model, in_folder):
-
-    try:
-        my_file = "{}{}_{}.{}.parameters".format(in_folder, catchment, outlet, model.identifier)
-        my_df_parameters = pandas.read_csv(my_file, index_col=0)
-
-        my_dict_param = dict()
-
-        for param in model.parameter_names:
-            try:
-                my_dict_param[param] = float(my_df_parameters.get_value(link, param))
-            except KeyError:
-                sys.exit("The {} model parameter {} is not available for {}.".format(model.identifier, param, link))
-
-        return my_dict_param
-
-    except IOError:
-        sys.exit("{}{}_{}.{}.parameters".format(in_folder, catchment, outlet, model.identifier))
-
-
 def get_nd_from_file(variables, var_type, catchment, outlet, obj_network, folder):
 
     valid_types = ['str', 'float', 'int']
