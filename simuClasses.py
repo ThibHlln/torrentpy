@@ -95,13 +95,13 @@ class Model:
     def __init__(self, category, identifier, specs_folder):
         self.category = category.upper()
         self.identifier = identifier.upper()
-        self.input_names = Model.get_one_list(self, specs_folder, "inputs")
-        self.parameter_names = Model.get_one_list(self, specs_folder, "parameters")
-        self.state_names = Model.get_one_list(self, specs_folder, "states")
-        self.output_names = Model.get_one_list(self, specs_folder, "outputs")
-        self.constant_names = Model.get_one_list(self, specs_folder, "constants")
+        self.input_names = Model.get_list_names(self, specs_folder, "inputs")
+        self.parameter_names = Model.get_list_names(self, specs_folder, "parameters")
+        self.state_names = Model.get_list_names(self, specs_folder, "states")
+        self.output_names = Model.get_list_names(self, specs_folder, "outputs")
+        self.constant_names = Model.get_list_names(self, specs_folder, "constants")
 
-    def get_one_list(self, specs_folder, specs_type):
+    def get_list_names(self, specs_folder, specs_type):
         components = self.identifier.split('_')
         my_list = list()
         for component in components:
