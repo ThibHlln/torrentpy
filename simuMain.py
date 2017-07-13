@@ -1,6 +1,4 @@
-import os
 import logging
-import pandas
 from pandas import DataFrame
 
 from simuClasses import *
@@ -42,84 +40,16 @@ def main():
                                        datetime.timedelta(days=warm_up_in_days - 1),
                                        int(data_time_step_in_min), int(simu_time_step_in_min))
 
-    # Declare all the dictionaries that will be needed, all using the waterbody code as a key
-    dict__ls_models = dict()  # key: waterbody, value: list of model objects
-    dict__nd_data = dict()  # key: waterbody, value: data frame (x: time step, y: data type)
-    dict__nd_data_warm_up = dict()
-
     # Create a Network object from network and waterBodies files
     my__network = Network(catchment, outlet, input_folder, specifications_folder)
 
-    # Create NestedDicts for the nodes
-    for node in my__network.nodes:
-        my_dict_with_variables = {c: 0.0 for c in my__network.variables}
-        dict__nd_data[node] = \
-            {i: dict(my_dict_with_variables) for i in my__time_frame.series_simu}
-        if not warm_up_in_days == 0.0:
-            dict__nd_data_warm_up[node] = \
-                {i: dict(my_dict_with_variables) for i in my__time_frame_warm_up.series_simu}
+    # Create Models for the links
+    dict__ls_models = generate_models_for_links(my__network, specifications_folder, input_folder, output_folder)
 
-    # Create Models and NestedDicts for the links
-    for link in my__network.links:
-        # Declare Model objects
-        if my__network.categories[link] == "11":  # river headwater
-            dict__ls_models[link] = [Model("CATCHMENT", "SMART_INCAL", specifications_folder),
-                                     Model("RIVER", "LINRES_INCAS", specifications_folder)]
-        elif my__network.categories[link] == "10":  # river
-            dict__ls_models[link] = [Model("CATCHMENT", "SMART_INCAL", specifications_folder),
-                                     Model("RIVER", "LINRES_INCAS", specifications_folder)]
-        elif my__network.categories[link] == "20":  # lake
-            dict__ls_models[link] = [Model("LAKE", "BATHTUB", specifications_folder)]
-            # For now, no direct rainfall on open water in model
-            # need to be changed, but to do so, need remove lake polygon from sub-basin polygon)
-        else:  # unknown (e.g. 21 would be a lake headwater)
-            sys.exit("Waterbody {}: {} is not a registered type of waterbody.".format(link,
-                                                                                      my__network.categories[link]))
-
-        # Create NestedDicts for the links
-        my_headers = list()
-        for model in dict__ls_models[link]:
-            my_headers += model.input_names + model.state_names + model.output_names
-        my_dict_with_headers = {c: 0.0 for c in my_headers}
-        dict__nd_data[link] = \
-            {i: dict(my_dict_with_headers) for i in my__time_frame.series_simu}
-        if not warm_up_in_days == 0.0:
-            dict__nd_data_warm_up[link] = \
-                {i: dict(my_dict_with_headers) for i in my__time_frame_warm_up.series_simu}
-
-    # Read the parameters file, or read the descriptors file, generate the parameters, and generate the parameters file
-    logger.info("{} # Parameterising.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
-    dict_desc = sF.get_nd_from_file('descriptors', 'float', catchment, outlet, my__network, input_folder)
-    dict_param = dict()
-    my_dict_for_file = dict()
-    for link in my__network.links:
-        dict_param[link] = dict()
-        for models in dict__ls_models[link]:
-            for model_name in models.identifier.split('_'):
-                try:
-                    my_dict_for_file[model_name]
-                except KeyError:
-                    my_dict_for_file[model_name] = dict()
-                if os.path.isfile('{}{}_{}.{}.parameters'.format(input_folder, catchment, outlet, model_name)):
-                    my__model = Model("SPECIMEN", model_name, specifications_folder)
-                    dict_param[link][model_name] = sF.get_dict_parameters_from_file(catchment, outlet, link, my__model,
-                                                                                    input_folder)
-                    my_dict_for_file[model_name].update({link: dict_param[link][model_name]})
-                else:
-                    dict_param[link][model_name] = sFn.infer_parameters_from_descriptors(dict_desc[link], model_name)
-                    my_dict_for_file[model_name].update({link: dict_param[link][model_name]})
-
-    for model_name in my_dict_for_file:
-        df_param = DataFrame.from_dict(my_dict_for_file[model_name], orient='index')
-        df_param.to_csv('{}{}_{}.{}.parameters'.format(output_folder, catchment.capitalize(),
-                                                       outlet, model_name), index_label='EU_CD')
-
-    # Read the constants files if model has constants
-    dict_const = dict()
-    logger.info("{} # Reading constants files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
-    for model_name in ["SMART", "LINRES", "INCAS", "INCAL"]:
-        my__model = Model("SPECIMEN", model_name, specifications_folder)
-        dict_const[model_name] = sF.get_dict_constants_from_file(my__model, specifications_folder)
+    # Declare all the dictionaries that will be needed, all using the waterbody code as a key
+    dict__nd_data = generate_data_structures_for_links_and_nodes(my__network,
+                                                                 my__time_frame.series_simu,
+                                                                 dict__ls_models)
 
     # Read the meteorological input files
     logger.info("{} # Reading meteorological files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
@@ -142,9 +72,13 @@ def main():
     if not warm_up_in_days == 0.0:
         logger.info("{} # Determining initial conditions.".format(datetime.datetime.now().strftime('%d/%m/%Y '
                                                                                                    '%H:%M:%S')))
+        dict__nd_data_warm_up = generate_data_structures_for_links_and_nodes(my__network,
+                                                                             my__time_frame_warm_up.series_simu,
+                                                                             dict__ls_models)
+
         simulate(my__network, my__time_frame_warm_up,
                  dict__nd_data_warm_up, dict__ls_models,
-                 dict__nd_meteo, dict__nd_loadings, dict_desc, dict_param, dict_const,
+                 dict__nd_meteo, dict__nd_loadings,
                  logger)
 
         for link in my__network.links:  # set last values of warm up as initial conditions for actual simulation
@@ -156,9 +90,10 @@ def main():
 
     # Simulate
     logger.info("{} # Simulating.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+
     simulate(my__network, my__time_frame,
              dict__nd_data, dict__ls_models,
-             dict__nd_meteo, dict__nd_loadings, dict_desc, dict_param, dict_const,
+             dict__nd_meteo, dict__nd_loadings,
              logger)
 
     # Save the DataFrames for the links and nodes (separating inputs, states, and outputs)
@@ -177,6 +112,52 @@ def main():
                                      index_label='DateTime')
 
     logger.info("{} # Ending.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+
+
+def generate_data_structures_for_links_and_nodes(my__network, my__time_series, dict__ls_models):
+    dict__nd_data = dict()  # key: waterbody, value: data frame (x: time step, y: data type)
+    # Create NestedDicts for the nodes
+    for node in my__network.nodes:
+        my_dict_with_variables = {c: 0.0 for c in my__network.variables}
+        dict__nd_data[node] = \
+            {i: dict(my_dict_with_variables) for i in my__time_series}
+    # Create NestedDicts for the links
+    for link in my__network.links:
+        # Create NestedDicts for the links
+        my_headers = list()
+        for model in dict__ls_models[link]:
+            my_headers += model.input_names + model.state_names + model.output_names
+        my_dict_with_headers = {c: 0.0 for c in my_headers}
+        dict__nd_data[link] = \
+            {i: dict(my_dict_with_headers) for i in my__time_series}
+
+    return dict__nd_data
+
+
+def generate_models_for_links(my__network, specifications_folder, input_folder, output_folder):
+    dict__ls_models = dict()  # key: waterbody, value: list of model objects
+    for link in my__network.links:
+        # Declare Model objects
+        if my__network.categories[link] == "11":  # river headwater
+            dict__ls_models[link] = [Model("CATCHMENT", "SMART_INCAL", my__network, link,
+                                           specifications_folder, input_folder, output_folder),
+                                     Model("RIVER", "LINRES_INCAS", my__network, link,
+                                           specifications_folder, input_folder, output_folder)]
+        elif my__network.categories[link] == "10":  # river
+            dict__ls_models[link] = [Model("CATCHMENT", "SMART_INCAL", my__network, link,
+                                           specifications_folder, input_folder, output_folder),
+                                     Model("RIVER", "LINRES_INCAS", my__network, link,
+                                           specifications_folder, input_folder, output_folder)]
+        elif my__network.categories[link] == "20":  # lake
+            dict__ls_models[link] = [Model("LAKE", "BATHTUB", my__network, link,
+                                           specifications_folder, input_folder, output_folder)]
+            # For now, no direct rainfall on open water in model
+            # need to be changed, but to do so, need remove lake polygon from sub-basin polygon)
+        else:  # unknown (e.g. 21 would be a lake headwater)
+            sys.exit("Waterbody {}: {} is not a registered type of waterbody.".format(link,
+                                                                                      my__network.categories[link]))
+
+    return dict__ls_models
 
 
 def get_logger(catchment, outlet, prefix, output_folder):
@@ -308,7 +289,6 @@ def set_up_simulation(catchment, outlet, input_folder, logger):
 
 def simulate(my__network, my__time_frame,
              dict__nd_data, dict__ls_models, dict__nd_meteo, dict__nd_loadings,
-             nd_desc, nd_param, nd_const,
              logger):
     """
     This function runs the simulations for a given catchment (defined by a Network object) and given time period
@@ -334,14 +314,6 @@ def simulate(my__network, my__time_frame,
     :param dict__nd_loadings: dictionary containing the nested dictionaries for the links for contaminant inputs
         { key = link: value = nested_dictionary(index=datetime,column=contaminant_input) }
     :type dict__nd_loadings: dict
-    :param nd_desc: nested dictionary containing the catchment descriptors for the links
-        { key = link: value = { key = descriptor_name, value = descriptor_value } }
-    :type nd_desc: dict
-    :param nd_param: nested dictionary containing the catchment parameters for the links
-        { key = link: value = { key = parameter_name, value = parameter_value } }
-    :type nd_param: dict
-    :param nd_const: nested dictionary containing the model constants for the models
-        { key = model_identifier: value = { key = constant_name, value = constant_value } }
     :param logger: reference to the logger to be used
     :type logger: Logger
     :return: NOTHING, only updates the nested dictionaries for data
@@ -354,7 +326,7 @@ def simulate(my__network, my__time_frame,
         for link in my__network.links:
             for model in dict__ls_models[link]:
                 model.run(my__network, link, dict__nd_data,
-                          nd_desc, nd_param, nd_const, dict__nd_meteo, dict__nd_loadings,
+                          dict__nd_meteo, dict__nd_loadings,
                           step, my__time_frame.step_simu,
                           logger)
         # Sum up everything coming towards each node

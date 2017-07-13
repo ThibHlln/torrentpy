@@ -26,7 +26,7 @@ def run(obj_network, waterbody, dict_data_frame,
     # # 1.1. Collect inputs, states, and parameters
     r_in_q_h2o = dict_data_frame[node_up][datetime_time_step + timedelta(minutes=-time_gap)]["q_h2o"]
     r_s_v_h2o = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["r_s_v_h2o"]
-    r_p_k_h2o = dict_param[waterbody]['LINRES']["r_p_k_h2o"]  # in seconds
+    r_p_k_h2o = dict_param["r_p_k_h2o"]  # in seconds
 
     # # 1.2. Hydrological calculations
 

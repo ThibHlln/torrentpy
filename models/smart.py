@@ -77,15 +77,15 @@ def run(waterbody, dict_data_frame,
     c_s_v_h2o_ly6 = \
         dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_ly6"]
 
-    c_p_t = dict_param[waterbody]['SMART']["c_p_t"]
-    c_p_c = dict_param[waterbody]['SMART']["c_p_c"]
-    c_p_h = dict_param[waterbody]['SMART']["c_p_h"]
-    c_p_s = dict_param[waterbody]['SMART']["c_p_s"]
-    c_p_d = dict_param[waterbody]['SMART']["c_p_d"]
-    c_p_z = dict_param[waterbody]['SMART']["c_p_z"]
-    c_p_sk = dict_param[waterbody]['SMART']["c_p_sk"] * 3600.0  # convert hours in seconds
-    c_p_fk = dict_param[waterbody]['SMART']["c_p_fk"] * 3600.0  # convert hours in seconds
-    c_p_gk = dict_param[waterbody]['SMART']["c_p_gk"] * 3600.0  # convert hours in seconds
+    c_p_t = dict_param["c_p_t"]
+    c_p_c = dict_param["c_p_c"]
+    c_p_h = dict_param["c_p_h"]
+    c_p_s = dict_param["c_p_s"]
+    c_p_d = dict_param["c_p_d"]
+    c_p_z = dict_param["c_p_z"]
+    c_p_sk = dict_param["c_p_sk"] * 3600.0  # convert hours in seconds
+    c_p_fk = dict_param["c_p_fk"] * 3600.0  # convert hours in seconds
+    c_p_gk = dict_param["c_p_gk"] * 3600.0  # convert hours in seconds
 
     # # 1.2. Hydrological calculations
 

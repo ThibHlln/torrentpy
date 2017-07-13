@@ -168,11 +168,11 @@ def run_on_land(waterbody, dict_data_frame,
     time_factor = time_step_sec / 86400.0
     if time_factor < 0.005:
         time_factor = 0.005
-    flow_tolerance = dict_const["INCAL"]['c_cst_flow_tolerance']  # [m3/s]
-    volume_tolerance = dict_const["INCAL"]['c_cst_vol_tolerance']  # [m3]
+    flow_tolerance = dict_const['c_cst_flow_tolerance']  # [m3/s]
+    volume_tolerance = dict_const['c_cst_vol_tolerance']  # [m3]
     flow_threshold_for_erosion = {
-        'ove': dict_const["INCAL"]['c_cst_flow_thr_mm_for_ero_ove'],  # [mm]
-        'dra': dict_const["INCAL"]['c_cst_flow_thr_mm_for_ero_dra']  # [mm]
+        'ove': dict_const['c_cst_flow_thr_mm_for_ero_ove'],  # [mm]
+        'dra': dict_const['c_cst_flow_thr_mm_for_ero_dra']  # [mm]
     }
     stores = ['ove', 'dra', 'int', 'sgw', 'dgw']
     stores_contaminants = ['no3', 'nh4', 'dph', 'pph', 'sed']
@@ -226,7 +226,7 @@ def run_on_land(waterbody, dict_data_frame,
     dict_mass_applied['p_ino'] = c_in_m_p_ino
     dict_mass_applied['p_org'] = c_in_m_p_org
 
-    c_p_z = dict_param[waterbody][hydro_model_name]["c_p_z"]
+    c_p_z = dict_param["c_p_z"]
 
     dict_states_wq = dict()  # for states of the stores + soil
     dict_c_outflow = dict()  # for outflow concentrations from stores
@@ -243,8 +243,8 @@ def run_on_land(waterbody, dict_data_frame,
                     ''.join(['c_s_c_', contaminant, '_', store])]
             my_dict_2[contaminant] = 0.0  # initialisation only
             my_dict_3[contaminant] = \
-                dict_param[waterbody]['INCAL'][''.join(['c_p_att_', contaminant, '_', store])] ** time_factor
-            my_dict_4[contaminant] = dict_const['INCAL'][''.join(['c_cst_mob_', contaminant, '_', store])]
+                dict_param[''.join(['c_p_att_', contaminant, '_', store])] ** time_factor
+            my_dict_4[contaminant] = dict_const[''.join(['c_cst_mob_', contaminant, '_', store])]
         dict_states_wq[store] = my_dict_1
         dict_c_outflow[store] = my_dict_2
         dict_att_factors[store] = my_dict_3
@@ -256,39 +256,39 @@ def run_on_land(waterbody, dict_data_frame,
             dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)][
                 ''.join(['c_s_', soil_contaminants[contaminant], '_', contaminant, '_soil'])]
         my_dict_6[contaminant] = \
-            dict_param[waterbody]['INCAL'][''.join(['c_p_att_', contaminant, '_soil'])] ** time_factor
+            dict_param[''.join(['c_p_att_', contaminant, '_soil'])] ** time_factor
     dict_states_wq['soil'] = my_dict_5
     # create 'artificial' states (in dictionary only) to sum organic and inorganic DPH and PPH
     dict_states_wq['soil']['dph'] = dict_states_wq['soil']['p_org_ra'] + dict_states_wq['soil']['p_ino_ra']  # [kg/m3]
     dict_states_wq['soil']['pph'] = dict_states_wq['soil']['p_org_fb'] + dict_states_wq['soil']['p_ino_fb']  # [kg]
     dict_att_factors['soil'] = my_dict_6
 
-    daily_sediment_threshold = dict_const["INCAL"]['c_cst_sed_daily_thr']  # [mm/day]
+    daily_sediment_threshold = dict_const['c_cst_sed_daily_thr']  # [mm/day]
     sediment_threshold = daily_sediment_threshold * time_factor
-    sediment_k = dict_const["INCAL"]['c_cst_sed_k']
-    sediment_p = dict_const["INCAL"]['c_cst_sed_p']
-    soil_test_p = dict_const["INCAL"]['c_cst_soil_test_p']  # [kg/kg]
-    day_growing_season = dict_const["INCAL"]['c_cst_day_grow']
+    sediment_k = dict_const['c_cst_sed_k']
+    sediment_p = dict_const['c_cst_sed_p']
+    soil_test_p = dict_const['c_cst_soil_test_p']  # [kg/kg]
+    day_growing_season = dict_const['c_cst_day_grow']
     day_of_year = float(datetime_time_step.timetuple().tm_yday)
     if isleap(datetime_time_step.timetuple().tm_year):
         days_in_year = 366.0
     else:
         days_in_year = 365.0
 
-    cst_c1n = dict_const["INCAL"]["c_cst_soil_c1n"]  # rate coefficient (m/day) for denitrification
-    cst_c3n = dict_const["INCAL"]["c_cst_soil_c3n"]  # rate coefficient (m/day) for NO3 plant uptake
-    cst_c4n = dict_const["INCAL"]["c_cst_soil_c4n"]  # rate coefficient (m/day) for nitrification
-    cst_c5n = dict_const["INCAL"]["c_cst_soil_c5n"]  # rate coefficient (m/day) for N mineralisation
-    cst_c6n = dict_const["INCAL"]["c_cst_soil_c6n"]  # rate coefficient (m/day) for N immobilisation
-    cst_c7n = dict_const["INCAL"]["c_cst_soil_c7n"]  # rate coefficient (m/day) for NH4 plant uptake
-    cst_c1p = dict_const["INCAL"]["c_cst_soil_c1p"]  # rate coefficient (m/day) for organic P plant uptake
-    cst_c2p = dict_const["INCAL"]["c_cst_soil_c2p"]  # rate coefficient (m/day) for P immobilisation
-    cst_c3p = dict_const["INCAL"]["c_cst_soil_c3p"]  # rate coefficient (m/day) for P mineralisation
-    cst_c4p = dict_const["INCAL"]["c_cst_soil_c4p"]  # conversion rate of r. avail. organic P into f. bound organic P
-    cst_c5p = dict_const["INCAL"]["c_cst_soil_c5p"]  # conversion rate of f. bound organic P into r. avail. organic P
-    cst_c6p = dict_const["INCAL"]["c_cst_soil_c6p"]  # rate coefficient (m/day) for inorganic P plant uptake
-    cst_c7p = dict_const["INCAL"]["c_cst_soil_c7p"]  # conversion rate of r. avail. ino. P into f. bound ino. P
-    cst_c8p = dict_const["INCAL"]["c_cst_soil_c8p"]  # conversion rate of f. bound ino. P into r. available ino. P
+    cst_c1n = dict_const["c_cst_soil_c1n"]  # rate coefficient (m/day) for denitrification
+    cst_c3n = dict_const["c_cst_soil_c3n"]  # rate coefficient (m/day) for NO3 plant uptake
+    cst_c4n = dict_const["c_cst_soil_c4n"]  # rate coefficient (m/day) for nitrification
+    cst_c5n = dict_const["c_cst_soil_c5n"]  # rate coefficient (m/day) for N mineralisation
+    cst_c6n = dict_const["c_cst_soil_c6n"]  # rate coefficient (m/day) for N immobilisation
+    cst_c7n = dict_const["c_cst_soil_c7n"]  # rate coefficient (m/day) for NH4 plant uptake
+    cst_c1p = dict_const["c_cst_soil_c1p"]  # rate coefficient (m/day) for organic P plant uptake
+    cst_c2p = dict_const["c_cst_soil_c2p"]  # rate coefficient (m/day) for P immobilisation
+    cst_c3p = dict_const["c_cst_soil_c3p"]  # rate coefficient (m/day) for P mineralisation
+    cst_c4p = dict_const["c_cst_soil_c4p"]  # conversion rate of r. avail. organic P into f. bound organic P
+    cst_c5p = dict_const["c_cst_soil_c5p"]  # conversion rate of f. bound organic P into r. avail. organic P
+    cst_c6p = dict_const["c_cst_soil_c6p"]  # rate coefficient (m/day) for inorganic P plant uptake
+    cst_c7p = dict_const["c_cst_soil_c7p"]  # conversion rate of r. avail. ino. P into f. bound ino. P
+    cst_c8p = dict_const["c_cst_soil_c8p"]  # conversion rate of f. bound ino. P into r. available ino. P
 
     # # 2.3. Water quality calculations
     # # 2.3.1. Overland flow contamination & drain flow contamination
@@ -655,8 +655,8 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
     # # 2.0. Define internal constants
     node_up = obj_network.connections[waterbody][1]
     time_step_sec = time_gap * 60.0  # [seconds]
-    flow_tolerance = dict_const['INCAS']['r_cst_flow_tolerance']
-    volume_tolerance = dict_const['INCAS']['r_cst_vol_tolerance']
+    flow_tolerance = dict_const['r_cst_flow_tolerance']
+    volume_tolerance = dict_const['r_cst_vol_tolerance']
 
     # # 2.1. Define variables originating from hydraulic model
     r_in_q_h2o = dict_data_frame[waterbody][datetime_time_step]["r_in_q_h2o"]
@@ -678,14 +678,14 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
     r_s_m_pph = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["r_s_m_pph"]
     r_s_m_sed = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["r_s_m_sed"]
 
-    r_p_att_no3 = dict_param[waterbody]['INCAS']["r_p_att_no3"]
-    r_p_att_nh4 = dict_param[waterbody]['INCAS']["r_p_att_nh4"]
-    r_p_att_dph = dict_param[waterbody]['INCAS']["r_p_att_dph"]
-    r_p_att_pph = dict_param[waterbody]['INCAS']["r_p_att_pph"]
-    r_p_att_sed = dict_param[waterbody]['INCAS']["r_p_att_sed"]
+    r_p_att_no3 = dict_param["r_p_att_no3"]
+    r_p_att_nh4 = dict_param["r_p_att_nh4"]
+    r_p_att_dph = dict_param["r_p_att_dph"]
+    r_p_att_pph = dict_param["r_p_att_pph"]
+    r_p_att_sed = dict_param["r_p_att_sed"]
 
-    r_cst_c_dn = dict_const['INCAS']['r_cst_c_dn']
-    r_cst_c_ni = dict_const['INCAS']['r_cst_c_ni']
+    r_cst_c_dn = dict_const['r_cst_c_dn']
+    r_cst_c_ni = dict_const['r_cst_c_ni']
 
     # # 2.3. Water quality calculations
 

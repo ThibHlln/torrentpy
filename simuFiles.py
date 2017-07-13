@@ -103,28 +103,6 @@ def get_dict_parameters_from_file(catchment, outlet, link, model, in_folder):
         sys.exit("{}{}_{}.{}.parameters".format(in_folder, catchment, outlet, model.identifier))
 
 
-def get_dict_constants_from_file(model, specs_folder):
-
-    if model.constant_names:
-        try:
-            my_file = "{}{}.const".format(specs_folder, model.identifier)
-            my_df_constants = pandas.read_csv(my_file, index_col=0)
-
-            my_dict_cst = dict()
-
-            for constant in model.constant_names:
-                try:
-                    my_dict_cst[constant] = float(my_df_constants.get_value(constant, 'constant_value'))
-                except KeyError:
-                    sys.exit("The constant {} is not available for {}.".format(constant, model.identifier))
-
-            return my_dict_cst
-
-        except IOError:
-            print model.constant_names
-            sys.exit("{}{}.const does not exist.".format(specs_folder, model.identifier))
-
-
 def get_nd_from_file(variables, var_type, catchment, outlet, obj_network, folder):
 
     valid_types = ['str', 'float', 'int']
