@@ -11,7 +11,7 @@ def main():
     # Location of the different needed folders
     root = os.path.realpath('..')  # move to parent directory of this current python file
     os.chdir(root)  # define parent directory as root in order to use only relative paths after this
-    specifications_folder = "specs/"
+    specifications_folder = "scripts/specs/"
     input_folder = "in/"
     output_folder = "out/"
 
@@ -22,8 +22,8 @@ def main():
     question_outlet = raw_input('European Code (EU_CD) of the catchment? [format IE_XX_##X######] ')
     outlet = question_outlet.upper()
 
+    # Check if combination catchment/outlet is coherent by using the name of the network file
     if not os.path.isfile('{}{}_{}.network'.format(input_folder, catchment, outlet)):
-        # Check if combination catchment/outlet is coherent by using the name of the network file
         sys.exit("The combination [ {} - {} ] is incorrect.".format(catchment, outlet))
 
     # Clean up the output folder for the desired file extensions
@@ -32,7 +32,7 @@ def main():
         for my_file in my_files:
             os.remove(my_file)
 
-    # Create a logger
+    # Create logger and handler
     logger = get_logger(catchment, outlet, 'simu', output_folder)
 
     # Set up the simulation (either with .simulation file or through the console)
@@ -53,27 +53,34 @@ def main():
     # Create Models for the links
     dict__ls_models = generate_models_for_links(my__network, specifications_folder, input_folder, output_folder)
 
-    # Declare all the dictionaries that will be needed, all using the waterbody code as a key
+    for my_datetime_slice in my__time_frame.slices_simu:
+        # Initialise data structures
+        dict__nd_data = generate_data_structures_for_links_and_nodes(my__network,
+                                                                     my_datetime_slice,
+                                                                     dict__ls_models)
+        # Get input data
+        dict__nd_meteo = get_meteo_input_from_file(my__network, my__time_frame, datetime_start_data,
+                                                   datetime_end_data, input_folder, logger)
+        dict__nd_loadings = get_contaminant_input_from_file(my__network, my__time_frame,
+                                                            input_folder, specifications_folder, logger)
+        # Simulate
+        simulate(my__network, my__time_frame,
+                 dict__nd_data, dict__ls_models,
+                 dict__nd_meteo, dict__nd_loadings,
+                 logger)
+
+    # Declare all the dictionaries that will be needed
     dict__nd_data = generate_data_structures_for_links_and_nodes(my__network,
                                                                  my__time_frame.series_simu,
                                                                  dict__ls_models)
 
-    # Read the meteorological input files
-    logger.info("{} # Reading meteorological files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
-    dict__nd_meteo = dict()  # key: waterbody, value: data frame (x: time step, y: meteo data type)
-    for link in my__network.links:
-        dict__nd_meteo[link] = sF.get_nd_meteo_data_from_file(catchment, link, my__time_frame,
-                                                              datetime_start_data, datetime_end_data, input_folder)
+    # Get meteo input
+    dict__nd_meteo = get_meteo_input_from_file(my__network, my__time_frame, datetime_start_data,
+                                               datetime_end_data, input_folder, logger)
 
-    # Read the annual loadings file and the application files to distribute the loadings for each time step
-    logger.info("{} # Reading loadings files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
-    dict__nd_loadings = dict()
-    dict_annual_loads = sF.get_nd_from_file('loadings', 'float', catchment, outlet, my__network, input_folder)
-    dict_applications = sF.get_nd_from_file('applications', 'str', catchment, outlet, my__network, input_folder)
-    nd_distributions = sF.get_nd_distributions_from_file(specifications_folder)
-    for link in my__network.links:
-        dict__nd_loadings[link] = sFn.distribute_loadings_across_year(dict_annual_loads, dict_applications,
-                                                                      nd_distributions, link, my__time_frame)
+    # Get contaminant input
+    dict__nd_loadings = get_contaminant_input_from_file(my__network, my__time_frame,
+                                                        input_folder, specifications_folder, logger)
 
     # Set the initial conditions ('blank' warm up run)
     if not warm_up_in_days == 0.0:
@@ -121,13 +128,40 @@ def main():
     logger.info("{} # Ending.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
 
 
-def generate_data_structures_for_links_and_nodes(my__network, my__time_series, dict__ls_models):
+def get_contaminant_input_from_file(my__network, my__time_frame, input_folder, specifications_folder, logger):
+    # Read the annual loadings file and the application files to distribute the loadings for each time step
+    logger.info("{} # Reading loadings files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    dict__nd_loadings = dict()
+    dict_annual_loads = sF.get_nd_from_file('loadings', 'float', my__network, input_folder)
+    dict_applications = sF.get_nd_from_file('applications', 'str', my__network, input_folder)
+    nd_distributions = sF.get_nd_distributions_from_file(specifications_folder)
+    for link in my__network.links:
+        dict__nd_loadings[link] = sFn.distribute_loadings_across_year(dict_annual_loads, dict_applications,
+                                                                      nd_distributions, link, my__time_frame)
+
+    return dict__nd_loadings
+
+
+def get_meteo_input_from_file(my__network, my__time_frame, datetime_start_data, datetime_end_data,
+                              input_folder, logger):
+    # Read the meteorological input files
+    logger.info("{} # Reading meteorological files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    dict__nd_meteo = dict()  # key: waterbody, value: data frame (x: time step, y: meteo data type)
+    for link in my__network.links:
+        dict__nd_meteo[link] = sF.get_nd_meteo_data_from_file(my__network.name, link, my__time_frame,
+                                                              my__time_frame.slices_data, my__time_frame.slices_simu,
+                                                              datetime_start_data, datetime_end_data, input_folder)
+
+    return dict__nd_meteo
+
+
+def generate_data_structures_for_links_and_nodes(my__network, my_datetime_series, dict__ls_models):
     dict__nd_data = dict()  # key: waterbody, value: data frame (x: time step, y: data type)
     # Create NestedDicts for the nodes
     for node in my__network.nodes:
         my_dict_with_variables = {c: 0.0 for c in my__network.variables}
         dict__nd_data[node] = \
-            {i: dict(my_dict_with_variables) for i in my__time_series}
+            {i: dict(my_dict_with_variables) for i in my_datetime_series}
     # Create NestedDicts for the links
     for link in my__network.links:
         # Create NestedDicts for the links
@@ -136,7 +170,7 @@ def generate_data_structures_for_links_and_nodes(my__network, my__time_series, d
             my_headers += model.input_names + model.state_names + model.output_names
         my_dict_with_headers = {c: 0.0 for c in my_headers}
         dict__nd_data[link] = \
-            {i: dict(my_dict_with_headers) for i in my__time_series}
+            {i: dict(my_dict_with_headers) for i in my_datetime_series}
 
     return dict__nd_data
 

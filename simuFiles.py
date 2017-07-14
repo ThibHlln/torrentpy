@@ -5,7 +5,7 @@ import sys
 import csv
 
 
-def get_nd_meteo_data_from_file(catchment, link, my_tf,
+def get_nd_meteo_data_from_file(catchment, link, my_tf, series_data, series_simu,
                                 dt_start_data, dt_end_data, in_folder):
 
     my_start = dt_start_data.strftime("%Y%m%d")
@@ -13,7 +13,7 @@ def get_nd_meteo_data_from_file(catchment, link, my_tf,
 
     my_meteo_data_types = ["rain", "peva", "airt", "soit"]
 
-    my_dbl_dict = {i: {c: 0.0 for c in my_meteo_data_types} for i in my_tf.series_simu}
+    my_dbl_dict = {i: {c: 0.0 for c in my_meteo_data_types} for i in series_simu}
 
     divisor = my_tf.step_data / my_tf.step_simu
 
@@ -23,7 +23,7 @@ def get_nd_meteo_data_from_file(catchment, link, my_tf,
                                                                     link, my_start, my_end, meteo_type),
                                           index_col=0)
 
-            for my_dt_data in my_tf.series_data[1:]:  # ignore first value which is for the initial conditions
+            for my_dt_data in series_data[1:]:  # ignore first value which is for the initial conditions
                 try:
                     my_value = my_meteo_df.get_value(my_dt_data.strftime("%Y-%m-%d %H:%M:%S"), meteo_type.upper())
                     my_portion = float(my_value) / divisor
@@ -83,14 +83,14 @@ def get_df_flow_data_from_file(catchment, link, my_tf,
     return my__data_frame
 
 
-def get_nd_from_file(variables, var_type, catchment, outlet, obj_network, folder):
+def get_nd_from_file(variables, var_type, obj_network, folder):
 
     valid_types = ['str', 'float', 'int']
     if var_type.lower() not in valid_types:
         sys.exit('The variable type {} is not registered for the function get_nest_dict_from_file.'.format(var_type))
 
     try:
-        with open("{}{}_{}.{}".format(folder, catchment, outlet, variables)) as my_file:
+        with open("{}{}_{}.{}".format(folder, obj_network.name, obj_network.code, variables)) as my_file:
             my_dict_variables = dict()
             my_reader = csv.DictReader(my_file)
             fields = my_reader.fieldnames[:]
@@ -120,7 +120,7 @@ def get_nd_from_file(variables, var_type, catchment, outlet, obj_network, folder
         return my_dict_variables
 
     except IOError:
-        sys.exit("{}{}_{}.{} does not exist.".format(folder, catchment, outlet, variables))
+        sys.exit("{}{}_{}.{} does not exist.".format(folder, obj_network.name, obj_network.code, variables))
 
 
 def get_nd_distributions_from_file(specs_folder):

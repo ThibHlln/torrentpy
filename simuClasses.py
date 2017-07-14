@@ -297,6 +297,7 @@ class TimeFrame:
         self.step_simu = simu_increment_in_minutes
         self.series_data = TimeFrame.get_list_datetime(self, 'data')
         self.series_simu = TimeFrame.get_list_datetime(self, 'simu')
+        self.slices_simu = TimeFrame.slice_list_datetime(self, 10000)
 
     def get_list_datetime(self, option):
         gap = self.end - self.start
@@ -304,8 +305,19 @@ class TimeFrame:
         start_index = int(self.step_data / options[option])
         end_index = int(gap.total_seconds() // (options[option] * 60)) + 1
         my_list_datetime = list()
-        for factor in range(-start_index, end_index, 1):  # add one datetime before start
+        for factor in xrange(-start_index, end_index, 1):  # add one datetime before start
             my_datetime = self.start + datetime.timedelta(minutes=factor * options[option])
             my_list_datetime.append(my_datetime)
 
         return my_list_datetime
+
+    def slice_list_datetime(self, expected_length):
+        # Adjust the length to make sure that we slice exactly between two steps of the data
+        adjusted_length = (expected_length * self.step_simu // self.step_data) * self.step_data / self.step_simu
+        my_datetime_slices = list()
+        for i in xrange(0, len(self.series_simu) // adjusted_length + 1, 1):
+            start_index = i * adjusted_length
+            end_index = ((i + 1) * adjusted_length) + 1
+            my_datetime_slices.append(self.series_simu[start_index:end_index])
+
+        return my_datetime_slices
