@@ -12,7 +12,7 @@ class Network:
     """"""
     def __init__(self, catchment, outlet, input_folder, specs_folder):
         self.name = catchment.capitalize()
-        self.code = outlet.capitalize()
+        self.code = outlet.upper()
         self.networkFile = "{}{}_{}.network".format(input_folder, catchment, outlet)
         self.waterBodiesFile = "{}{}_{}.waterbodies".format(input_folder, catchment, outlet)
         self.descriptorsFile = "{}{}_{}.descriptors".format(input_folder, catchment, outlet)
@@ -255,14 +255,16 @@ class Model:
                                                      component, specs_type), 'ab') as my_file:
                         header = ["EU_CD"] + my_list
                         my_writer = csv.DictWriter(my_file, fieldnames=header)
-                        my_writer.writeheader()
                         my_writer.writerow(dict_for_file)
                 else:
                     with open('{}{}_{}.{}.{}'.format(output_folder, network.name, network.code,
-                                                     component, specs_type), 'ab') as my_file:
+                                                     component, specs_type), 'wb') as my_file:
                         header = ["EU_CD"] + my_list
                         my_writer = csv.DictWriter(my_file, fieldnames=header)
+                        my_writer.writeheader()
                         my_writer.writerow(dict_for_file)
+
+            del my_list[:]
 
         return my_dict
 
