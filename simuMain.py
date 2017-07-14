@@ -2,6 +2,7 @@ import logging
 from pandas import DataFrame
 
 from simuClasses import *
+from glob import glob
 import simuFiles as sF
 import simuFunctions as sFn
 
@@ -24,6 +25,12 @@ def main():
     if not os.path.isfile('{}{}_{}.network'.format(input_folder, catchment, outlet)):
         # Check if combination catchment/outlet is coherent by using the name of the network file
         sys.exit("The combination [ {} - {} ] is incorrect.".format(catchment, outlet))
+
+    # Clean up the output folder for the desired file extensions
+    for my_extension in ["*.parameters", "*.node", "*.inputs", "*.outputs", "*.states"]:
+        my_files = glob("{}/{}{}{}".format(root, output_folder, catchment, my_extension))
+        for my_file in my_files:
+            os.remove(my_file)
 
     # Create a logger
     logger = get_logger(catchment, outlet, 'simu', output_folder)
