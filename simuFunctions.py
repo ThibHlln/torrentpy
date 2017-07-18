@@ -1,6 +1,5 @@
 import sys
 import datetime
-from pandas import DataFrame
 
 import models.smart as smart
 import models.linres as linres
@@ -25,14 +24,15 @@ def infer_parameters_from_descriptors(dict_desc, model):
     return my_dict_param
 
 
-def distribute_loadings_across_year(dict_annual_loads, dict_applications, nd_distributions, link, my_tf):
+def distribute_loadings_across_year(dict_annual_loads, dict_applications, nd_distributions, link,
+                                    my_tf, data_slice, simu_slice):
 
-    my_nd_data = {i: {c: 0.0 for c in dict_applications[link]} for i in my_tf.series_simu}
+    my_nd_data = {i: {c: 0.0 for c in dict_applications[link]} for i in simu_slice}
 
     divisor = my_tf.step_data / my_tf.step_simu
 
     for contaminant in dict_applications[link]:
-        for my_dt_data in my_tf.series_data[1:]:
+        for my_dt_data in data_slice[1:]:
             day_of_year = my_dt_data.timetuple().tm_yday
             my_value = dict_annual_loads[link][contaminant] * \
                 nd_distributions[day_of_year][dict_applications[link][contaminant]]

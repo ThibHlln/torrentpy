@@ -3,6 +3,7 @@ import os
 import sys
 import datetime
 import pandas
+from math import ceil
 
 import simuModels as sM
 import simuFunctions as sFn
@@ -290,20 +291,25 @@ class Model:
 
 class TimeFrame:
     """"""
-    def __init__(self, datetime_start, datetime_end, data_increment_in_minutes, simu_increment_in_minutes):
+    def __init__(self, datetime_start, datetime_end,
+                 data_increment_in_minutes, simu_increment_in_minutes,
+                 expected_simu_slice_length):
         self.start = datetime_start
         self.end = datetime_end
         self.step_data = data_increment_in_minutes
         self.step_simu = simu_increment_in_minutes
         self.series_data = TimeFrame.get_list_datetime(self, 'data')
         self.series_simu = TimeFrame.get_list_datetime(self, 'simu')
-        self.slices_simu = TimeFrame.slice_list_datetime(self, 10000)
+        self.slices_simu, self.slices_data = \
+            TimeFrame.slice_list_datetime(self, expected_simu_slice_length)
 
     def get_list_datetime(self, option):
         gap = self.end - self.start
         options = {'data': self.step_data, 'simu': self.step_simu}
+
         start_index = int(self.step_data / options[option])
         end_index = int(gap.total_seconds() // (options[option] * 60)) + 1
+
         my_list_datetime = list()
         for factor in xrange(-start_index, end_index, 1):  # add one datetime before start
             my_datetime = self.start + datetime.timedelta(minutes=factor * options[option])
@@ -312,12 +318,28 @@ class TimeFrame:
         return my_list_datetime
 
     def slice_list_datetime(self, expected_length):
-        # Adjust the length to make sure that we slice exactly between two steps of the data
-        adjusted_length = (expected_length * self.step_simu // self.step_data) * self.step_data / self.step_simu
-        my_datetime_slices = list()
-        for i in xrange(0, len(self.series_simu) // adjusted_length + 1, 1):
-            start_index = i * adjusted_length
-            end_index = ((i + 1) * adjusted_length) + 1
-            my_datetime_slices.append(self.series_simu[start_index:end_index])
+        divisor = self.step_data / self.step_simu
 
-        return my_datetime_slices
+        # Adjust the length to make sure that it slices exactly between two steps of the data
+        simu_length = (expected_length * self.step_simu) // self.step_data * divisor
+        data_length = simu_length / divisor
+
+        my_simu_slices = list()
+        my_data_slices = list()
+
+        if simu_length > 0:  # the expected length is longer than one data time step
+            stop_index = int(ceil(float(len(self.series_simu)) / float(simu_length)))
+            for i in xrange(0, stop_index, 1):
+                start_index = i * simu_length
+                end_index = ((i + 1) * simu_length) + 1
+                my_simu_slices.append(self.series_simu[start_index:end_index])
+            stop_index = int(ceil(float(len(self.series_data)) / float(data_length)))
+            for i in xrange(0, stop_index, 1):
+                start_index = i * data_length
+                end_index = ((i + 1) * data_length) + 1
+                my_data_slices.append(self.series_data[start_index:end_index])
+        else:  # no need to slice, return the original lists as one slice
+            my_simu_slices.append(self.series_simu[:])
+            my_data_slices.append(self.series_data[:])
+
+        return my_simu_slices, my_data_slices
