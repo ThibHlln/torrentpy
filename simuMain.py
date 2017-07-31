@@ -16,7 +16,7 @@ def main():
     input_folder = "in/"
     output_folder = "out/"
 
-    # Ask user for information on simulation
+    # Ask user for information on simulation (via console)
     question_catch = raw_input('Name of the catchment? ')
     catchment = question_catch.capitalize()
 
@@ -41,7 +41,7 @@ def main():
         simu_time_step_in_min, datetime_start_simu, datetime_end_simu, \
         warm_up_in_days = set_up_simulation(catchment, outlet, input_folder, logger)
 
-    # Create a TimeFrame object
+    # Create a TimeFrame object for simulation run and warm-up run
     my__time_frame = TimeFrame(datetime_start_simu, datetime_end_simu,
                                int(data_time_step_in_min), int(simu_time_step_in_min), 5000)
     my__time_frame_warm_up = TimeFrame(my__time_frame.start, my__time_frame.start +
@@ -57,8 +57,8 @@ def main():
     # Create files to store simulation results
     create_simulation_files(my__network, dict__ls_models, catchment, output_folder, logger)
 
-    my_last_lines = dict()
     # Set the initial conditions ('blank' warm up run slice by slice)
+    my_last_lines = dict()
     if not warm_up_in_days == 0.0:
         logger.info("{} # Determining initial conditions.".format(datetime.datetime.now().strftime('%d/%m/%Y '
                                                                                                    '%H:%M:%S')))
@@ -168,82 +168,6 @@ def main():
                                      index_label='DateTime')
 
     logger.info("{} # Ending.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
-
-
-def get_contaminant_input_from_file(my__network, my__time_frame, my_data_slice, my_simu_slice,
-                                    input_folder, specifications_folder, logger):
-    # Read the annual loadings file and the application files to distribute the loadings for each time step
-    logger.info("{} # Reading loadings files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
-    dict__nd_loadings = dict()
-    dict_annual_loads = sF.get_nd_from_file('loadings', 'float', my__network, input_folder)
-    dict_applications = sF.get_nd_from_file('applications', 'str', my__network, input_folder)
-    nd_distributions = sF.get_nd_distributions_from_file(specifications_folder)
-    for link in my__network.links:
-        dict__nd_loadings[link] = sFn.distribute_loadings_across_year(dict_annual_loads, dict_applications,
-                                                                      nd_distributions, link,
-                                                                      my__time_frame, my_data_slice, my_simu_slice)
-
-    return dict__nd_loadings
-
-
-def get_meteo_input_from_file(my__network, my__time_frame, my_data_slice, my_simu_slice,
-                              datetime_start_data, datetime_end_data,
-                              input_folder, logger):
-    # Read the meteorological input files
-    logger.info("{} # Reading meteorological files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
-    dict__nd_meteo = dict()  # key: waterbody, value: data frame (x: time step, y: meteo data type)
-    for link in my__network.links:
-        dict__nd_meteo[link] = sF.get_nd_meteo_data_from_file(my__network.name, link, my__time_frame,
-                                                              my_data_slice, my_simu_slice,
-                                                              datetime_start_data, datetime_end_data, input_folder)
-
-    return dict__nd_meteo
-
-
-def generate_data_structures_for_links_and_nodes(my__network, my_datetime_series, dict__ls_models):
-    dict__nd_data = dict()  # key: waterbody, value: data frame (x: time step, y: data type)
-    # Create NestedDicts for the nodes
-    for node in my__network.nodes:
-        my_dict_with_variables = {c: 0.0 for c in my__network.variables}
-        dict__nd_data[node] = \
-            {i: dict(my_dict_with_variables) for i in my_datetime_series}
-    # Create NestedDicts for the links
-    for link in my__network.links:
-        # Create NestedDicts for the links
-        my_headers = list()
-        for model in dict__ls_models[link]:
-            my_headers += model.input_names + model.state_names + model.output_names
-        my_dict_with_headers = {c: 0.0 for c in my_headers}
-        dict__nd_data[link] = \
-            {i: dict(my_dict_with_headers) for i in my_datetime_series}
-
-    return dict__nd_data
-
-
-def generate_models_for_links(my__network, specifications_folder, input_folder, output_folder):
-    dict__ls_models = dict()  # key: waterbody, value: list of model objects
-    for link in my__network.links:
-        # Declare Model objects
-        if my__network.categories[link] == "11":  # river headwater
-            dict__ls_models[link] = [Model("CATCHMENT", "SMART_INCAL", my__network, link,
-                                           specifications_folder, input_folder, output_folder),
-                                     Model("RIVER", "LINRES_INCAS", my__network, link,
-                                           specifications_folder, input_folder, output_folder)]
-        elif my__network.categories[link] == "10":  # river
-            dict__ls_models[link] = [Model("CATCHMENT", "SMART_INCAL", my__network, link,
-                                           specifications_folder, input_folder, output_folder),
-                                     Model("RIVER", "LINRES_INCAS", my__network, link,
-                                           specifications_folder, input_folder, output_folder)]
-        elif my__network.categories[link] == "20":  # lake
-            dict__ls_models[link] = [Model("LAKE", "BATHTUB", my__network, link,
-                                           specifications_folder, input_folder, output_folder)]
-            # For now, no direct rainfall on open water in model
-            # need to be changed, but to do so, need remove lake polygon from sub-basin polygon)
-        else:  # unknown (e.g. 21 would be a lake headwater)
-            sys.exit("Waterbody {}: {} is not a registered type of waterbody.".format(link,
-                                                                                      my__network.categories[link]))
-
-    return dict__ls_models
 
 
 def get_logger(catchment, outlet, prefix, output_folder):
@@ -373,21 +297,175 @@ def set_up_simulation(catchment, outlet, input_folder, logger):
         warm_up_in_days
 
 
-def simulate(my__network, my__time_frame, my_simu_slice,
-             dict__nd_data, dict__ls_models, dict__nd_meteo, dict__nd_loadings,
-             logger):
+def generate_models_for_links(my__network, specifications_folder, input_folder, output_folder):
     """
-    This function runs the simulations for a given catchment (defined by a Network object) and given time period
-    (defined by a TimeFrame object). For each time step, it first runs the models associated with the links (defined as
-    Model objects), then it sums up all of what is arriving at each node.
+    This function creates the Model objects for all the links in the network. Each link can have several models
+    (e.g. a catchment model and a reach model).
 
-    N.B. The first time step in the TimeFrame is ignored because it is for the initial conditions that are needed for
-    the models to get the previous states of the links.
+    :param my__network: Network object for the simulated catchment
+    :type my__network: Network
+    :param specifications_folder:
+    :param input_folder: path to the output folder where to save the simulation files
+    :param output_folder: path to the output folder where to save the simulation files
+    :type output_folder: str()
+    :return: dictionary containing all the Model objects generated
+        {key: link, value: list of Model objects}
+    :rtype: dict
+    """
+    dict__ls_models = dict()  # key: waterbody, value: list of model objects
+    for link in my__network.links:
+        # Declare Model objects
+        if my__network.categories[link] == "11":  # river headwater
+            dict__ls_models[link] = [Model("CATCHMENT", "SMART_INCAL", my__network, link,
+                                           specifications_folder, input_folder, output_folder),
+                                     Model("RIVER", "LINRES_INCAS", my__network, link,
+                                           specifications_folder, input_folder, output_folder)]
+        elif my__network.categories[link] == "10":  # river
+            dict__ls_models[link] = [Model("CATCHMENT", "SMART_INCAL", my__network, link,
+                                           specifications_folder, input_folder, output_folder),
+                                     Model("RIVER", "LINRES_INCAS", my__network, link,
+                                           specifications_folder, input_folder, output_folder)]
+        elif my__network.categories[link] == "20":  # lake
+            dict__ls_models[link] = [Model("LAKE", "BATHTUB", my__network, link,
+                                           specifications_folder, input_folder, output_folder)]
+            # For now, no direct rainfall on open water in model
+            # need to be changed, but to do so, need remove lake polygon from sub-basin polygon)
+        else:  # unknown (e.g. 21 would be a lake headwater)
+            sys.exit("Waterbody {}: {} is not a registered type of waterbody.".format(link,
+                                                                                      my__network.categories[link]))
+
+    return dict__ls_models
+
+
+def generate_data_structures_for_links_and_nodes(my__network, my_simu_slice, dict__ls_models):
+    """
+    This function generates a nested dictionary for each node and for each link and stores them in a single dictionary
+    that is returned. Each nested dictionary has the dimension of the simulation time slice times the number of
+    variables (inputs, states, and outputs) for all the models of the link.
+
+    :param my__network: Network object for the simulated catchment
+    :type my__network: Network
+    :param my_simu_slice: list of DateTime to be simulated
+    :type my_simu_slice: list
+    :param dict__ls_models: dictionary containing the list of models for each link
+        { key = link: value = list of Model objects }
+    :type dict__ls_models: dict
+    :return: dictionary containing the nested dictionaries
+        { key = link: value = nested_dictionary(index=datetime,column=model_variables) }
+    :rtype: dict
+    """
+    dict__nd_data = dict()  # key: waterbody, value: data frame (x: time step, y: data type)
+    # Create NestedDicts for the nodes
+    for node in my__network.nodes:
+        my_dict_with_variables = {c: 0.0 for c in my__network.variables}
+        dict__nd_data[node] = \
+            {i: dict(my_dict_with_variables) for i in my_simu_slice}
+    # Create NestedDicts for the links
+    for link in my__network.links:
+        # Create NestedDicts for the links
+        my_headers = list()
+        for model in dict__ls_models[link]:
+            my_headers += model.input_names + model.state_names + model.output_names
+        my_dict_with_headers = {c: 0.0 for c in my_headers}
+        dict__nd_data[link] = \
+            {i: dict(my_dict_with_headers) for i in my_simu_slice}
+
+    return dict__nd_data
+
+
+def get_meteo_input_from_file(my__network, my__time_frame, my_data_slice, my_simu_slice,
+                              datetime_start_data, datetime_end_data,
+                              input_folder, logger):
+    """
+    This function generates a nested dictionary for each link and stores them in a single dictionary that is returned.
+    Each nested dictionary has the dimension of the simulation time slice times the number of meteorological variables.
 
     :param my__network: Network object for the simulated catchment
     :type my__network: Network
     :param my__time_frame: TimeFrame object for the simulation period
     :type my__time_frame: TimeFrame
+    :param my_data_slice: list of DateTime corresponding to the simulation slice (separated by the data time step)
+    :type my_data_slice: list()
+    :param my_simu_slice: list of DateTime to be simulated (separated by the simulation time step)
+    :type my_simu_slice: list()
+    :param datetime_start_data: datetime of the first data in the meteorological files (used in file name)
+    :type datetime_start_data: Datetime.Datetime
+    :param datetime_end_data: datetime of the last data in the meteorological files (used in file name)
+    :type datetime_end_data: Datetime.Datetime
+    :param input_folder: path to the input folder where to find the meteorological files
+    :type input_folder: str()
+    :param logger: reference to the logger to be used
+    :type logger: Logger
+    :return: dictionary containing the nested dictionaries
+        { key = link: value = nested_dictionary(index=datetime,column=meteo_variables) }
+    :rtype: dict
+    """
+    # Read the meteorological input files
+    logger.info("{} # Reading meteorological files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    dict__nd_meteo = dict()  # key: waterbody, value: data frame (x: time step, y: meteo data type)
+    for link in my__network.links:
+        dict__nd_meteo[link] = sF.get_nd_meteo_data_from_file(my__network.name, link, my__time_frame,
+                                                              my_data_slice, my_simu_slice,
+                                                              datetime_start_data, datetime_end_data, input_folder)
+
+    return dict__nd_meteo
+
+
+def get_contaminant_input_from_file(my__network, my__time_frame, my_data_slice, my_simu_slice,
+                                    input_folder, specifications_folder, logger):
+    """
+    This function generates a nested dictionary for each link and stores them in a single dictionary that is returned.
+    Each nested dictionary has the dimension of the simulation time slice times the number of contaminant inputs.
+
+    :param my__network: Network object for the simulated catchment
+    :type my__network: Network
+    :param my__time_frame: TimeFrame object for the simulation period
+    :type my__time_frame: TimeFrame
+    :param my_data_slice: list of DateTime corresponding to the simulation slice (separated by the data time step)
+    :type my_data_slice: list()
+    :param my_simu_slice: list of DateTime to be simulated (separated by the simulation time step)
+    :type my_simu_slice: list()
+    :param input_folder: path to the input folder where to find the loadings file and the applications file
+    :type input_folder: str()
+    :param specifications_folder: path to the specification folder where to find the distributions file
+    :type specifications_folder: str()
+    :param logger: reference to the logger to be used
+    :type logger: Logger
+    :return: dictionary containing the nested dictionaries
+        { key = link: value = nested_dictionary(index=datetime,column=contaminant_inputs) }
+    :rtype: dict
+    """
+    # Read the annual loadings file and the application files to distribute the loadings for each time step
+    logger.info("{} # Reading loadings files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    dict__nd_loadings = dict()
+    dict_annual_loads = sF.get_nd_from_file('loadings', 'float', my__network, input_folder)
+    dict_applications = sF.get_nd_from_file('applications', 'str', my__network, input_folder)
+    nd_distributions = sF.get_nd_distributions_from_file(specifications_folder)
+    for link in my__network.links:
+        dict__nd_loadings[link] = sFn.distribute_loadings_across_year(dict_annual_loads, dict_applications,
+                                                                      nd_distributions, link,
+                                                                      my__time_frame, my_data_slice, my_simu_slice)
+
+    return dict__nd_loadings
+
+
+def simulate(my__network, my__time_frame, my_simu_slice,
+             dict__nd_data, dict__ls_models, dict__nd_meteo, dict__nd_loadings,
+             logger):
+    """
+    This function runs the simulations for a given catchment (defined by a Network object) and given time period
+    (defined by the time slice). For each time step, it first runs the models associated with the links (defined as
+    Model objects), then it sums up all of what is arriving at each node.
+
+    N.B. The first time step in the time slice is ignored because it is for the initial or previous conditions that
+    are needed for the models to get the previous states of the links.
+
+    :param my__network: Network object for the simulated catchment
+    :type my__network: Network
+    :param my__time_frame: TimeFrame object for the simulation period
+    :type my__time_frame: TimeFrame
+    :param my_simu_slice: list of DateTime to be simulated
+    :type my_simu_slice: list()
     :param dict__nd_data: dictionary containing the nested dictionaries for the nodes and the links for variables
         { key = link/node: value = nested_dictionary(index=datetime,column=variable) }
     :type dict__nd_data: dict
@@ -463,6 +541,23 @@ def simulate(my__network, my__time_frame, my_simu_slice,
 def create_simulation_files(my__network, dict__ls_models,
                             catchment, output_folder,
                             logger):
+    """
+    This function creates a CSV file for each node and for each link and it adds the relevant headers for the
+    inputs, the states, and the outputs.
+
+    :param my__network: Network object for the simulated catchment
+    :type my__network: Network
+    :param dict__ls_models: dictionary containing the list of models for each link
+        { key = link: value = list of Model objects }
+    :type dict__ls_models: dict()
+    :param catchment: name of the catchment needed to name the simulation files
+    :type catchment: str()
+    :param output_folder: path to the output folder where to save the simulation files
+    :type output_folder: str()
+    :param logger: reference to the logger to be used
+    :type logger: Logger
+    :return: NOTHING, only creates the files in the output folder
+    """
     logger.info("{} # Creating files for results.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
     for link in my__network.links:
         my_inputs = list()
@@ -498,24 +593,25 @@ def update_simulation_files(my__network, my_list_datetime,
                             catchment, output_folder,
                             logger):
     """
-    This function saves the simulated data into CSV files.
+    This function saves the simulated data into the CSV files for the nodes and the links.
 
     :param my__network: Network object for the simulated catchment
     :type my__network: Network
     :param my_list_datetime: list of datetime for the period simulated
+    :type my_list_datetime: list()
     :param dict__nd_data: dictionary containing the nested dictionaries for the nodes and the links for variables
         { key = link/node: value = nested_dictionary(index=datetime,column=variable) }
-    :type dict__nd_data: dict
+    :type dict__nd_data: dict()
     :param dict__ls_models: dictionary containing the list of models for each link
         { key = link: value = list of Model objects }
-    :type dict__ls_models: dict
+    :type dict__ls_models: dict()
     :param catchment: name of the catchment needed to name the simulation files
-    :type catchment: str
+    :type catchment: str()
     :param output_folder: path to the output folder where to save the simulation files
-    :type output_folder: str
+    :type output_folder: str()
     :param logger: reference to the logger to be used
     :type logger: Logger
-    :return: NOTHING, only creates the files in the output folder
+    :return: NOTHING, only updates the files in the output folder
     """
     # Save the Nested Dicts for the links (separating inputs, states, and outputs)
     logger.info("{} # Updating results in files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
@@ -550,70 +646,6 @@ def update_simulation_files(my__network, my_list_datetime,
         with open('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node), 'ab') as my_file:
             my_writer = csv.writer(my_file, delimiter=',')
             for step in my_list_datetime[1:]:
-                my_writer.writerow([step] + ['%e' % dict__nd_data[node][step][my_variable]
-                                             for my_variable in my__network.variables])
-
-
-def save_simulation_files(my__network, my__time_frame,
-                          dict__nd_data, dict__ls_models,
-                          catchment, output_folder,
-                          logger):
-    """
-    This function saves the simulated data into CSV files. It creates one file per link and per node in the network.
-
-    :param my__network: Network object for the simulated catchment
-    :type my__network: Network
-    :param my__time_frame: TimeFrame object for the simulation period
-    :type my__time_frame: TimeFrame
-    :param dict__nd_data: dictionary containing the nested dictionaries for the nodes and the links for variables
-        { key = link/node: value = nested_dictionary(index=datetime,column=variable) }
-    :type dict__nd_data: dict
-    :param dict__ls_models: dictionary containing the list of models for each link
-        { key = link: value = list of Model objects }
-    :type dict__ls_models: dict
-    :param catchment: name of the catchment needed to name the simulation files
-    :type catchment: str
-    :param output_folder: path to the output folder where to save the simulation files
-    :type output_folder: str
-    :param logger: reference to the logger to be used
-    :type logger: Logger
-    :return: NOTHING, only creates the files in the output folder
-    """
-    # Save the Nested Dicts for the links (separating inputs, states, and outputs)
-    logger.info("{} # Saving results in files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
-    for link in my__network.links:
-        my_inputs = list()
-        my_states = list()
-        my_outputs = list()
-        for model in dict__ls_models[link]:
-            my_inputs += model.input_names
-            my_states += model.state_names
-            my_outputs += model.output_names
-        with open('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link), 'wb') as my_file:
-            my_writer = csv.writer(my_file, delimiter=',')
-            my_writer.writerow(['DateTime'] + my_inputs)
-            for step in my__time_frame.series_data[1:]:
-                my_writer.writerow([step] + ['%e' % dict__nd_data[link][step][my_input]
-                                             for my_input in my_inputs])
-        with open('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link), 'wb') as my_file:
-            my_writer = csv.writer(my_file, delimiter=',')
-            my_writer.writerow(['DateTime'] + my_states)
-            for step in my__time_frame.series_data[1:]:
-                my_writer.writerow([step] + ['%e' % dict__nd_data[link][step][my_state]
-                                             for my_state in my_states])
-        with open('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link), 'wb') as my_file:
-            my_writer = csv.writer(my_file, delimiter=',')
-            my_writer.writerow(['DateTime'] + my_outputs)
-            for step in my__time_frame.series_data[1:]:
-                my_writer.writerow([step] + ['%e' % dict__nd_data[link][step][my_output]
-                                             for my_output in my_outputs])
-
-    # Save the Nested Dicts for the nodes
-    for node in my__network.nodes:
-        with open('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node), 'wb') as my_file:
-            my_writer = csv.writer(my_file, delimiter=',')
-            my_writer.writerow(['DateTime'] + my__network.variables)
-            for step in my__time_frame.series_data[1:]:
                 my_writer.writerow([step] + ['%e' % dict__nd_data[node][step][my_variable]
                                              for my_variable in my__network.variables])
 
