@@ -57,14 +57,15 @@ def main():
     # Create files to store simulation results
     create_simulation_files(my__network, dict__ls_models, catchment, output_folder, logger)
 
-    # Set the initial conditions ('blank' warm up run slice by slice)
+    # Set the initial conditions ('blank' warm up run slice by slice) if required
     my_last_lines = dict()
-    if not warm_up_in_days == 0.0:
+    if not warm_up_in_days == 0.0:  # Warm-up run required
         logger.info("{} # Determining initial conditions.".format(datetime.datetime.now().strftime('%d/%m/%Y '
                                                                                                    '%H:%M:%S')))
-        for link in my__network.links:  # set last values of warm up as initial conditions for actual simulation
+        # Initialise dicts to link time slices together (use last time step of one as first for the other)
+        for link in my__network.links:
             my_last_lines[link] = dict()
-        for node in my__network.nodes:  # set last values of warm up as initial conditions for actual simulation
+        for node in my__network.nodes:
             my_last_lines[node] = dict()
 
         for my_simu_slice, my_data_slice in izip(my__time_frame_warm_up.slices_simu,
@@ -78,7 +79,7 @@ def main():
                                                                          my_simu_slice,
                                                                          dict__ls_models)
 
-            # Get history of previous time step for initial conditions of current step
+            # Get history of previous time slice last time step for initial conditions of current time slice
             for link in my__network.links:
                 dict__nd_data[link][my_simu_slice[0]].update(my_last_lines[link])
             for node in my__network.nodes:
@@ -93,24 +94,25 @@ def main():
                                                                 my_data_slice, my_simu_slice,
                                                                 input_folder, specifications_folder, logger)
             # Simulate
-            simulate(my__network, my__time_frame,
+            simulate(my__network, my__time_frame, my_simu_slice,
                      dict__nd_data, dict__ls_models,
                      dict__nd_meteo, dict__nd_loadings,
                      logger)
 
-            # Write results on files
+            # Write results in files
             update_simulation_files(my__network, my_data_slice, dict__nd_data, dict__ls_models,
                                     catchment, output_folder, logger)
 
-            # Save history of last time step for next slice
+            # Save history (last time step) for next slice
             for link in my__network.links:
-                my_last_lines[link]['History'].update(dict__nd_data[link][my_simu_slice[-1]])
+                my_last_lines[link].update(dict__nd_data[link][my_simu_slice[-1]])
             for node in my__network.nodes:
                 my_last_lines[node].update(dict__nd_data[node][my_simu_slice[-1]])
-    else:
-        for link in my__network.links:  # set last values of warm up as initial conditions for actual simulation
+    else:  # Warm-up run not required
+        # Initialise dicts to link time slices together (use last time step of one as first for the other)
+        for link in my__network.links:
             my_last_lines[link] = dict()
-        for node in my__network.nodes:  # set last values of warm up as initial conditions for actual simulation
+        for node in my__network.nodes:
             my_last_lines[node] = dict()
 
     # Simulate (run slice by slice)
@@ -146,11 +148,11 @@ def main():
                  dict__nd_meteo, dict__nd_loadings,
                  logger)
 
-        # Write results on files
+        # Write results in files
         update_simulation_files(my__network, my_data_slice, dict__nd_data, dict__ls_models,
                                 catchment, output_folder, logger)
 
-        # Save history of last time step for next slice
+        # Save history (last time step) for next slice
         for link in my__network.links:
             my_last_lines[link].update(dict__nd_data[link][my_simu_slice[-1]])
         for node in my__network.nodes:
@@ -559,6 +561,7 @@ def create_simulation_files(my__network, dict__ls_models,
     :return: NOTHING, only creates the files in the output folder
     """
     logger.info("{} # Creating files for results.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    # Create the CSV files with headers for the nodes (separating inputs, states, and outputs)
     for link in my__network.links:
         my_inputs = list()
         my_states = list()
@@ -581,7 +584,7 @@ def create_simulation_files(my__network, dict__ls_models,
             my_writer = csv.writer(my_file, delimiter=',')
             my_writer.writerow(['DateTime'] + my_outputs)
 
-    # Save the Nested Dicts for the nodes
+    # Create the CSV files with headers for the nodes
     for node in my__network.nodes:
         with open('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node), 'wb') as my_file:
             my_writer = csv.writer(my_file, delimiter=',')
