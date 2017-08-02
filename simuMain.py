@@ -26,46 +26,54 @@ def main():
     slice_length = args.slice_up
     warm_up_in_days = args.warm_up
 
-    # Location of the different needed folders
+    # Location of the different needed directories
     root = os.path.realpath('..')  # move to parent directory of this current python file
     os.chdir(root)  # define parent directory as root in order to use only relative paths after this
-    specifications_folder = "scripts/specs/"
-    input_folder = "in/"
-    output_folder = "out/"
+    spec_directory = "scripts/specs/"
+    input_directory = "in/"
+    output_directory = "out/"
 
-    # Check if combination catchment/outlet is coherent by using the name of the network file
-    if not os.path.isfile('{}{}_{}.network'.format(input_folder, catchment, outlet)):
+    # Check if combination catchment/outlet is coherent by using the name of the input folder
+    if not os.path.exists("{}{}_{}".format(input_directory, catchment, outlet)):
         sys.exit("The combination [ {} - {} ] is incorrect.".format(catchment, outlet))
 
-    # Clean up the output folder for the desired file extensions
-    for my_extension in ["*.parameters", "*.node", "*.inputs", "*.outputs", "*.states"]:
-        my_files = glob("{}/{}{}{}".format(root, output_folder, catchment, my_extension))
-        for my_file in my_files:
-            os.remove(my_file)
+    # Set up the simulation (either with .simulation file or through the console)
+    data_time_step_in_min, data_datetime_start, data_datetime_end, \
+        simu_time_step_in_min, simu_datetime_start, simu_datetime_end = \
+        set_up_simulation(catchment, outlet, input_directory)
+
+    # Precise the specific folders to use in the directories
+    input_folder = "{}{}_{}/".format(input_directory, catchment, outlet)
+    output_folder = "{}{}_{}_{}_{}/".format(output_directory, catchment, outlet,
+                                            simu_datetime_start.strftime("%Y%m%d"),
+                                            simu_datetime_end.strftime("%Y%m%d"))
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
 
     # Create logger and handler
     logger = get_logger(catchment, outlet, 'simu', output_folder)
 
-    # Set up the simulation (either with .simulation file or through the console)
-    data_time_step_in_min, datetime_start_data, datetime_end_data, \
-        simu_time_step_in_min, datetime_start_simu, datetime_end_simu = \
-        set_up_simulation(catchment, outlet, input_folder, logger)
-
     # Create a TimeFrame object for simulation run and warm-up run
-    my__time_frame = TimeFrame(datetime_start_simu, datetime_end_simu,
+    my__time_frame = TimeFrame(simu_datetime_start, simu_datetime_end,
                                int(data_time_step_in_min), int(simu_time_step_in_min), slice_length)
     my__time_frame_warm_up = TimeFrame(my__time_frame.start, my__time_frame.start +
                                        datetime.timedelta(days=warm_up_in_days - 1),
                                        int(data_time_step_in_min), int(simu_time_step_in_min), slice_length)
 
     # Create a Network object from network and waterBodies files
-    my__network = Network(catchment, outlet, input_folder, specifications_folder)
+    my__network = Network(catchment, outlet, input_folder, spec_directory)
 
     # Create Models for the links
-    dict__ls_models = generate_models_for_links(my__network, specifications_folder, input_folder, output_folder)
+    dict__ls_models = generate_models_for_links(my__network, spec_directory, input_folder, output_folder)
 
     # Create files to store simulation results
     create_simulation_files(my__network, dict__ls_models, catchment, output_folder, logger)
+
+    # Clean up the output folder for the desired file extensions
+    for my_extension in ["*.parameters", "*.node", "*.inputs", "*.outputs", "*.states"]:
+        my_files = glob("{}/{}{}{}".format(root, output_folder, catchment, my_extension))
+        for my_file in my_files:
+            os.remove(my_file)
 
     # Set the initial conditions ('blank' warm up run slice by slice) if required
     my_last_lines = dict()
@@ -98,11 +106,11 @@ def main():
             # Get input data
             dict__nd_meteo = get_meteo_input_from_file(my__network, my__time_frame,
                                                        my_data_slice, my_simu_slice,
-                                                       datetime_start_data, datetime_end_data,
+                                                       data_datetime_start, data_datetime_end,
                                                        input_folder, logger)
             dict__nd_loadings = get_contaminant_input_from_file(my__network, my__time_frame,
                                                                 my_data_slice, my_simu_slice,
-                                                                input_folder, specifications_folder, logger)
+                                                                input_folder, spec_directory, logger)
             # Simulate
             simulate(my__network, my__time_frame, my_simu_slice,
                      dict__nd_data, dict__ls_models,
@@ -143,11 +151,11 @@ def main():
         # Get input data
         dict__nd_meteo = get_meteo_input_from_file(my__network, my__time_frame,
                                                    my_data_slice, my_simu_slice,
-                                                   datetime_start_data, datetime_end_data,
+                                                   data_datetime_start, data_datetime_end,
                                                    input_folder, logger)
         dict__nd_loadings = get_contaminant_input_from_file(my__network, my__time_frame,
                                                             my_data_slice, my_simu_slice,
-                                                            input_folder, specifications_folder, logger)
+                                                            input_folder, spec_directory, logger)
         # Simulate
         simulate(my__network, my__time_frame, my_simu_slice,
                  dict__nd_data, dict__ls_models,
@@ -167,7 +175,7 @@ def main():
     # Generate gauged flow file in output folder (could be identical to input file if date ranges identical)
     sF.get_df_flow_data_from_file(
         catchment, outlet, my__time_frame,
-        datetime_start_data, datetime_end_data,
+        data_datetime_start, data_datetime_end,
         input_folder, logger).to_csv('{}{}_{}.flow'.format(output_folder,
                                                            catchment.capitalize(),
                                                            outlet),
@@ -202,7 +210,7 @@ def get_logger(catchment, outlet, prefix, output_folder):
     return logger
 
 
-def set_up_simulation(catchment, outlet, input_folder, logger):
+def set_up_simulation(catchment, outlet, input_dir):
     """
     This function generates the various inputs required to set up the simulation objects and files. It will first check
     if there is a .simulation file available in the input folder, and then check in the file if each required input is
@@ -214,10 +222,8 @@ def set_up_simulation(catchment, outlet, input_folder, logger):
     :type catchment: str
     :param outlet: European code of the outlet of the catchment to simulate
     :type outlet: str
-    :param input_folder: path of the folder where the input files are located
-    :type input_folder: str
-    :param logger: reference to the logger to be used
-    :type logger: Logger
+    :param input_dir: path of the directory where the input files are located
+    :type input_dir: str
     :return:
         data_time_step_in_min: time step in minutes in the input files
         datetime_start_data: datetime for the start date in the input files
@@ -227,14 +233,11 @@ def set_up_simulation(catchment, outlet, input_folder, logger):
         datetime_end_simu: datetime for the end date of the simulation
         warm_up_in_days: number of days to run in order to determine the initial conditions for the states of the links
     """
-    logger.info("{} # Setting up simulation for {} - {}.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
-                                                                 catchment, outlet))
-
     try:  # see if there is a .simulation file to set up the simulation
-        my_answers_df = pandas.read_csv("{}{}_{}.simulation".format(input_folder, catchment, outlet), index_col=0)
+        my_answers_df = pandas.read_csv("{}{}_{}/{}_{}.simulation".format(input_dir, catchment, outlet,
+                                                                          catchment, outlet), index_col=0)
     except IOError:
         my_answers_df = DataFrame()
-        logger.info("There is not {}{}_{}.simulation available.".format(input_folder, catchment, outlet))
 
     # Get the set-up information either from the file, or from console
     try:
