@@ -14,7 +14,7 @@ def main():
     # Location of the different needed folders
     root = os.path.realpath('..')  # move to parent directory of this current python file
     os.chdir(root)  # define parent directory as root in order to use only relative paths after this
-    specifications_folder = "specs/"
+    specifications_folder = "scripts/specs/"
     input_folder = "in/"
     output_folder = "out/"
 
@@ -38,7 +38,7 @@ def main():
 
     # Create a TimeFrame object
     my__time_frame = TimeFrame(datetime_start_data, datetime_end_data,
-                               int(data_time_step_in_min), int(simu_time_step_in_min))
+                               int(data_time_step_in_min), int(simu_time_step_in_min), 0)
 
     # Create a Network object from network and waterBodies files
     my__network = Network(catchment, outlet, input_folder, specifications_folder)
@@ -124,7 +124,7 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     my_rain_mm = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
     my_area_m2 = np.empty(shape=(0, 1), dtype=np.float64)
 
-    my_dict_desc = sF.get_nd_from_file('descriptors', 'float', catchment, outlet, my__network, in_folder)
+    my_dict_desc = sF.get_nd_from_file('descriptors', 'float', my__network, in_folder)
     for link in my__network.links:
         try:
             my_df_inputs = pandas.read_csv("{}{}_{}_{}_{}.rain".format(in_folder, catchment, link,

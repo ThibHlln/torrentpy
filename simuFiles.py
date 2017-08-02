@@ -87,7 +87,7 @@ def get_nd_from_file(variables, var_type, obj_network, folder):
 
     valid_types = ['str', 'float', 'int']
     if var_type.lower() not in valid_types:
-        sys.exit('The variable type {} is not registered for the function get_nest_dict_from_file.'.format(var_type))
+        sys.exit('The variable type {} is not registered for the function get_nd_from_file.'.format(var_type))
 
     try:
         with open("{}{}_{}.{}".format(folder, obj_network.name, obj_network.code, variables)) as my_file:
