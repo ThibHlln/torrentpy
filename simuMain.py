@@ -238,7 +238,7 @@ def set_up_simulation(catchment, outlet, input_folder, logger):
 
     # Get the set-up information either from the file, or from console
     try:
-        question_start_data = my_answers_df.get_value('start_datetime_data', 'ANSWER')
+        question_start_data = my_answers_df.get_value('data_start_datetime', 'ANSWER')
     except KeyError:
         question_start_data = raw_input('Starting date for data? [format DD/MM/YYYY HH:MM:SS] ')
     try:
@@ -246,7 +246,7 @@ def set_up_simulation(catchment, outlet, input_folder, logger):
     except ValueError:
         sys.exit("The data starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
-        question_end_data = my_answers_df.get_value('end_datetime_data', 'ANSWER')
+        question_end_data = my_answers_df.get_value('data_end_datetime', 'ANSWER')
     except KeyError:
         question_end_data = raw_input('Ending date for data? [format DD/MM/YYYY HH:MM:SS] ')
     try:
@@ -254,7 +254,7 @@ def set_up_simulation(catchment, outlet, input_folder, logger):
     except ValueError:
         sys.exit("The data ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
-        question_start_simu = my_answers_df.get_value('start_datetime_simu', 'ANSWER')
+        question_start_simu = my_answers_df.get_value('simu_start_datetime', 'ANSWER')
     except KeyError:
         question_start_simu = raw_input('Starting date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
     try:
@@ -262,7 +262,7 @@ def set_up_simulation(catchment, outlet, input_folder, logger):
     except ValueError:
         sys.exit("The simulation starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
-        question_end_simu = my_answers_df.get_value('end_datetime_simu', 'ANSWER')
+        question_end_simu = my_answers_df.get_value('simu_end_datetime', 'ANSWER')
     except KeyError:
         question_end_simu = raw_input('Ending date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
     try:

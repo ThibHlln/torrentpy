@@ -58,7 +58,7 @@ def set_up_plotting(catchment, outlet, input_folder, logger):
         my_answers_df = DataFrame()
         logger.info("There is not {}{}_{}.simulation available.".format(input_folder, catchment, outlet))
     try:
-        question_start_data = my_answers_df.get_value('start_datetime_data', 'ANSWER')
+        question_start_data = my_answers_df.get_value('data_start_datetime', 'ANSWER')
     except KeyError:
         question_start_data = raw_input('Starting date for data? [format DD/MM/YYYY HH:MM:SS] ')
     try:
@@ -66,7 +66,7 @@ def set_up_plotting(catchment, outlet, input_folder, logger):
     except ValueError:
         sys.exit("The data starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
-        question_end_data = my_answers_df.get_value('end_datetime_data', 'ANSWER')
+        question_end_data = my_answers_df.get_value('data_end_datetime', 'ANSWER')
     except KeyError:
         question_end_data = raw_input('Ending date for data? [format DD/MM/YYYY HH:MM:SS] ')
     try:
@@ -90,7 +90,7 @@ def set_up_plotting(catchment, outlet, input_folder, logger):
     except ValueError:
         sys.exit("The simulation time step is invalid. [not an integer]")
     try:
-        question_start_plot = my_answers_df.get_value('start_datetime_plot', 'ANSWER')
+        question_start_plot = my_answers_df.get_value('plot_start_datetime', 'ANSWER')
     except KeyError:
         question_start_plot = raw_input('Starting date for plot? [format DD/MM/YYYY HH:MM:SS] ')
     try:
@@ -98,7 +98,7 @@ def set_up_plotting(catchment, outlet, input_folder, logger):
     except ValueError:
         sys.exit("The plot starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
-        question_end_plot = my_answers_df.get_value('end_datetime_plot', 'ANSWER')
+        question_end_plot = my_answers_df.get_value('plot_end_datetime', 'ANSWER')
     except ValueError:
         question_end_plot = raw_input('Ending date for plot? [format DD/MM/YYYY HH:MM:SS] ')
     try:
