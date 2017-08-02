@@ -11,13 +11,6 @@ import simuMain as sM
 
 
 def main():
-    # Location of the different needed folders
-    root = os.path.realpath('..')  # move to parent directory of this current python file
-    os.chdir(root)  # define parent directory as root in order to use only relative paths after this
-    specifications_folder = "scripts/specs/"
-    input_folder = "in/"
-    output_folder = "out/"
-
     # Ask user for information on simulation
     question_catch = raw_input('Name of the catchment? ')
     catchment = question_catch.capitalize()
@@ -25,38 +18,54 @@ def main():
     question_outlet = raw_input('European Code (EU_CD) of the catchment? [format IE_XX_##X######] ')
     outlet = question_outlet.upper()
 
-    if not os.path.isfile('{}{}_{}.network'.format(input_folder, catchment, outlet)):
-        # Check if combination catchment/outlet is coherent by using the name of the network file
+    # Location of the different needed directories
+    root = os.path.realpath('..')  # move to parent directory of this current python file
+    os.chdir(root)  # define parent directory as root in order to use only relative paths after this
+    spec_directory = "scripts/specs/"
+    input_directory = "in/"
+    output_directory = "out/"
+
+    # Check if combination catchment/outlet is coherent by using the name of the input folder
+    if not os.path.exists("{}{}_{}".format(input_directory, catchment, outlet)):
         sys.exit("The combination [ {} - {} ] is incorrect.".format(catchment, outlet))
+
+    # Set up the plotting session (either with .simulation file or through the console)
+    data_datetime_start, data_datetime_end, data_time_step_in_min, \
+        simu_datetime_start, simu_datetime_end, simu_time_step_in_min, \
+        plot_datetime_start, plot_datetime_end = \
+        set_up_plotting(catchment, outlet, input_directory)
+
+    # Precise the specific folders to use in the directories
+    input_folder = "{}{}_{}/".format(input_directory, catchment, outlet)
+    output_folder = "{}{}_{}_{}_{}/".format(output_directory, catchment, outlet,
+                                            simu_datetime_start.strftime("%Y%m%d"),
+                                            simu_datetime_end.strftime("%Y%m%d"))
 
     # Create a logger
     logger = sM.get_logger(catchment, outlet, 'plot', output_folder)
 
-    # Set up the plotting session
-    data_time_step_in_min, datetime_end_data, datetime_end_plot, datetime_start_data, datetime_start_plot, \
-        simu_time_step_in_min = set_up_plotting(catchment, outlet, input_folder, logger)
-
     # Create a TimeFrame object
-    my__time_frame = TimeFrame(datetime_start_data, datetime_end_data,
+    my__time_frame = TimeFrame(data_datetime_start, data_datetime_end,
                                int(data_time_step_in_min), int(simu_time_step_in_min), 0)
 
     # Create a Network object from network and waterBodies files
-    my__network = Network(catchment, outlet, input_folder, specifications_folder)
+    my__network = Network(catchment, outlet, input_folder, spec_directory)
 
     # Plot the desired graphs
     plot_daily_hydro_hyeto(my__network, my__time_frame,
                            input_folder, output_folder, catchment, outlet,
-                           datetime_start_data, datetime_end_data,
-                           datetime_start_plot, datetime_end_plot,
+                           data_datetime_start, data_datetime_end,
+                           plot_datetime_start, plot_datetime_end,
                            logger)
 
 
-def set_up_plotting(catchment, outlet, input_folder, logger):
+def set_up_plotting(catchment, outlet, input_dir):
     try:  # see if there is a .simulation file to set up the simulation
-        my_answers_df = pandas.read_csv("{}{}_{}.simulation".format(input_folder, catchment, outlet), index_col=0)
+        my_answers_df = pandas.read_csv("{}{}_{}/{}_{}.simulation".format(input_dir, catchment, outlet,
+                                                                          catchment, outlet), index_col=0)
     except IOError:
         my_answers_df = DataFrame()
-        logger.info("There is not {}{}_{}.simulation available.".format(input_folder, catchment, outlet))
+
     try:
         question_start_data = my_answers_df.get_value('data_start_datetime', 'ANSWER')
     except KeyError:
@@ -82,6 +91,22 @@ def set_up_plotting(catchment, outlet, input_folder, logger):
     except ValueError:
         sys.exit("The data time step is invalid. [not an integer]")
     try:
+        question_start_simu = my_answers_df.get_value('simu_start_datetime', 'ANSWER')
+    except KeyError:
+        question_start_simu = raw_input('Starting date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
+    try:
+        datetime_start_simu = datetime.datetime.strptime(question_start_simu, '%d/%m/%Y %H:%M:%S')
+    except ValueError:
+        sys.exit("The simulation starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+    try:
+        question_end_simu = my_answers_df.get_value('simu_end_datetime', 'ANSWER')
+    except KeyError:
+        question_end_simu = raw_input('Ending date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
+    try:
+        datetime_end_simu = datetime.datetime.strptime(question_end_simu, '%d/%m/%Y %H:%M:%S')
+    except ValueError:
+        sys.exit("The simulation ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+    try:
         question_simu_time_step = my_answers_df.get_value('simu_time_step_min', 'ANSWER')
     except KeyError:
         question_simu_time_step = raw_input('Time step for simulation? [integer in minutes] ')
@@ -105,8 +130,10 @@ def set_up_plotting(catchment, outlet, input_folder, logger):
         datetime_end_plot = datetime.datetime.strptime(question_end_plot, '%d/%m/%Y %H:%M:%S')
     except ValueError:
         sys.exit("The plot ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
-    logger.info("{} # Initialising.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
-    return data_time_step_in_min, datetime_end_data, datetime_end_plot, datetime_start_data, datetime_start_plot, simu_time_step_in_min
+
+    return datetime_start_data, datetime_end_data, data_time_step_in_min, \
+        datetime_start_simu, datetime_end_simu, simu_time_step_in_min, \
+        datetime_start_plot, datetime_end_plot
 
 
 def plot_daily_hydro_hyeto(my__network, my__time_frame,
