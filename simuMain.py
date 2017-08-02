@@ -221,6 +221,8 @@ def set_up_simulation(catchment, outlet, input_folder, logger):
         datetime_end_simu: datetime for the end date of the simulation
         warm_up_in_days: number of days to run in order to determine the initial conditions for the states of the links
     """
+    logger.info("{} # Setting up simulation for {} - {}.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
+                                                                 catchment, outlet))
 
     try:  # see if there is a .simulation file to set up the simulation
         my_answers_df = pandas.read_csv("{}{}_{}.simulation".format(input_folder, catchment, outlet), index_col=0)
@@ -285,7 +287,7 @@ def set_up_simulation(catchment, outlet, input_folder, logger):
         warm_up_in_days = float(int(question_warm_up_duration))
     except ValueError:
         sys.exit("The warm-up duration is invalid. [not an integer]")
-    logger.info("{} # Initialising.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+
     # Check if temporal information is consistent
     if datetime_start_simu < datetime_start_data:
         sys.exit("The simulation start is earlier than the data start.")
@@ -403,7 +405,7 @@ def get_meteo_input_from_file(my__network, my__time_frame, my_data_slice, my_sim
     :rtype: dict
     """
     # Read the meteorological input files
-    logger.info("{} # Reading meteorological files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    logger.info("{} # > Reading meteorological files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
     dict__nd_meteo = dict()  # key: waterbody, value: data frame (x: time step, y: meteo data type)
     for link in my__network.links:
         dict__nd_meteo[link] = sF.get_nd_meteo_data_from_file(my__network.name, link, my__time_frame,
@@ -438,7 +440,7 @@ def get_contaminant_input_from_file(my__network, my__time_frame, my_data_slice, 
     :rtype: dict
     """
     # Read the annual loadings file and the application files to distribute the loadings for each time step
-    logger.info("{} # Reading loadings files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    logger.info("{} # > Reading loadings files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
     dict__nd_loadings = dict()
     dict_annual_loads = sF.get_nd_from_file('loadings', 'float', my__network, input_folder)
     dict_applications = sF.get_nd_from_file('applications', 'str', my__network, input_folder)
@@ -484,7 +486,7 @@ def simulate(my__network, my__time_frame, my_simu_slice,
     :type logger: Logger
     :return: NOTHING, only updates the nested dictionaries for data
     """
-    logger.info("{} # Simulating.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    logger.info("{} # > Simulating.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
     my_dict_variables = dict()
     for variable in my__network.variables:
         my_dict_variables[variable] = 0.0
@@ -617,7 +619,7 @@ def update_simulation_files(my__network, my_list_datetime,
     :return: NOTHING, only updates the files in the output folder
     """
     # Save the Nested Dicts for the links (separating inputs, states, and outputs)
-    logger.info("{} # Updating results in files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    logger.info("{} # > Updating results in files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
     for link in my__network.links:
         my_inputs = list()
         my_states = list()
