@@ -99,10 +99,6 @@ def main():
                      dict__nd_meteo, dict__nd_loadings,
                      logger)
 
-            # Write results in files
-            update_simulation_files(my__network, my_data_slice, dict__nd_data, dict__ls_models,
-                                    catchment, output_folder, logger)
-
             # Save history (last time step) for next slice
             for link in my__network.links:
                 my_last_lines[link].update(dict__nd_data[link][my_simu_slice[-1]])
