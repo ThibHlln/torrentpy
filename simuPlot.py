@@ -1,13 +1,11 @@
 import matplotlib.pyplot as plt
-import os
 from pandas import DataFrame
-import pandas
 import numpy as np
 from matplotlib import dates
 
 from simuClasses import *
 import simuFiles as sF
-import simuMain as sM
+import simuRunSingle as sRS
 
 
 def main():
@@ -42,7 +40,7 @@ def main():
                                             simu_datetime_end.strftime("%Y%m%d"))
 
     # Create a logger
-    logger = sM.get_logger(catchment, outlet, 'plot', output_folder)
+    logger = sRS.get_logger(catchment, outlet, 'plot', output_folder)
 
     # Create a TimeFrame object
     my__time_frame = TimeFrame(data_datetime_start, data_datetime_end,
