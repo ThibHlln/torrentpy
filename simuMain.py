@@ -1,6 +1,7 @@
 import logging
 from pandas import DataFrame
 from itertools import izip
+import argparse
 
 from simuClasses import *
 from glob import glob
@@ -9,19 +10,28 @@ import simuFunctions as sFn
 
 
 def main():
+    # Collect the arguments of the program call
+    parser = argparse.ArgumentParser(description="simulate hydrology and water quality")
+    parser.add_argument('catchment', type=str,
+                        help="name of the catchment")
+    parser.add_argument('outlet', type=str,
+                        help="european code of the catchment outlet [format IE_XX_##X######]")
+    parser.add_argument('-w', '--warm_up', type=int, default=0,
+                        help="warm-up duration in days")
+    parser.add_argument('-s', '--slice_up', type=int, default=0,
+                        help="simulation period slice-up length in time steps")
+    args = parser.parse_args()
+    catchment = args.catchment.capitalize()
+    outlet = args.outlet.upper()
+    slice_length = args.slice_up
+    warm_up_in_days = args.warm_up
+
     # Location of the different needed folders
     root = os.path.realpath('..')  # move to parent directory of this current python file
     os.chdir(root)  # define parent directory as root in order to use only relative paths after this
     specifications_folder = "scripts/specs/"
     input_folder = "in/"
     output_folder = "out/"
-
-    # Ask user for information on simulation (via console)
-    question_catch = raw_input('Name of the catchment? ')
-    catchment = question_catch.capitalize()
-
-    question_outlet = raw_input('European Code (EU_CD) of the catchment? [format IE_XX_##X######] ')
-    outlet = question_outlet.upper()
 
     # Check if combination catchment/outlet is coherent by using the name of the network file
     if not os.path.isfile('{}{}_{}.network'.format(input_folder, catchment, outlet)):
@@ -38,15 +48,15 @@ def main():
 
     # Set up the simulation (either with .simulation file or through the console)
     data_time_step_in_min, datetime_start_data, datetime_end_data, \
-        simu_time_step_in_min, datetime_start_simu, datetime_end_simu, \
-        warm_up_in_days = set_up_simulation(catchment, outlet, input_folder, logger)
+        simu_time_step_in_min, datetime_start_simu, datetime_end_simu = \
+        set_up_simulation(catchment, outlet, input_folder, logger)
 
     # Create a TimeFrame object for simulation run and warm-up run
     my__time_frame = TimeFrame(datetime_start_simu, datetime_end_simu,
-                               int(data_time_step_in_min), int(simu_time_step_in_min), 5000)
+                               int(data_time_step_in_min), int(simu_time_step_in_min), slice_length)
     my__time_frame_warm_up = TimeFrame(my__time_frame.start, my__time_frame.start +
                                        datetime.timedelta(days=warm_up_in_days - 1),
-                                       int(data_time_step_in_min), int(simu_time_step_in_min), 5000)
+                                       int(data_time_step_in_min), int(simu_time_step_in_min), slice_length)
 
     # Create a Network object from network and waterBodies files
     my__network = Network(catchment, outlet, input_folder, specifications_folder)
@@ -275,14 +285,6 @@ def set_up_simulation(catchment, outlet, input_folder, logger):
         simu_time_step_in_min = float(int(question_simu_time_step))
     except ValueError:
         sys.exit("The simulation time step is invalid. [not an integer]")
-    try:
-        question_warm_up_duration = my_answers_df.get_value('warm_up_days', 'ANSWER')
-    except KeyError:
-        question_warm_up_duration = raw_input('Warm-up duration? [integer in days] ')
-    try:
-        warm_up_in_days = float(int(question_warm_up_duration))
-    except ValueError:
-        sys.exit("The warm-up duration is invalid. [not an integer]")
 
     # Check if temporal information is consistent
     if datetime_start_simu < datetime_start_data:
@@ -293,8 +295,7 @@ def set_up_simulation(catchment, outlet, input_folder, logger):
         sys.exit("The data time step is not a multiple of the simulation time step.")
 
     return data_time_step_in_min, datetime_start_data, datetime_end_data, \
-        simu_time_step_in_min, datetime_start_simu, datetime_end_simu, \
-        warm_up_in_days
+        simu_time_step_in_min, datetime_start_simu, datetime_end_simu
 
 
 def generate_models_for_links(my__network, specifications_folder, input_folder, output_folder):
