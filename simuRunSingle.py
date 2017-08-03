@@ -9,7 +9,7 @@ import simuFiles as sF
 import simuFunctions as sFn
 
 
-def main(catchment, outlet, slice_length, warm_up_in_days):
+def main(catchment, outlet, slice_length, warm_up_in_days, is_standalone=False):
     # Location of the different needed directories
     root = os.path.realpath('..')  # move to parent directory of this current python file
     os.chdir(root)  # define parent directory as root in order to use only relative paths after this
@@ -35,7 +35,12 @@ def main(catchment, outlet, slice_length, warm_up_in_days):
         os.makedirs(output_folder)
 
     # Create logger and handler
-    logger = get_logger(catchment, outlet, 'simu', output_folder)
+    logger = get_logger(catchment, outlet, 'simu', output_folder, is_standalone)
+
+    logger.warning("{} # Starting simulation for {} {}.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
+                                                                catchment, outlet))
+
+    logger.info("{} # Initialising.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
 
     # Create a TimeFrame object for simulation run and warm-up run
     my__time_frame = TimeFrame(simu_datetime_start, simu_datetime_end,
@@ -167,10 +172,11 @@ def main(catchment, outlet, slice_length, warm_up_in_days):
                                      float_format='%e',
                                      index_label='DateTime')
 
-    logger.info("{} # Ending.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    logger.warning("{} # Ending simulation for {} {}.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
+                                                              catchment, outlet))
 
 
-def get_logger(catchment, outlet, prefix, output_folder):
+def get_logger(catchment, outlet, prefix, output_folder, is_standalone):
     """
     This function creates a logger in order to print in console as well as to save in .log file information
     about the simulation.
@@ -179,11 +185,15 @@ def get_logger(catchment, outlet, prefix, output_folder):
     :param outlet: European code of the catchment
     :param prefix: prefix of the extension .log to specify what type of log file it is
     :param output_folder: path of the output folder where to save the log file
+    :param is_standalone: boolean to determine if
     :return: logger
     :rtype: Logger
     """
     # # Logger levels: debug < info < warning < error < critical
-    logging.basicConfig(level=logging.INFO)
+    if is_standalone:
+        logging.basicConfig(level=logging.INFO)
+    else:
+        logging.basicConfig(level=logging.WARNING)
     logger = logging.getLogger(__name__)
     # Create a file handler
     if os.path.isfile('{}{}_{}.{}.log'.format(output_folder, catchment, outlet, prefix)):
@@ -655,4 +665,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Run the main() function
-    main(args.catchment.capitalize(), args.outlet.upper(), args.slice_up, args.warm_up)
+    main(args.catchment.capitalize(), args.outlet.upper(), args.slice_up, args.warm_up, is_standalone=True)
