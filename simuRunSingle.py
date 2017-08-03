@@ -641,15 +641,17 @@ def update_simulation_files(my__network, my_list_datetime,
 
 if __name__ == "__main__":
     # Collect the arguments of the program call
-    parser = argparse.ArgumentParser(description="simulate hydrology and water quality")
+    parser = argparse.ArgumentParser(description="simulate hydrology and water quality "
+                                                 "for one catchment and one time period")
     parser.add_argument('catchment', type=str,
                         help="name of the catchment")
     parser.add_argument('outlet', type=str,
                         help="european code of the catchment outlet [format IE_XX_##X######]")
-    parser.add_argument('-w', '--warm_up', type=int, default=0,
-                        help="warm-up duration in days")
     parser.add_argument('-s', '--slice_up', type=int, default=0,
                         help="simulation period slice-up length in time steps")
+    parser.add_argument('-w', '--warm_up', type=int, default=0,
+                        help="warm-up duration in days")
+
     args = parser.parse_args()
 
     # Run the main() function
