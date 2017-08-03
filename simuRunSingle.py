@@ -9,7 +9,7 @@ import simuFiles as sF
 import simuFunctions as sFn
 
 
-def main(catchment, outlet, slice_length, warm_up_in_days, is_standalone=False):
+def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
     # Location of the different needed directories
     root = os.path.realpath('..')  # move to parent directory of this current python file
     os.chdir(root)  # define parent directory as root in order to use only relative paths after this
@@ -35,7 +35,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_standalone=False):
         os.makedirs(output_folder)
 
     # Create logger and handler
-    logger = get_logger(catchment, outlet, 'simu', output_folder, is_standalone)
+    logger = get_logger(catchment, outlet, 'simu', output_folder, is_single_run)
 
     logger.warning("{} # Starting simulation for {} {}.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
                                                                 catchment, outlet))
@@ -176,21 +176,23 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_standalone=False):
                                                               catchment, outlet))
 
 
-def get_logger(catchment, outlet, prefix, output_folder, is_standalone):
+def get_logger(catchment, outlet, prefix, output_folder, is_single_run):
     """
     This function creates a logger in order to print in console as well as to save in .log file information
-    about the simulation.
+    about the simulation. The level of detail displayed is the console is customisable using the is_single_run
+    parameter. If it is True, more information will be displayed (logging.INFO) than if it is False
+    (logging.WARNING only).
 
     :param catchment: name of the catchment
     :param outlet: European code of the catchment
     :param prefix: prefix of the extension .log to specify what type of log file it is
     :param output_folder: path of the output folder where to save the log file
-    :param is_standalone: boolean to determine if
+    :param is_single_run: boolean to determine if the logger is created is a single run session
     :return: logger
     :rtype: Logger
     """
     # # Logger levels: debug < info < warning < error < critical
-    if is_standalone:
+    if is_single_run:
         logging.basicConfig(level=logging.INFO)
     else:
         logging.basicConfig(level=logging.WARNING)
@@ -665,4 +667,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Run the main() function
-    main(args.catchment.capitalize(), args.outlet.upper(), args.slice_up, args.warm_up, is_standalone=True)
+    main(args.catchment.capitalize(), args.outlet.upper(), args.slice_up, args.warm_up, is_single_run=True)
