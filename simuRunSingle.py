@@ -11,15 +11,15 @@ import simuFunctions as sFn
 
 def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
     # Location of the different needed directories
-    root = os.path.realpath('..')  # move to parent directory of this current python file
-    os.chdir(root)  # define parent directory as root in order to use only relative paths after this
+    root = "C:/PycharmProjects/Python/CatchmentSimulationFramework/"
+    os.chdir(root)  # define root
     spec_directory = "scripts/specs/"
     input_directory = "in/"
     output_directory = "out/"
 
     # Check if combination catchment/outlet is coherent by using the name of the input folder
     if not os.path.exists("{}{}_{}".format(input_directory, catchment, outlet)):
-        sys.exit("The combination [ {} - {} ] is incorrect.".format(catchment, outlet))
+        raise Exception("The combination [ {} - {} ] is incorrect.".format(catchment, outlet))
 
     # Set up the simulation (either with .simulation file or through the console)
     data_time_step_in_min, data_datetime_start, data_datetime_end, \
@@ -196,7 +196,7 @@ def get_logger(catchment, outlet, prefix, output_folder, is_single_run):
         logging.basicConfig(level=logging.INFO)
     else:
         logging.basicConfig(level=logging.WARNING)
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger("LoggerSingleRun")
     # Create a file handler
     if os.path.isfile('{}{}_{}.{}.log'.format(output_folder, catchment, outlet, prefix)):
         os.remove('{}{}_{}.{}.log'.format(output_folder, catchment, outlet, prefix))
