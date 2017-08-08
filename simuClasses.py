@@ -1,6 +1,5 @@
 import csv
 import os
-import sys
 import datetime
 import pandas
 from math import ceil
@@ -68,7 +67,7 @@ class Network:
                     my_adding[my_connections[link][1]].append(link)
 
         except IOError:
-            sys.exit("No link-node network file found for {}.".format(self.name))
+            raise Exception("No link-node network file found for {}.".format(self.name))
 
         return {
             "nodes": my_nodes,
@@ -92,7 +91,7 @@ class Network:
                     my_categories[row['WaterBody']] = row['WaterBodyTypeCode'] + row['HeadwaterStatus']
 
         except IOError:
-            sys.exit("No waterbodies file found for {}.".format(self.name))
+            raise Exception("No waterbodies file found for {}.".format(self.name))
 
         return my_categories
 
@@ -117,10 +116,10 @@ class Network:
 
                 missing = [elem for elem in self.links if elem not in found]
                 if missing:
-                    sys.exit("The following waterbodies are not in the descriptors file: {}.".format(missing))
+                    raise Exception("The following waterbodies are not in the descriptors file: {}.".format(missing))
 
         except IOError:
-            sys.exit("No descriptors file found for {}.".format(self.name))
+            raise Exception("No descriptors file found for {}.".format(self.name))
 
         return my_descriptors
 
@@ -144,14 +143,15 @@ class Network:
                         my_string = row[1]
                         count += 1
                 if count == 0:
-                    sys.exit("There is no {} specifications line in {}SIMULATOR.spec.".format(specs_type, specs_folder))
+                    raise Exception("There is no {} specifications line in {}SIMULATOR.spec.".format(
+                        specs_type, specs_folder))
                 elif count > 1:
-                    sys.exit("There is more than one {} specifications line in {}SIMULATOR.spec.".format(specs_type,
-                                                                                                         specs_folder))
+                    raise Exception("There is more than one {} specifications line in {}SIMULATOR.spec.".format(
+                        specs_type, specs_folder))
                 my_list.extend(my_string.split(";"))
 
         except IOError:
-            sys.exit("There is no specifications file for SIMULATOR in {}.".format(specs_folder))
+            raise Exception("There is no specifications file for SIMULATOR in {}.".format(specs_folder))
 
         return my_list
 
@@ -202,17 +202,16 @@ class Model:
                             my_string = row[1]
                             count += 1
                     if count == 0:
-                        sys.exit("There is no {} specifications line in {}{}.spec.".format(specs_type, specs_folder,
-                                                                                           component))
+                        raise Exception("There is no {} specifications line in {}{}.spec.".format(
+                            specs_type, specs_folder, component))
                     elif count > 1:
-                        sys.exit("There is more than one {} specifications line in {}{}.".format(specs_type,
-                                                                                                 specs_folder,
-                                                                                                 component))
+                        raise Exception("There is more than one {} specifications line in {}{}.".format(
+                            specs_type, specs_folder, component))
                     if not my_string == '':
                         my_list.extend(my_string.split(";"))
 
             except IOError:
-                sys.exit("There is no specifications file for {} in {}.".format(component, specs_folder))
+                raise Exception("There is no specifications file for {} in {}.".format(component, specs_folder))
 
         return my_list
 
@@ -241,17 +240,16 @@ class Model:
                             my_string = row[1]
                             count += 1
                     if count == 0:
-                        sys.exit("There is no {} specifications line in {}{}.spec.".format(specs_type, specs_folder,
-                                                                                           component))
+                        raise Exception("There is no {} specifications line in {}{}.spec.".format(
+                            specs_type, specs_folder, component))
                     elif count > 1:
-                        sys.exit("There is more than one {} specifications line in {}{}.".format(specs_type,
-                                                                                                 specs_folder,
-                                                                                                 component))
+                        raise Exception("There is more than one {} specifications line in {}{}.".format(
+                            specs_type, specs_folder, component))
                     if not my_string == '':
                         my_list.extend(my_string.split(";"))
 
             except IOError:
-                sys.exit("There is no specifications file for {} in {}.".format(component, specs_folder))
+                raise Exception("There is no specifications file for {} in {}.".format(component, specs_folder))
 
             if my_list:
                 try:
@@ -261,10 +259,11 @@ class Model:
                         try:
                             my_dict[name] = float(my_df.get_value(name, 'value'))
                         except KeyError:
-                            sys.exit("The {} {} is not available for {}.".format(specs_type[:-1], name, component))
+                            raise Exception("The {} {} is not available for {}.".format(
+                                specs_type[:-1], name, component))
 
                 except IOError:
-                    sys.exit("{}{}.{} does not exist.".format(specs_folder, component, specs_type))
+                    raise Exception("{}{}.{} does not exist.".format(specs_folder, component, specs_type))
 
         return my_dict
 
@@ -298,17 +297,16 @@ class Model:
                             my_string = row[1]
                             count += 1
                     if count == 0:
-                        sys.exit("There is no {} specifications line in {}{}.spec.".format(specs_type, specs_folder,
-                                                                                           component))
+                        raise Exception("There is no {} specifications line in {}{}.spec.".format(
+                            specs_type, specs_folder, component))
                     elif count > 1:
-                        sys.exit("There is more than one {} specifications line in {}{}.".format(specs_type,
-                                                                                                 specs_folder,
-                                                                                                 component))
+                        raise Exception("There is more than one {} specifications line in {}{}.".format(
+                            specs_type, specs_folder, component))
                     if not my_string == '':
                         my_list.extend(my_string.split(";"))
 
             except IOError:
-                sys.exit("There is no specifications file for {} in {}.".format(component, specs_folder))
+                raise Exception("There is no specifications file for {} in {}.".format(component, specs_folder))
 
             if my_list:
                 dict_for_file = dict()
@@ -319,8 +317,8 @@ class Model:
                         try:
                             dict_for_file[name] = float(my_df.get_value(self.link, name))
                         except KeyError:
-                            sys.exit("The {} {} {} is not available for {}.".format(component, specs_type[:-1],
-                                                                                    name, self.link))
+                            raise Exception("The {} {} {} is not available for {}.".format(
+                                component, specs_type[:-1], name, self.link))
                 except IOError:
                     dict_for_file = sFn.infer_parameters_from_descriptors(network.descriptors[self.link], component)
 

@@ -1,4 +1,3 @@
-import sys
 import datetime
 
 import models.smart as smart
@@ -19,7 +18,7 @@ def infer_parameters_from_descriptors(dict_desc, model):
     elif model == "INCAS":
         inca.infer_stream_parameters(my_dict_param)
     else:
-        sys.exit('The model {} is not associated to any inferring script.'.format(model))
+        raise Exception('The model {} is not associated to any inferring script.'.format(model))
 
     return my_dict_param
 

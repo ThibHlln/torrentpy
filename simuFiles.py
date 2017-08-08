@@ -1,7 +1,6 @@
 from pandas import DataFrame
 import datetime
 import pandas
-import sys
 import csv
 
 
@@ -28,13 +27,13 @@ def get_nd_meteo_data_from_file(catchment, link, my_tf, series_data, series_simu
                     my_value = my_meteo_df.get_value(my_dt_data.strftime("%Y-%m-%d %H:%M:%S"), meteo_type.upper())
                     my_portion = float(my_value) / divisor
                 except KeyError:  # could only be raised for .get_value(), when index or column does not exist
-                    sys.exit("{}{}_{}_{}_{}.{} does not "
-                             "contain any value for {}.".format(in_folder, catchment, link, my_start, my_end,
-                                                                meteo_type, my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
+                    raise Exception("{}{}_{}_{}_{}.{} does not contain any value for {}.".format(
+                        in_folder, catchment, link, my_start, my_end, meteo_type,
+                        my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
                 except ValueError:  # could only be raised for float(), when my_value is not a number
-                    sys.exit("{}{}_{}_{}_{}.{} contains "
-                             "an invalid value for {}.".format(in_folder, catchment, link, my_start, my_end,
-                                                               meteo_type, my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
+                    raise Exception("{}{}_{}_{}_{}.{} contains an invalid value for {}.".format(
+                        in_folder, catchment, link, my_start, my_end, meteo_type,
+                        my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
                 for my_sub_step in xrange(0, -divisor, -1):
                     my_dt_simu = my_dt_data + datetime.timedelta(minutes=my_sub_step * my_tf.step_simu)
                     if (meteo_type == 'rain') or (meteo_type == 'peva'):
@@ -43,8 +42,8 @@ def get_nd_meteo_data_from_file(catchment, link, my_tf, series_data, series_simu
                         my_dbl_dict[my_dt_simu][meteo_type] = float(my_value)
 
         except IOError:
-            sys.exit("{}{}_{}_{}_{}.{} does not exist.".format(in_folder, catchment,
-                                                               link, my_start, my_end, meteo_type))
+            raise Exception("{}{}_{}_{}_{}.{} does not exist.".format(
+                in_folder, catchment, link, my_start, my_end, meteo_type))
 
     return my_dbl_dict
 
@@ -69,13 +68,11 @@ def get_df_flow_data_from_file(catchment, link, my_tf,
                 my_value = my_flow_df.get_value(my_dt_data.strftime("%Y-%m-%d %H:%M:%S"), flow_label.upper())
                 my__data_frame.set_value(my_dt_data, flow_label, float(my_value))
             except KeyError:  # could only be raised for .get_value(), when index or column does not exist
-                sys.exit("{}{}_{}_{}_{}.{} does not "
-                         "contain any value for {}.".format(in_folder, catchment, link, my_start, my_end,
-                                                            flow_label, my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
+                raise Exception("{}{}_{}_{}_{}.{} does not contain any value for {}.".format(
+                    in_folder, catchment, link, my_start, my_end, flow_label, my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
             except ValueError:  # could only be raised for float(), when my_value is not a number
-                sys.exit("{}{}_{}_{}_{}.{} contains "
-                         "an invalid value for {}.".format(in_folder, catchment, link, my_start, my_end,
-                                                           flow_label, my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
+                raise Exception("{}{}_{}_{}_{}.{} contains an invalid value for {}.".format(
+                    in_folder, catchment, link, my_start, my_end, flow_label, my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
 
     except IOError:
         logger.info("{}{}_{}_{}_{}.{} does not exist.".format(in_folder, catchment, link, my_start, my_end, flow_label))
@@ -87,7 +84,7 @@ def get_nd_from_file(variables, var_type, obj_network, folder):
 
     valid_types = ['str', 'float', 'int']
     if var_type.lower() not in valid_types:
-        sys.exit('The variable type {} is not registered for the function get_nd_from_file.'.format(var_type))
+        raise Exception('The variable type {} is not registered for the function get_nd_from_file.'.format(var_type))
 
     try:
         with open("{}{}_{}.{}".format(folder, obj_network.name, obj_network.code, variables)) as my_file:
@@ -115,12 +112,12 @@ def get_nd_from_file(variables, var_type, obj_network, folder):
 
             missing = [elem for elem in obj_network.links if elem not in found]
             if missing:
-                sys.exit("The following waterbodies are not in the {} file: {}.".format(missing, variables))
+                raise Exception("The following waterbodies are not in the {} file: {}.".format(missing, variables))
 
         return my_dict_variables
 
     except IOError:
-        sys.exit("{}{}_{}.{} does not exist.".format(folder, obj_network.name, obj_network.code, variables))
+        raise Exception("{}{}_{}.{} does not exist.".format(folder, obj_network.name, obj_network.code, variables))
 
 
 def get_nd_distributions_from_file(specs_folder):
@@ -131,4 +128,4 @@ def get_nd_distributions_from_file(specs_folder):
         return my_nd_distributions
 
     except IOError:
-        sys.exit("{}LOADINGS.dist does not exist.".format(specs_folder))
+        raise Exception("{}LOADINGS.dist does not exist.".format(specs_folder))

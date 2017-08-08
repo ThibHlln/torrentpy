@@ -2,9 +2,9 @@ import logging
 from pandas import DataFrame
 from itertools import izip
 import argparse
+from glob import glob
 
 from simuClasses import *
-from glob import glob
 import simuFiles as sF
 import simuFunctions as sFn
 
