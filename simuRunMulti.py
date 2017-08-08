@@ -1,4 +1,4 @@
-from multiprocessing import Pool, cpu_count, log_to_stderr, get_logger
+from multiprocessing import Pool, cpu_count, log_to_stderr
 from os import path, chdir, remove
 from csv import DictReader
 from sys import exit
@@ -8,13 +8,16 @@ import simuRunSingle as sRS
 
 
 def setup_logger(name, log_file, level=logging.DEBUG):
-    # # Create a file handler
+    # Create Formatter
+    formatter = logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                                  datefmt="%d/%m/%Y - %H:%M:%S")
+    # Create FileHandler
     if path.isfile(log_file):
         remove(log_file)
     handler = logging.FileHandler(log_file)
     handler.setLevel(logging.DEBUG)
-    # # Create logger
-    # Logger levels: debug < info < warning < error < critical
+    handler.setFormatter(formatter)
+    # Create Logger [ levels: debug < info < warning < error < critical ]
     logger = logging.getLogger(name)
     logger.setLevel(level)
     logger.addHandler(handler)
@@ -48,16 +51,18 @@ def single_run(catchment, outlet, slice_up, warm_up, log_file):
     :return: NOTHING
     """
     mp_logger = log_to_stderr()
-    mp_logger.setLevel(logging.WARNING)
+    mp_logger.setLevel(logging.INFO)
     handler = logging.FileHandler(log_file)
-    logger = logging.getLogger("MultiRunLogger")
+    handler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                                           datefmt="%d/%m/%Y - %H:%M:%S"))
+    logger = logging.getLogger("MultiRun.single_run")
     logger.addHandler(handler)
     try:
         sRS.main(catchment, outlet, slice_up, warm_up)
     except Exception as e:
-        mp_logger.warning('# Exception for arguments ({}, {}, {}, {})'.format(catchment, outlet, slice_up, warm_up))
-        logger.warning('# Exception for arguments ({}, {}, {}, {})'.format(catchment, outlet, slice_up, warm_up))
-        logger.exception(e)
+        mp_logger.error('Exception for arguments ({}, {}, {}, {})'.format(catchment, outlet, slice_up, warm_up))
+        logger.error('Exception for arguments ({}, {}, {}, {})'.format(catchment, outlet, slice_up, warm_up))
+        # logger.exception(e)
         raise e
 
 
@@ -79,7 +84,7 @@ if __name__ == '__main__':
     my_log_file = '{}/batch.log'.format(output_dir)
     my_batch_file = '{}/simulation.batch'.format(input_dir)
 
-    setup_logger('LoggerMultiRun', my_log_file, level=logging.DEBUG)
+    setup_logger('MultiRun', my_log_file, level=logging.DEBUG)
 
     cores = cpu_count()
     pool = Pool(processes=cores, maxtasksperchild=1)

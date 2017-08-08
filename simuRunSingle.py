@@ -24,7 +24,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
     # Set up the simulation (either with .simulation file or through the console)
     data_time_step_in_min, data_datetime_start, data_datetime_end, \
         simu_time_step_in_min, simu_datetime_start, simu_datetime_end = \
-        set_up_simulation(catchment, outlet, input_directory)
+        setup_simulation(catchment, outlet, input_directory)
 
     # Precise the specific folders to use in the directories
     input_folder = "{}{}_{}/".format(input_directory, catchment, outlet)
@@ -35,12 +35,12 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
         os.makedirs(output_folder)
 
     # Create logger and handler
-    logger = get_logger(catchment, outlet, 'simu', output_folder, is_single_run)
+    setup_logger(catchment, outlet, 'simu', output_folder, is_single_run)
+    logger = logging.getLogger('SingleRun.main')
 
-    logger.warning("{} # Starting simulation for {} {}.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
-                                                                catchment, outlet))
+    logger.warning("Starting simulation for {} {}.".format(catchment, outlet))
 
-    logger.info("{} # Initialising.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    logger.info("Initialising.")
 
     # Create a TimeFrame object for simulation run and warm-up run
     my__time_frame = TimeFrame(simu_datetime_start, simu_datetime_end,
@@ -62,13 +62,12 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
             os.remove(my_file)
 
     # Create files to store simulation results
-    create_simulation_files(my__network, dict__ls_models, catchment, output_folder, logger)
+    create_simulation_files(my__network, dict__ls_models, catchment, output_folder)
 
     # Set the initial conditions ('blank' warm up run slice by slice) if required
     my_last_lines = dict()
     if not warm_up_in_days == 0.0:  # Warm-up run required
-        logger.info("{} # Determining initial conditions.".format(datetime.datetime.now().strftime('%d/%m/%Y '
-                                                                                                   '%H:%M:%S')))
+        logger.info("Determining initial conditions.")
         # Initialise dicts to link time slices together (use last time step of one as first for the other)
         for link in my__network.links:
             my_last_lines[link] = dict()
@@ -77,10 +76,8 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
 
         for my_simu_slice, my_data_slice in izip(my__time_frame_warm_up.slices_simu,
                                                  my__time_frame_warm_up.slices_data):
-            logger.info("{} # Running Warm-Up Period {} - {}".format(datetime.datetime.now().strftime('%d/%m/%Y '
-                                                                                                      '%H:%M:%S'),
-                                                                     my_simu_slice[1].strftime('%d/%m/%Y %H:%M:%S'),
-                                                                     my_simu_slice[-1].strftime('%d/%m/%Y %H:%M:%S')))
+            logger.info("Running Warm-Up Period {} - {}.".format(my_simu_slice[1].strftime('%d/%m/%Y %H:%M:%S'),
+                                                                 my_simu_slice[-1].strftime('%d/%m/%Y %H:%M:%S')))
             # Initialise data structures
             dict__nd_data = generate_data_structures_for_links_and_nodes(my__network,
                                                                          my_simu_slice,
@@ -96,15 +93,14 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
             dict__nd_meteo = get_meteo_input_from_file(my__network, my__time_frame,
                                                        my_data_slice, my_simu_slice,
                                                        data_datetime_start, data_datetime_end,
-                                                       input_folder, logger)
+                                                       input_folder)
             dict__nd_loadings = get_contaminant_input_from_file(my__network, my__time_frame,
                                                                 my_data_slice, my_simu_slice,
-                                                                input_folder, spec_directory, logger)
+                                                                input_folder, spec_directory)
             # Simulate
             simulate(my__network, my__time_frame, my_simu_slice,
                      dict__nd_data, dict__ls_models,
-                     dict__nd_meteo, dict__nd_loadings,
-                     logger)
+                     dict__nd_meteo, dict__nd_loadings)
 
             # Save history (last time step) for next slice
             for link in my__network.links:
@@ -119,13 +115,12 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
             my_last_lines[node] = dict()
 
     # Simulate (run slice by slice)
-    logger.info("{} # Starting the simulation.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    logger.info("Starting the simulation.")
     for my_simu_slice, my_data_slice in izip(my__time_frame.slices_simu,
                                              my__time_frame.slices_data):
 
-        logger.info("{} # Running Period {} - {}.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
-                                                          my_simu_slice[1].strftime('%d/%m/%Y %H:%M:%S'),
-                                                          my_simu_slice[-1].strftime('%d/%m/%Y %H:%M:%S')))
+        logger.info("Running Period {} - {}.".format(my_simu_slice[1].strftime('%d/%m/%Y %H:%M:%S'),
+                                                     my_simu_slice[-1].strftime('%d/%m/%Y %H:%M:%S')))
         # Initialise data structures
         dict__nd_data = generate_data_structures_for_links_and_nodes(my__network,
                                                                      my_simu_slice,
@@ -141,19 +136,18 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
         dict__nd_meteo = get_meteo_input_from_file(my__network, my__time_frame,
                                                    my_data_slice, my_simu_slice,
                                                    data_datetime_start, data_datetime_end,
-                                                   input_folder, logger)
+                                                   input_folder)
         dict__nd_loadings = get_contaminant_input_from_file(my__network, my__time_frame,
                                                             my_data_slice, my_simu_slice,
-                                                            input_folder, spec_directory, logger)
+                                                            input_folder, spec_directory)
         # Simulate
         simulate(my__network, my__time_frame, my_simu_slice,
                  dict__nd_data, dict__ls_models,
-                 dict__nd_meteo, dict__nd_loadings,
-                 logger)
+                 dict__nd_meteo, dict__nd_loadings)
 
         # Write results in files
         update_simulation_files(my__network, my_data_slice, dict__nd_data, dict__ls_models,
-                                catchment, output_folder, logger)
+                                catchment, output_folder)
 
         # Save history (last time step) for next slice
         for link in my__network.links:
@@ -172,41 +166,10 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
                                      float_format='%e',
                                      index_label='DateTime')
 
-    logger.warning("{} # Ending simulation for {} {}.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
-                                                              catchment, outlet))
+    logger.warning("Ending simulation for {} {}.".format(catchment, outlet))
 
 
-def get_logger(catchment, outlet, prefix, output_folder, is_single_run):
-    """
-    This function creates a logger in order to print in console as well as to save in .log file information
-    about the simulation. The level of detail displayed is the console is customisable using the is_single_run
-    parameter. If it is True, more information will be displayed (logging.INFO) than if it is False
-    (logging.WARNING only).
-
-    :param catchment: name of the catchment
-    :param outlet: European code of the catchment
-    :param prefix: prefix of the extension .log to specify what type of log file it is
-    :param output_folder: path of the output folder where to save the log file
-    :param is_single_run: boolean to determine if the logger is created is a single run session
-    :return: logger
-    :rtype: Logger
-    """
-    # # Logger levels: debug < info < warning < error < critical
-    if is_single_run:
-        logging.basicConfig(level=logging.INFO)
-    else:
-        logging.basicConfig(level=logging.WARNING)
-    logger = logging.getLogger("LoggerSingleRun")
-    # Create a file handler
-    if os.path.isfile('{}{}_{}.{}.log'.format(output_folder, catchment, outlet, prefix)):
-        os.remove('{}{}_{}.{}.log'.format(output_folder, catchment, outlet, prefix))
-    handler = logging.FileHandler('{}{}_{}.{}.log'.format(output_folder, catchment, outlet, prefix))
-    handler.setLevel(logging.DEBUG)
-    logger.addHandler(handler)
-    return logger
-
-
-def set_up_simulation(catchment, outlet, input_dir):
+def setup_simulation(catchment, outlet, input_dir):
     """
     This function generates the various inputs required to set up the simulation objects and files. It will first check
     if there is a .simulation file available in the input folder, and then check in the file if each required input is
@@ -243,7 +206,7 @@ def set_up_simulation(catchment, outlet, input_dir):
     try:
         datetime_start_data = datetime.datetime.strptime(question_start_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The data starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        raise Exception("The data starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
         question_end_data = my_answers_df.get_value('data_end_datetime', 'ANSWER')
     except KeyError:
@@ -251,7 +214,7 @@ def set_up_simulation(catchment, outlet, input_dir):
     try:
         datetime_end_data = datetime.datetime.strptime(question_end_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The data ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        raise Exception("The data ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
         question_start_simu = my_answers_df.get_value('simu_start_datetime', 'ANSWER')
     except KeyError:
@@ -259,7 +222,7 @@ def set_up_simulation(catchment, outlet, input_dir):
     try:
         datetime_start_simu = datetime.datetime.strptime(question_start_simu, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The simulation starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        raise Exception("The simulation starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
         question_end_simu = my_answers_df.get_value('simu_end_datetime', 'ANSWER')
     except KeyError:
@@ -267,7 +230,7 @@ def set_up_simulation(catchment, outlet, input_dir):
     try:
         datetime_end_simu = datetime.datetime.strptime(question_end_simu, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The simulation ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        raise Exception("The simulation ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
         question_data_time_step = my_answers_df.get_value('data_time_step_min', 'ANSWER')
     except KeyError:
@@ -275,7 +238,7 @@ def set_up_simulation(catchment, outlet, input_dir):
     try:
         data_time_step_in_min = float(int(question_data_time_step))
     except ValueError:
-        sys.exit("The data time step is invalid. [not an integer]")
+        raise Exception("The data time step is invalid. [not an integer]")
     try:
         question_simu_time_step = my_answers_df.get_value('simu_time_step_min', 'ANSWER')
     except KeyError:
@@ -283,18 +246,57 @@ def set_up_simulation(catchment, outlet, input_dir):
     try:
         simu_time_step_in_min = float(int(question_simu_time_step))
     except ValueError:
-        sys.exit("The simulation time step is invalid. [not an integer]")
+        raise Exception("The simulation time step is invalid. [not an integer]")
 
     # Check if temporal information is consistent
     if datetime_start_simu < datetime_start_data:
-        sys.exit("The simulation start is earlier than the data start.")
+        raise Exception("The simulation start is earlier than the data start.")
     if datetime_end_simu > datetime_end_data:
-        sys.exit("The simulation end is later than the data end.")
+        raise Exception("The simulation end is later than the data end.")
     if data_time_step_in_min % simu_time_step_in_min != 0.0:
-        sys.exit("The data time step is not a multiple of the simulation time step.")
+        raise Exception("The data time step is not a multiple of the simulation time step.")
 
     return data_time_step_in_min, datetime_start_data, datetime_end_data, \
         simu_time_step_in_min, datetime_start_simu, datetime_end_simu
+
+
+def setup_logger(catchment, outlet, prefix, output_folder, is_single_run):
+    """
+    This function creates a logger in order to print in console as well as to save in .log file information
+    about the simulation. The level of detail displayed is the console is customisable using the is_single_run
+    parameter. If it is True, more information will be displayed (logging.INFO) than if it is False
+    (logging.WARNING only).
+
+    :param catchment: name of the catchment
+    :param outlet: European code of the catchment
+    :param prefix: prefix of the extension .log to specify what type of log file it is
+    :param output_folder: path of the output folder where to save the log file
+    :param is_single_run: boolean to determine if the logger is created is a single run session
+    :return: logger
+    :rtype: Logger
+    """
+    # Create Logger [ levels: debug < info < warning < error < critical ]
+    logger = logging.getLogger("SingleRun")
+    logger.setLevel(logging.DEBUG)
+    # Create FileHandler
+    if os.path.isfile('{}{}_{}.{}.log'.format(output_folder, catchment, outlet, prefix)):  # del file if already exists
+        os.remove('{}{}_{}.{}.log'.format(output_folder, catchment, outlet, prefix))
+    f_handler = logging.FileHandler('{}{}_{}.{}.log'.format(output_folder, catchment, outlet, prefix))
+    f_handler.setLevel(logging.DEBUG)
+    # Create StreamHandler
+    s_handler = logging.StreamHandler()
+    if is_single_run:  # specify level of detail depending if it is used in a singleRun or multiRun session
+        s_handler.setLevel(logging.INFO)
+    else:
+        s_handler.setLevel(logging.WARNING)
+    # Create Formatter
+    formatter = logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                                  datefmt="%d/%m/%Y - %H:%M:%S")
+    # Apply Formatter and Handler
+    f_handler.setFormatter(formatter)
+    s_handler.setFormatter(formatter)
+    logger.addHandler(f_handler)
+    logger.addHandler(s_handler)
 
 
 def generate_models_for_links(my__network, specifications_folder, input_folder, output_folder):
@@ -331,8 +333,8 @@ def generate_models_for_links(my__network, specifications_folder, input_folder, 
             # For now, no direct rainfall on open water in model
             # need to be changed, but to do so, need remove lake polygon from sub-basin polygon)
         else:  # unknown (e.g. 21 would be a lake headwater)
-            sys.exit("Waterbody {}: {} is not a registered type of waterbody.".format(link,
-                                                                                      my__network.categories[link]))
+            raise Exception("Waterbody {}: {} is not a registered type of waterbody.".format(
+                link, my__network.categories[link]))
 
     return dict__ls_models
 
@@ -375,7 +377,7 @@ def generate_data_structures_for_links_and_nodes(my__network, my_simu_slice, dic
 
 def get_meteo_input_from_file(my__network, my__time_frame, my_data_slice, my_simu_slice,
                               datetime_start_data, datetime_end_data,
-                              input_folder, logger):
+                              input_folder):
     """
     This function generates a nested dictionary for each link and stores them in a single dictionary that is returned.
     Each nested dictionary has the dimension of the simulation time slice times the number of meteorological variables.
@@ -394,14 +396,13 @@ def get_meteo_input_from_file(my__network, my__time_frame, my_data_slice, my_sim
     :type datetime_end_data: Datetime.Datetime
     :param input_folder: path to the input folder where to find the meteorological files
     :type input_folder: str()
-    :param logger: reference to the logger to be used
-    :type logger: Logger
     :return: dictionary containing the nested dictionaries
         { key = link: value = nested_dictionary(index=datetime,column=meteo_variables) }
     :rtype: dict
     """
+    logger = logging.getLogger('SingleRun.main')
     # Read the meteorological input files
-    logger.info("{} # > Reading meteorological files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    logger.info("> Reading meteorological files.")
     dict__nd_meteo = dict()  # key: waterbody, value: data frame (x: time step, y: meteo data type)
     for link in my__network.links:
         dict__nd_meteo[link] = sF.get_nd_meteo_data_from_file(my__network.name, link, my__time_frame,
@@ -412,7 +413,7 @@ def get_meteo_input_from_file(my__network, my__time_frame, my_data_slice, my_sim
 
 
 def get_contaminant_input_from_file(my__network, my__time_frame, my_data_slice, my_simu_slice,
-                                    input_folder, specifications_folder, logger):
+                                    input_folder, specifications_folder):
     """
     This function generates a nested dictionary for each link and stores them in a single dictionary that is returned.
     Each nested dictionary has the dimension of the simulation time slice times the number of contaminant inputs.
@@ -429,14 +430,13 @@ def get_contaminant_input_from_file(my__network, my__time_frame, my_data_slice, 
     :type input_folder: str()
     :param specifications_folder: path to the specification folder where to find the distributions file
     :type specifications_folder: str()
-    :param logger: reference to the logger to be used
-    :type logger: Logger
     :return: dictionary containing the nested dictionaries
         { key = link: value = nested_dictionary(index=datetime,column=contaminant_inputs) }
     :rtype: dict
     """
+    logger = logging.getLogger('SingleRun.main')
     # Read the annual loadings file and the application files to distribute the loadings for each time step
-    logger.info("{} # > Reading loadings files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    logger.info("> Reading loadings files.")
     dict__nd_loadings = dict()
     dict_annual_loads = sF.get_nd_from_file('loadings', 'float', my__network, input_folder)
     dict_applications = sF.get_nd_from_file('applications', 'str', my__network, input_folder)
@@ -450,8 +450,7 @@ def get_contaminant_input_from_file(my__network, my__time_frame, my_data_slice, 
 
 
 def simulate(my__network, my__time_frame, my_simu_slice,
-             dict__nd_data, dict__ls_models, dict__nd_meteo, dict__nd_loadings,
-             logger):
+             dict__nd_data, dict__ls_models, dict__nd_meteo, dict__nd_loadings):
     """
     This function runs the simulations for a given catchment (defined by a Network object) and given time period
     (defined by the time slice). For each time step, it first runs the models associated with the links (defined as
@@ -478,12 +477,12 @@ def simulate(my__network, my__time_frame, my_simu_slice,
     :param dict__nd_loadings: dictionary containing the nested dictionaries for the links for contaminant inputs
         { key = link: value = nested_dictionary(index=datetime,column=contaminant_input) }
     :type dict__nd_loadings: dict
-    :param logger: reference to the logger to be used
-    :type logger: Logger
     :return: NOTHING, only updates the nested dictionaries for data
     """
-    logger.info("{} # > Simulating.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    logger = logging.getLogger('SingleRun.main')
+    logger.info("> Simulating.")
     my_dict_variables = dict()
+    logger_simu = logging.getLogger('SingleRun.simulate')
     for variable in my__network.variables:
         my_dict_variables[variable] = 0.0
     for step in my_simu_slice[1:]:  # ignore the index 0 because it is the initial conditions
@@ -493,7 +492,7 @@ def simulate(my__network, my__time_frame, my_simu_slice,
                 model.run(my__network, link, dict__nd_data,
                           dict__nd_meteo, dict__nd_loadings,
                           step, my__time_frame.step_simu,
-                          logger)
+                          logger_simu)
         # Sum up everything coming towards each node
         for node in my__network.nodes:
             # Sum up the flows
@@ -539,8 +538,7 @@ def simulate(my__network, my__time_frame, my_simu_slice,
 
 
 def create_simulation_files(my__network, dict__ls_models,
-                            catchment, output_folder,
-                            logger):
+                            catchment, output_folder):
     """
     This function creates a CSV file for each node and for each link and it adds the relevant headers for the
     inputs, the states, and the outputs.
@@ -554,11 +552,10 @@ def create_simulation_files(my__network, dict__ls_models,
     :type catchment: str()
     :param output_folder: path to the output folder where to save the simulation files
     :type output_folder: str()
-    :param logger: reference to the logger to be used
-    :type logger: Logger
     :return: NOTHING, only creates the files in the output folder
     """
-    logger.info("{} # Creating files for results.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    logger = logging.getLogger('SingleRun.main')
+    logger.info("Creating files for results.")
     # Create the CSV files with headers for the nodes (separating inputs, states, and outputs)
     for link in my__network.links:
         my_inputs = list()
@@ -591,8 +588,7 @@ def create_simulation_files(my__network, dict__ls_models,
 
 def update_simulation_files(my__network, my_list_datetime,
                             dict__nd_data, dict__ls_models,
-                            catchment, output_folder,
-                            logger):
+                            catchment, output_folder):
     """
     This function saves the simulated data into the CSV files for the nodes and the links.
 
@@ -610,12 +606,11 @@ def update_simulation_files(my__network, my_list_datetime,
     :type catchment: str()
     :param output_folder: path to the output folder where to save the simulation files
     :type output_folder: str()
-    :param logger: reference to the logger to be used
-    :type logger: Logger
     :return: NOTHING, only updates the files in the output folder
     """
+    logger = logging.getLogger('SingleRun.main')
     # Save the Nested Dicts for the links (separating inputs, states, and outputs)
-    logger.info("{} # > Updating results in files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    logger.info("> Updating results in files.")
     for link in my__network.links:
         my_inputs = list()
         my_states = list()

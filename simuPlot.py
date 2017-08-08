@@ -40,7 +40,7 @@ def main():
                                             simu_datetime_end.strftime("%Y%m%d"))
 
     # Create a logger
-    logger = sRS.get_logger(catchment, outlet, 'plot', output_folder)
+    logger = sRS.setup_logger(catchment, outlet, 'plot', output_folder)
 
     # Create a TimeFrame object
     my__time_frame = TimeFrame(data_datetime_start, data_datetime_end,

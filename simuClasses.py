@@ -1,5 +1,6 @@
 import csv
 import os
+from logging import getLogger
 import datetime
 import pandas
 from math import ceil
@@ -45,6 +46,7 @@ class Network:
         the links as well as the connections, and the links adding to the nodes and routed by the nodes.
         :return: dictionary containing nodes, links, connections, routing, and adding
         """
+        logger = getLogger('SingleRun.Network')
         try:
             with open(self.networkFile) as my_file:
                 my_reader = csv.DictReader(my_file)
@@ -67,6 +69,7 @@ class Network:
                     my_adding[my_connections[link][1]].append(link)
 
         except IOError:
+            logger.error("No link-node network file found for {}.".format(self.name))
             raise Exception("No link-node network file found for {}.".format(self.name))
 
         return {
@@ -83,6 +86,7 @@ class Network:
         (1 for river, 2 for lake) and the headwater status (1 if headwater, 0 if not) to create a 2-digit code.
         :return: dictionary {key: link, value: category as a 2-digit code}
         """
+        logger = getLogger('SingleRun.Network')
         try:
             with open(self.waterBodiesFile) as my_file:
                 my_reader = csv.DictReader(my_file)
@@ -91,6 +95,7 @@ class Network:
                     my_categories[row['WaterBody']] = row['WaterBodyTypeCode'] + row['HeadwaterStatus']
 
         except IOError:
+            logger.error("No waterbodies file found for {}.".format(self.name))
             raise Exception("No waterbodies file found for {}.".format(self.name))
 
         return my_categories
@@ -100,6 +105,7 @@ class Network:
         This method reads the catchment descriptors from the descriptors file.
         :return: nested dictionary {key: link, value: {key: descriptor_name, value: descriptor_value}}
         """
+        logger = getLogger('SingleRun.Network')
         try:
             with open(self.descriptorsFile) as my_file:
                 my_descriptors = dict()
@@ -116,9 +122,11 @@ class Network:
 
                 missing = [elem for elem in self.links if elem not in found]
                 if missing:
+                    logger.error("The following waterbodies are not in the descriptors file: {}.".format(missing))
                     raise Exception("The following waterbodies are not in the descriptors file: {}.".format(missing))
 
         except IOError:
+            logger.error("No descriptors file found for {}.".format(self.name))
             raise Exception("No descriptors file found for {}.".format(self.name))
 
         return my_descriptors
@@ -132,6 +140,7 @@ class Network:
         :param specs_type: name of the specification type
         :return: a list of the names of the variables for the given specification
         """
+        logger = getLogger('SingleRun.Network')
         my_list = list()
         try:
             with open(specs_folder + "SIMULATOR.spec") as my_file:
@@ -143,14 +152,19 @@ class Network:
                         my_string = row[1]
                         count += 1
                 if count == 0:
+                    logger.error("There is no {} specifications line in {}SIMULATOR.spec.".format(
+                        specs_type, specs_folder))
                     raise Exception("There is no {} specifications line in {}SIMULATOR.spec.".format(
                         specs_type, specs_folder))
                 elif count > 1:
+                    logger.error("There is more than one {} specifications line in {}SIMULATOR.spec.".format(
+                        specs_type, specs_folder))
                     raise Exception("There is more than one {} specifications line in {}SIMULATOR.spec.".format(
                         specs_type, specs_folder))
                 my_list.extend(my_string.split(";"))
 
         except IOError:
+            logger.error("There is no specifications file for SIMULATOR in {}.".format(specs_folder))
             raise Exception("There is no specifications file for SIMULATOR in {}.".format(specs_folder))
 
         return my_list
@@ -189,6 +203,7 @@ class Model:
         :param specs_type: name of the specification type
         :return: a list of the names of the variables for the given specification
         """
+        logger = getLogger('SingleRun.Model')
         components = self.identifier.split('_')
         my_list = list()
         for component in components:
@@ -202,15 +217,20 @@ class Model:
                             my_string = row[1]
                             count += 1
                     if count == 0:
+                        logger.error("There is no {} specifications line in {}{}.spec.".format(
+                            specs_type, specs_folder, component))
                         raise Exception("There is no {} specifications line in {}{}.spec.".format(
                             specs_type, specs_folder, component))
                     elif count > 1:
+                        logger.error("There is more than one {} specifications line in {}{}.".format(
+                            specs_type, specs_folder, component))
                         raise Exception("There is more than one {} specifications line in {}{}.".format(
                             specs_type, specs_folder, component))
                     if not my_string == '':
                         my_list.extend(my_string.split(";"))
 
             except IOError:
+                logger.error("There is no specifications file for {} in {}.".format(component, specs_folder))
                 raise Exception("There is no specifications file for {} in {}.".format(component, specs_folder))
 
         return my_list
@@ -225,6 +245,7 @@ class Model:
         :return: dictionary containing the constants names and values
             {key: constant_name, value: constant_value}
         """
+        logger = getLogger('SingleRun.Model')
         specs_type = "constants"
         components = self.identifier.split('_')
         my_list = list()
@@ -240,15 +261,20 @@ class Model:
                             my_string = row[1]
                             count += 1
                     if count == 0:
+                        logger.error("There is no {} specifications line in {}{}.spec.".format(
+                            specs_type, specs_folder, component))
                         raise Exception("There is no {} specifications line in {}{}.spec.".format(
                             specs_type, specs_folder, component))
                     elif count > 1:
+                        logger.error("There is no {} specifications line in {}{}.spec.".format(
+                            specs_type, specs_folder, component))
                         raise Exception("There is more than one {} specifications line in {}{}.".format(
                             specs_type, specs_folder, component))
                     if not my_string == '':
                         my_list.extend(my_string.split(";"))
 
             except IOError:
+                logger.error("There is no specifications file for {} in {}.".format(component, specs_folder))
                 raise Exception("There is no specifications file for {} in {}.".format(component, specs_folder))
 
             if my_list:
@@ -259,10 +285,13 @@ class Model:
                         try:
                             my_dict[name] = float(my_df.get_value(name, 'value'))
                         except KeyError:
+                            logger.error("The {} {} is not available for {}.".format(
+                                specs_type[:-1], name, component))
                             raise Exception("The {} {} is not available for {}.".format(
                                 specs_type[:-1], name, component))
 
                 except IOError:
+                    logger.error("{}{}.{} does not exist.".format(specs_folder, component, specs_type))
                     raise Exception("{}{}.{} does not exist.".format(specs_folder, component, specs_type))
 
         return my_dict
@@ -282,6 +311,7 @@ class Model:
         :return: dictionary containing the constants names and values
             {key: parameter_name, value: parameter_value}
         """
+        logger = getLogger('SingleRun.Model')
         specs_type = "parameters"
         components = self.identifier.split('_')
         my_list = list()
@@ -297,15 +327,20 @@ class Model:
                             my_string = row[1]
                             count += 1
                     if count == 0:
+                        logger.error("There is no {} specifications line in {}{}.spec.".format(
+                            specs_type, specs_folder, component))
                         raise Exception("There is no {} specifications line in {}{}.spec.".format(
                             specs_type, specs_folder, component))
                     elif count > 1:
+                        logger.error("There is more than one {} specifications line in {}{}.".format(
+                            specs_type, specs_folder, component))
                         raise Exception("There is more than one {} specifications line in {}{}.".format(
                             specs_type, specs_folder, component))
                     if not my_string == '':
                         my_list.extend(my_string.split(";"))
 
             except IOError:
+                logger.error("There is no specifications file for {} in {}.".format(component, specs_folder))
                 raise Exception("There is no specifications file for {} in {}.".format(component, specs_folder))
 
             if my_list:
@@ -317,6 +352,8 @@ class Model:
                         try:
                             dict_for_file[name] = float(my_df.get_value(self.link, name))
                         except KeyError:
+                            logger.error("The {} {} {} is not available for {}.".format(
+                                component, specs_type[:-1], name, self.link))
                             raise Exception("The {} {} {} is not available for {}.".format(
                                 component, specs_type[:-1], name, self.link))
                 except IOError:
@@ -346,7 +383,8 @@ class Model:
 
     def run(self, obj_network, waterbody, dict_nd_data,
             dict_nd_meteo, dict_nd_loadings,
-            datetime_time_step, time_gap, logger):
+            datetime_time_step, time_gap,
+            logger):
         """
         This method runs the Model simulations for one time step.
 
@@ -360,10 +398,11 @@ class Model:
         :type dict_nd_meteo: dict
         :param dict_nd_loadings: dictionary containing the nested dictionaries for the links for contaminant inputs
             { key = link: value = nested_dictionary(index=datetime,column=contaminant_input) }
-        :param datetime_time_step:
+        :param datetime_time_step: DateTime of the time step to be simulated
+        :type datetime_time_step: datetime.datetime
         :param time_gap: duration of the gap between two simulation time steps
-        :param time_gap: float
-        :param logger: reference to the logger to be used
+        :type time_gap: float
+        :param logger: reference to the logger to be used to inform on simulation
         :type logger: Logger
         :return: NOTHING
         """

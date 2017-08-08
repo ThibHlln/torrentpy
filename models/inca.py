@@ -311,9 +311,9 @@ def run_on_land(waterbody, dict_data_frame,
             m_mobilised = (dict_flows_mm_hd[store] / 1e3 * area_m2) * dict_states_wq['soil'][contaminant] * mobilisation
             m_store = m_store_att + m_mobilised - dict_outputs_hd[store] * time_step_sec * c_store
             if (m_store < 0.0) or (dict_states_hd[store] < volume_tolerance):
-                logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"), ' - ',
-                                      contaminant.upper(), ' Quantity in ',
-                                      store.upper(), ' Store has gone negative, quantity reset to zero']))
+                logger.debug(''.join(['INCAL # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+                                      ' - ', contaminant.upper(), ' Quantity in ', store.upper(),
+                                      ' Store has gone negative, quantity reset to zero']))
                 dict_states_wq[store][contaminant] = 0.0
             else:
                 dict_states_wq[store][contaminant] = m_store / dict_states_hd[store]
@@ -344,9 +344,9 @@ def run_on_land(waterbody, dict_data_frame,
             m_store = \
                 m_store_att + m_sediment - dict_outputs_hd[store] * time_step_sec * dict_c_outflow[store][contaminant]
             if (m_store < 0.0) or (dict_states_hd[store] < volume_tolerance):
-                logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"), ' - ',
-                                      contaminant.upper(), ' Quantity in ',
-                                      store.upper(), ' Store has gone negative, quantity reset to zero']))
+                logger.debug(''.join(['INCAL # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+                                      ' - ', contaminant.upper(), ' Quantity in ', store.upper(),
+                                      ' Store has gone negative, quantity reset to zero']))
                 dict_states_wq[store][contaminant] = 0.0
             else:
                 dict_states_wq[store][contaminant] = m_store / dict_states_hd[store]
@@ -395,9 +395,9 @@ def run_on_land(waterbody, dict_data_frame,
         m_store = \
             m_store_att + m_particulate_p - dict_outputs_hd[store] * time_step_sec * dict_c_outflow[store][contaminant]
         if (m_store < 0.0) or (dict_states_hd[store] < volume_tolerance):
-            logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"), ' - ',
-                                  contaminant.upper(), ' Quantity in ',
-                                  store.upper(), ' Store has gone negative, quantity reset to zero']))
+            logger.debug(''.join(['INCAL # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"), ' - ',
+                                  contaminant.upper(), ' Quantity in ', store.upper(),
+                                  ' Store has gone negative, quantity reset to zero']))
             dict_states_wq[store][contaminant] = 0.0
         else:
             dict_states_wq[store][contaminant] = m_store / dict_states_hd[store]
@@ -421,9 +421,9 @@ def run_on_land(waterbody, dict_data_frame,
             m_mobilised = (dict_flows_mm_hd[store] / 1e3 * area_m2) * dict_states_wq['soil'][contaminant] * mobilisation
             m_store = m_store_att + m_mobilised - dict_outputs_hd[store] * time_step_sec * c_store
             if (m_store < 0.0) or (dict_states_hd[store] < volume_tolerance):
-                logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"), ' - ',
-                                      contaminant.upper(), ' Quantity in ',
-                                      store.upper(), ' Store has gone negative, quantity reset to zero']))
+                logger.debug(''.join(['INCAL # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+                                      ' - ', contaminant.upper(), ' Quantity in ', store.upper(),
+                                      ' Store has gone negative, quantity reset to zero']))
                 dict_states_wq[store][contaminant] = 0.0
             else:
                 dict_states_wq[store][contaminant] = m_store / dict_states_hd[store]
@@ -461,7 +461,7 @@ def run_on_land(waterbody, dict_data_frame,
     m_soil = dict_states_wq['soil']['no3'] * (lvl_total_start / 1e3 * area_m2)  # mass in soil at beginning of time step
     m_soil_new = m_soil * attenuation + ni * time_factor + dict_mass_applied['no3'] - dict_m_mobilised['no3']
     if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area_m2) < volume_tolerance):
-        logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+        logger.debug(''.join(['INCAL # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
                               ' - NO3 Quantity in SOIL Store has gone negative, quantity reset to zero.']))
         dict_states_wq['soil']['no3'] = 0.0
     else:
@@ -486,7 +486,7 @@ def run_on_land(waterbody, dict_data_frame,
     m_soil = dict_states_wq['soil']['nh4'] * (lvl_total_start / 1e3 * area_m2)
     m_soil_new = m_soil * attenuation + dict_mass_applied['nh4'] - (mi + ni) * time_factor - dict_m_mobilised['nh4']
     if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area_m2) < volume_tolerance):
-        logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+        logger.debug(''.join(['INCAL # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
                               ' - NH4 Quantity in SOIL Store has gone negative, quantity reset to zero.']))
         dict_states_wq['soil']['nh4'] = 0.0
     else:
@@ -515,7 +515,7 @@ def run_on_land(waterbody, dict_data_frame,
     # assumed that all p_ino applied is in the readily available form
     # assumed that half of the dph mobilised from soil is inorganic
     if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area_m2) < volume_tolerance):
-        logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+        logger.debug(''.join(['INCAL # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
                               ' - P_INO_RA Quantity in SOIL Store has gone negative, quantity reset to zero.']))
         dict_states_wq['soil']['p_ino_ra'] = 0.0
     else:
@@ -534,7 +534,7 @@ def run_on_land(waterbody, dict_data_frame,
         (conversion_p_ino_ra_into_fb - conversion_p_ino_fb_into_ra) * time_factor
     # assumed that half of the pph mobilised from soil is inorganic
     if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area_m2) < volume_tolerance):
-        logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+        logger.debug(''.join(['INCAL # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
                               ' - P_INO_FB Quantity in SOIL Store has gone negative, quantity reset to zero.']))
         dict_states_wq['soil']['p_ino_fb'] = 0.0
     else:
@@ -559,7 +559,7 @@ def run_on_land(waterbody, dict_data_frame,
     # assumed that all p_org applied is in the readily available form
     # assumed that half of the dph mobilised from soil is organic
     if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area_m2) < volume_tolerance):
-        logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+        logger.debug(''.join(['INCAL # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
                               ' - P_ORG_RA Quantity in SOIL Store has gone negative, quantity reset to zero.']))
         dict_states_wq['soil']['p_org_ra'] = 0.0
     else:
@@ -578,7 +578,7 @@ def run_on_land(waterbody, dict_data_frame,
         (conversion_p_org_ra_into_fb - conversion_p_org_fb_into_ra) * time_factor
     # assumed that half of the pph mobilised from soil is organic
     if (m_soil_new < 0.0) or ((lvl_total_end / 1e3 * area_m2) < volume_tolerance):
-        logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+        logger.debug(''.join(['INCAL # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
                               ' - P_ORG_FB Quantity in SOIL Store has gone negative, quantity reset to zero.']))
         dict_states_wq['soil']['p_org_fb'] = 0.0
     else:
@@ -691,7 +691,7 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
 
     # check if inflow negligible, if so set all concentrations to zero
     if r_in_q_h2o < flow_tolerance:
-        logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+        logger.debug(''.join(['INCAS # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
                               ' - Inflow to River Store too low, inflow concentrations set to zero.']))
         r_in_c_no3 = 0.0
         r_in_c_nh4 = 0.0
@@ -700,7 +700,7 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
         r_in_c_sed = 0.0
     # check if storage negligible, if so set all quantities to zero, all out concentrations to zero
     if r_s_v_h2o_old < volume_tolerance:
-        logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+        logger.debug(''.join(['INCAS # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
                               ' - Volume in River Store too low, in-store contaminant quantities '
                               'and outflow concentrations set to zero.']))
         r_s_m_no3 = 0.0
@@ -739,14 +739,14 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
         r_s_m_no3 = r_s_m_no3_old + rni - rdn + \
             ((r_in_c_no3 * r_in_q_h2o) - (concentration_no3 * r_out_q_h2o)) * time_step_sec
         if r_s_m_no3 < 0.0:
-            logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+            logger.debug(''.join(['INCAS # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
                                   ' - NO3 Quantity has gone negative in River Store, quantity reset to zero.']))
             r_s_m_no3 = 0.0
         # calculate outflow concentration
         if (r_s_v_h2o > volume_tolerance) and (r_out_q_h2o > flow_tolerance):
             r_out_c_no3 = r_s_m_no3 / r_s_v_h2o
         else:
-            logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+            logger.debug(''.join(['INCAS # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
                                   " - Volume/Flow in River Store too low, outflow NO3 concentration set to zero."]))
             r_out_c_no3 = 0.0
 
@@ -763,7 +763,7 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
         if (r_s_v_h2o > volume_tolerance) and (r_out_q_h2o > flow_tolerance):
             r_out_c_nh4 = r_s_m_nh4 / r_s_v_h2o
         else:
-            logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+            logger.debug(''.join(['INCAS # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
                                   " - Volume/Flow in River Store too low, outflow NH4 concentration set to zero."]))
             r_out_c_nh4 = 0.0
 
@@ -781,7 +781,7 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
         if (r_s_v_h2o > volume_tolerance) and (r_out_q_h2o > flow_tolerance):
             r_out_c_dph = r_s_m_dph / r_s_v_h2o
         else:
-            logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+            logger.debug(''.join(['INCAS # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
                                   " - Volume/Flow in River Store too low, outflow DPH concentration set to zero."]))
             r_out_c_dph = 0.0
 
@@ -799,7 +799,7 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
         if (r_s_v_h2o > volume_tolerance) and (r_out_q_h2o > flow_tolerance):
             r_out_c_pph = r_s_m_pph / r_s_v_h2o
         else:
-            logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+            logger.debug(''.join(['INCAS # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
                                   " - Volume/Flow in River Store too low, outflow PPH concentration set to zero."]))
             r_out_c_pph = 0.0
 
@@ -817,7 +817,7 @@ def run_in_stream(obj_network, waterbody, dict_data_frame,
         if (r_s_v_h2o > volume_tolerance) and (r_out_q_h2o > flow_tolerance):
             r_out_c_sed = r_s_m_sed / r_s_v_h2o
         else:
-            logger.debug(''.join([waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+            logger.debug(''.join(['INCAS # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
                                   " - Volume/Flow in River Store too low, outflow SED concentration set to zero."]))
             r_out_c_sed = 0.0
 

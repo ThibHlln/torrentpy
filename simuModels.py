@@ -1,5 +1,3 @@
-
-
 from models import smart, linres, inca
 
 
@@ -52,7 +50,6 @@ def river_model(identifier, obj_network, waterbody, dict_data_frame,
 
 def lake_model(identifier, waterbody, dict_data_frame,
                dict_desc, dict_param, dict_meteo,
-               datetime_time_step, time_gap,
-               logger):
+               datetime_time_step, time_gap, logger):
     logger.warning("No lake model available, {} not modelled.".format(waterbody))
     # TO BE DEVELOPED
