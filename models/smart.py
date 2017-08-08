@@ -192,7 +192,8 @@ def run(waterbody, dict_data_frame,
     c_s_v_h2o_ove += (overland_flow / 1e3 * area_m2) - (c_out_q_h2o_ove * time_step_sec)  # [m3] - [m3]
     if c_s_v_h2o_ove < 0.0:
         logger.debug(''.join([
-            waterbody, ': ', datetime_time_step, ' - Volume in OVE Store has gone negative, volume reset to zero.']))
+            waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+            ' - Volume in OVE Store has gone negative, volume reset to zero.']))
         c_s_v_h2o_ove = 0.0
     # route drain flow
     c_out_q_h2o_dra = c_s_v_h2o_dra / c_p_sk  # [m3/s]
@@ -200,7 +201,8 @@ def run(waterbody, dict_data_frame,
     c_s_v_h2o_dra += (drain_flow / 1e3 * area_m2) - (c_out_q_h2o_dra * time_step_sec)  # [m3] - [m3]
     if c_s_v_h2o_dra < 0.0:
         logger.debug(''.join([
-            waterbody, ': ', datetime_time_step, ' - Volume in DRA Store has gone negative, volume reset to zero.']))
+            waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+            ' - Volume in DRA Store has gone negative, volume reset to zero.']))
         c_s_v_h2o_dra = 0.0
     # route interflow
     c_out_q_h2o_int = c_s_v_h2o_int / c_p_fk  # [m3/s]
@@ -208,7 +210,8 @@ def run(waterbody, dict_data_frame,
     c_s_v_h2o_int += (inter_flow / 1e3 * area_m2) - (c_out_q_h2o_int * time_step_sec)  # [m3] - [m3]
     if c_s_v_h2o_int < 0.0:
         logger.debug(''.join([
-            waterbody, ': ', datetime_time_step, ' - Volume in INT Store has gone negative, volume reset to zero.']))
+            waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+            ' - Volume in INT Store has gone negative, volume reset to zero.']))
         c_s_v_h2o_int = 0.0
     # route shallow groundwater flow
     c_out_q_h2o_sgw = c_s_v_h2o_sgw / c_p_gk  # [m3/s]
@@ -216,7 +219,8 @@ def run(waterbody, dict_data_frame,
     c_s_v_h2o_sgw += (shallow_flow / 1e3 * area_m2) - (c_out_q_h2o_sgw * time_step_sec)  # [m3] - [m3]
     if c_s_v_h2o_sgw < 0.0:
         logger.debug(''.join([
-            waterbody, ': ', datetime_time_step, ' - Volume in SGW Store has gone negative, volume reset to zero.']))
+            waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+            ' - Volume in SGW Store has gone negative, volume reset to zero.']))
         c_s_v_h2o_sgw = 0.0
     # route deep groundwater flow
     c_out_q_h2o_dgw = c_s_v_h2o_dgw / c_p_gk  # [m3/s]
@@ -224,7 +228,8 @@ def run(waterbody, dict_data_frame,
     c_s_v_h2o_dgw += (deep_flow / 1e3 * area_m2) - (c_out_q_h2o_dgw * time_step_sec)  # [m3] - [m3]
     if c_s_v_h2o_dgw < 0.0:
         logger.debug(''.join([
-            waterbody, ': ', datetime_time_step, ' - Volume in DGW Store has gone negative, volume reset to zero.']))
+            waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
+            ' - Volume in DGW Store has gone negative, volume reset to zero.']))
         c_s_v_h2o_dgw = 0.0
     # calculate total outflow
     c_out_q_h2o = c_out_q_h2o_ove + c_out_q_h2o_dra + c_out_q_h2o_int + c_out_q_h2o_sgw + c_out_q_h2o_dgw  # [m3/s]
