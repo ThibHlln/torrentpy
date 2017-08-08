@@ -18,7 +18,7 @@ def catchment_model(identifier, waterbody, dict_data_frame,
                          dict_desc, dict_param, dict_const, dict_meteo, dict_loads,
                          datetime_time_step, time_gap,
                          logger,
-                         'SMART', my_dict_hydro)
+                         my_dict_hydro)
     elif identifier == "SMART":
         smart.run(waterbody, dict_data_frame,
                   dict_desc, dict_param, dict_meteo,

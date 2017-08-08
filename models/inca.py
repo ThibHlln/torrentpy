@@ -7,7 +7,7 @@ def run_on_land(waterbody, dict_data_frame,
                 dict_desc, dict_param, dict_const, dict_meteo, dict_loads,
                 datetime_time_step, time_gap,
                 logger,
-                hydro_model_name, my_dict_hydro):
+                my_dict_hydro):
     """
     Catchment model * c_ *
     _ Water Quality
