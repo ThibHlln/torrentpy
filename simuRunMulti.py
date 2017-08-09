@@ -62,7 +62,7 @@ def single_run(catchment, outlet, slice_up, warm_up, log_file):
     except Exception as e:
         mp_logger.error('Exception for arguments ({}, {}, {}, {})'.format(catchment, outlet, slice_up, warm_up))
         logger.error('Exception for arguments ({}, {}, {}, {})'.format(catchment, outlet, slice_up, warm_up))
-        # logger.exception(e)
+        logger.exception(e)
         raise e
 
 
@@ -88,6 +88,8 @@ if __name__ == '__main__':
 
     cores = cpu_count()
     pool = Pool(processes=cores, maxtasksperchild=1)
+    # 'processes' is the number of simultaneous runs (children) allowed (maximum = number of processors available)
+    # 'maxtasksperchild' is set to 1 to kill each child after task completion to make sure to clean memory properly
 
     arguments = get_arguments_from_batch_file(my_batch_file, my_log_file)
 
