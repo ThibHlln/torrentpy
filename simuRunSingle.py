@@ -69,6 +69,12 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
     my_last_lines = dict()
     if not warm_up_in_days == 0.0:  # Warm-up run required
         logger.info("Determining initial conditions.")
+        # Get meteo input data
+        dict__nd_meteo = get_meteo_input_from_file(my__network, my__time_frame_warm_up,
+                                                   my__time_frame_warm_up.series_data,
+                                                   my__time_frame_warm_up.series_simu,
+                                                   data_datetime_start, data_datetime_end,
+                                                   input_folder)
         # Initialise dicts to link time slices together (use last time step of one as first for the other)
         for link in my__network.links:
             my_last_lines[link] = dict()
@@ -90,11 +96,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
             for node in my__network.nodes:
                 dict__nd_data[node][my_simu_slice[0]].update(my_last_lines[node])
 
-            # Get input data
-            dict__nd_meteo = get_meteo_input_from_file(my__network, my__time_frame_warm_up,
-                                                       my_data_slice, my_simu_slice,
-                                                       data_datetime_start, data_datetime_end,
-                                                       input_folder)
+            # Get other input data
             dict__nd_loadings = get_contaminant_input_from_file(my__network, my__time_frame_warm_up,
                                                                 my_data_slice, my_simu_slice,
                                                                 input_folder, spec_directory)
@@ -111,7 +113,6 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
 
             # Garbage collection
             del dict__nd_data
-            del dict__nd_meteo
             del dict__nd_loadings
     else:  # Warm-up run not required
         # Initialise dicts to link time slices together (use last time step of one as first for the other)
@@ -122,6 +123,11 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
 
     # Simulate (run slice by slice)
     logger.info("Starting the simulation.")
+    # Get meteo input data
+    dict__nd_meteo = get_meteo_input_from_file(my__network, my__time_frame,
+                                               my__time_frame.series_data, my__time_frame.series_simu,
+                                               data_datetime_start, data_datetime_end,
+                                               input_folder)
     for my_simu_slice, my_data_slice in izip(my__time_frame.slices_simu,
                                              my__time_frame.slices_data):
 
@@ -138,11 +144,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
         for node in my__network.nodes:
             dict__nd_data[node][my_simu_slice[0]].update(my_last_lines[node])
 
-        # Get input data
-        dict__nd_meteo = get_meteo_input_from_file(my__network, my__time_frame,
-                                                   my_data_slice, my_simu_slice,
-                                                   data_datetime_start, data_datetime_end,
-                                                   input_folder)
+        # Get other input data
         dict__nd_loadings = get_contaminant_input_from_file(my__network, my__time_frame,
                                                             my_data_slice, my_simu_slice,
                                                             input_folder, spec_directory)
@@ -163,7 +165,6 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
 
         # Garbage collection
         del dict__nd_data
-        del dict__nd_meteo
         del dict__nd_loadings
 
     # Generate gauged flow file in output folder (could be identical to input file if date ranges identical)
