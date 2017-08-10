@@ -108,6 +108,11 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
                 my_last_lines[link].update(dict__nd_data[link][my_simu_slice[-1]])
             for node in my__network.nodes:
                 my_last_lines[node].update(dict__nd_data[node][my_simu_slice[-1]])
+
+            # Garbage collection
+            del dict__nd_data
+            del dict__nd_meteo
+            del dict__nd_loadings
     else:  # Warm-up run not required
         # Initialise dicts to link time slices together (use last time step of one as first for the other)
         for link in my__network.links:
@@ -155,6 +160,11 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
             my_last_lines[link].update(dict__nd_data[link][my_simu_slice[-1]])
         for node in my__network.nodes:
             my_last_lines[node].update(dict__nd_data[node][my_simu_slice[-1]])
+
+        # Garbage collection
+        del dict__nd_data
+        del dict__nd_meteo
+        del dict__nd_loadings
 
     # Generate gauged flow file in output folder (could be identical to input file if date ranges identical)
     sF.get_df_flow_data_from_file(

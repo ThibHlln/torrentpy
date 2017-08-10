@@ -67,6 +67,8 @@ def get_nd_meteo_data_from_file(catchment, link, my_tf, series_data, series_simu
             raise Exception("{}{}_{}_{}_{}.{} does not exist.".format(
                 in_folder, catchment, link, my_start, my_end, meteo_type))
 
+        del my_meteo_df
+
     return my_dbl_dict
 
 
