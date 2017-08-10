@@ -25,7 +25,7 @@ def main():
 
     # Check if combination catchment/outlet is coherent by using the name of the input folder
     if not os.path.exists("{}{}_{}".format(input_directory, catchment, outlet)):
-        sys.exit("The combination [ {} - {} ] is incorrect.".format(catchment, outlet))
+        raise Exception("The combination [ {} - {} ] is incorrect.".format(catchment, outlet))
 
     # Set up the plotting session (either with .simulation file or through the console)
     data_datetime_start, data_datetime_end, data_time_step_in_min, \
@@ -71,7 +71,7 @@ def set_up_plotting(catchment, outlet, input_dir):
     try:
         datetime_start_data = datetime.datetime.strptime(question_start_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The data starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        raise Exception("The data starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
         question_end_data = my_answers_df.get_value('data_end_datetime', 'ANSWER')
     except KeyError:
@@ -79,7 +79,7 @@ def set_up_plotting(catchment, outlet, input_dir):
     try:
         datetime_end_data = datetime.datetime.strptime(question_end_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The data ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        raise Exception("The data ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
         question_data_time_step = my_answers_df.get_value('data_time_step_min', 'ANSWER')
     except KeyError:
@@ -87,7 +87,7 @@ def set_up_plotting(catchment, outlet, input_dir):
     try:
         data_time_step_in_min = float(int(question_data_time_step))
     except ValueError:
-        sys.exit("The data time step is invalid. [not an integer]")
+        raise Exception("The data time step is invalid. [not an integer]")
     try:
         question_start_simu = my_answers_df.get_value('simu_start_datetime', 'ANSWER')
     except KeyError:
@@ -95,7 +95,7 @@ def set_up_plotting(catchment, outlet, input_dir):
     try:
         datetime_start_simu = datetime.datetime.strptime(question_start_simu, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The simulation starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        raise Exception("The simulation starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
         question_end_simu = my_answers_df.get_value('simu_end_datetime', 'ANSWER')
     except KeyError:
@@ -103,7 +103,7 @@ def set_up_plotting(catchment, outlet, input_dir):
     try:
         datetime_end_simu = datetime.datetime.strptime(question_end_simu, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The simulation ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        raise Exception("The simulation ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
         question_simu_time_step = my_answers_df.get_value('simu_time_step_min', 'ANSWER')
     except KeyError:
@@ -111,7 +111,7 @@ def set_up_plotting(catchment, outlet, input_dir):
     try:
         simu_time_step_in_min = float(int(question_simu_time_step))
     except ValueError:
-        sys.exit("The simulation time step is invalid. [not an integer]")
+        raise Exception("The simulation time step is invalid. [not an integer]")
     try:
         question_start_plot = my_answers_df.get_value('plot_start_datetime', 'ANSWER')
     except KeyError:
@@ -119,7 +119,7 @@ def set_up_plotting(catchment, outlet, input_dir):
     try:
         datetime_start_plot = datetime.datetime.strptime(question_start_plot, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The plot starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        raise Exception("The plot starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
         question_end_plot = my_answers_df.get_value('plot_end_datetime', 'ANSWER')
     except ValueError:
@@ -127,7 +127,7 @@ def set_up_plotting(catchment, outlet, input_dir):
     try:
         datetime_end_plot = datetime.datetime.strptime(question_end_plot, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        sys.exit("The plot ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        raise Exception("The plot ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     return datetime_start_data, datetime_end_data, data_time_step_in_min, \
         datetime_start_simu, datetime_end_simu, simu_time_step_in_min, \
@@ -157,9 +157,8 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
                                                                        dt_end_data.strftime("%Y%m%d")),
                                            index_col=0)
         except IOError:
-            sys.exit("No rainfall file for {}_{}_{}_{} in {}.".format(catchment, link,
-                                                                      dt_start_data.strftime("%Y%m%d"),
-                                                                      dt_end_data.strftime("%Y%m%d"), in_folder))
+            raise Exception("No rainfall file for {}_{}_{}_{} in {}.".format(
+                catchment, link, dt_start_data.strftime("%Y%m%d"), dt_end_data.strftime("%Y%m%d"), in_folder))
         my_rain_mm = np.c_[my_rain_mm, np.asarray(my_df_inputs['RAIN'].loc[my_time_st].tolist())]
 
         my_area_m2 = np.r_[my_area_m2, np.array([[my_dict_desc[link]['area']]])]
@@ -198,13 +197,13 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
         start_diff = dt_start_plot - dt_start_data
         index_start = start_diff.days
     else:
-        sys.exit("The start date for plotting is out of bound.")
+        raise Exception("The start date for plotting is out of bound.")
 
     if dt_end_plot <= dt_end_data:
         end_diff = dt_end_data - dt_end_plot
         index_end = - (1 + end_diff.days)
     else:
-        sys.exit("The end date for plotting is out of bound.")
+        raise Exception("The end date for plotting is out of bound.")
 
     # __________________ Hyetograph __________________
 
