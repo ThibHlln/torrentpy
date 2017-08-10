@@ -40,13 +40,12 @@ def get_nd_meteo_data_from_file(catchment, link, my_tf, series_data, series_simu
 
     for meteo_type in my_meteo_data_types:
         try:
-            my_meteo_df = pandas.read_csv("{}{}_{}_{}_{}.{}".format(in_folder, catchment,
-                                                                    link, my_start, my_end, meteo_type),
-                                          index_col=0)
+            my_meteo_nd = read_csv("{}{}_{}_{}_{}.{}".format(in_folder, catchment, link, my_start, my_end, meteo_type),
+                                   var_type=str, ind_type=str, col4index='DATETIME')
 
             for my_dt_data in series_data[1:]:  # ignore first value which is for the initial conditions
                 try:
-                    my_value = my_meteo_df.get_value(my_dt_data.strftime("%Y-%m-%d %H:%M:%S"), meteo_type.upper())
+                    my_value = my_meteo_nd[my_dt_data.strftime("%Y-%m-%d %H:%M:%S")][meteo_type.upper()]
                     my_portion = float(my_value) / divisor
                 except KeyError:  # could only be raised for .get_value(), when index or column does not exist
                     raise Exception("{}{}_{}_{}_{}.{} does not contain any value for {}.".format(
@@ -67,7 +66,7 @@ def get_nd_meteo_data_from_file(catchment, link, my_tf, series_data, series_simu
             raise Exception("{}{}_{}_{}_{}.{} does not exist.".format(
                 in_folder, catchment, link, my_start, my_end, meteo_type))
 
-        del my_meteo_df
+        del my_meteo_nd
 
     return my_dbl_dict
 
