@@ -278,12 +278,12 @@ def setup_logger(catchment, outlet, prefix, output_folder, is_single_run):
     """
     # Create Logger [ levels: debug < info < warning < error < critical ]
     logger = logging.getLogger("SingleRun")
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
     # Create FileHandler
     if os.path.isfile('{}{}_{}.{}.log'.format(output_folder, catchment, outlet, prefix)):  # del file if already exists
         os.remove('{}{}_{}.{}.log'.format(output_folder, catchment, outlet, prefix))
     f_handler = logging.FileHandler('{}{}_{}.{}.log'.format(output_folder, catchment, outlet, prefix))
-    f_handler.setLevel(logging.DEBUG)
+    f_handler.setLevel(logging.INFO)
     # Create StreamHandler
     s_handler = logging.StreamHandler()
     if is_single_run:  # specify level of detail depending if it is used in a singleRun or multiRun session
