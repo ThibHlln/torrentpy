@@ -38,7 +38,8 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
     setup_logger(catchment, outlet, 'simu', output_folder, is_single_run)
     logger = logging.getLogger('SingleRun.main')
 
-    logger.warning("Starting simulation for {} {}.".format(catchment, outlet))
+    logger.warning("Starting simulation for {} {} [Slice-Up: {}, Warm-Up: {}].".format(catchment, outlet,
+                                                                                       slice_length, warm_up_in_days))
 
     logger.info("Initialising.")
 
@@ -356,6 +357,8 @@ def generate_data_structures_for_links_and_nodes(my__network, my_simu_slice, dic
         { key = link: value = nested_dictionary(index=datetime,column=model_variables) }
     :rtype: dict
     """
+    logger = logging.getLogger('SingleRun.main')
+    logger.info("> Generating data structures.")
     dict__nd_data = dict()  # key: waterbody, value: data frame (x: time step, y: data type)
     # Create NestedDicts for the nodes
     for node in my__network.nodes:
@@ -438,8 +441,8 @@ def get_contaminant_input_from_file(my__network, my__time_frame, my_data_slice, 
     # Read the annual loadings file and the application files to distribute the loadings for each time step
     logger.info("> Reading loadings files.")
     dict__nd_loadings = dict()
-    dict_annual_loads = sF.get_nd_from_file('loadings', 'float', my__network, input_folder)
-    dict_applications = sF.get_nd_from_file('applications', 'str', my__network, input_folder)
+    dict_annual_loads = sF.get_nd_from_file(my__network, input_folder, extension='loadings', var_type=float)
+    dict_applications = sF.get_nd_from_file(my__network, input_folder, extension='applications', var_type=str)
     nd_distributions = sF.get_nd_distributions_from_file(specifications_folder)
     for link in my__network.links:
         dict__nd_loadings[link] = sFn.distribute_loadings_across_year(dict_annual_loads, dict_applications,

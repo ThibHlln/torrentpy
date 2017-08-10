@@ -149,7 +149,7 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     my_rain_mm = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
     my_area_m2 = np.empty(shape=(0, 1), dtype=np.float64)
 
-    my_dict_desc = sF.get_nd_from_file('descriptors', 'float', my__network, in_folder)
+    my_dict_desc = sF.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
     for link in my__network.links:
         try:
             my_df_inputs = pandas.read_csv("{}{}_{}_{}_{}.rain".format(in_folder, catchment, link,

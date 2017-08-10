@@ -4,6 +4,28 @@ import pandas
 import csv
 
 
+def read_csv(csv_file, var_type, ind_type, col4index):
+    try:
+        with open(csv_file, 'rb') as my_file:
+            my_nd_variables = dict()
+            my_reader = csv.DictReader(my_file)
+            fields = my_reader.fieldnames[:]
+            try:
+                fields.remove(col4index)
+            except KeyError:
+                raise Exception('Field {} does not exist in {}.'.format(col4index, csv_file))
+            for row in my_reader:
+                my_dict = dict()
+                for field in fields:
+                    my_dict[field] = var_type(row[field])
+                my_nd_variables[ind_type(row[col4index])] = my_dict
+
+        return my_nd_variables
+
+    except IOError:
+        raise Exception('File {} could not be found.'.format(csv_file))
+
+
 def get_nd_meteo_data_from_file(catchment, link, my_tf, series_data, series_simu,
                                 dt_start_data, dt_end_data, in_folder):
 
@@ -80,14 +102,10 @@ def get_df_flow_data_from_file(catchment, link, my_tf,
     return my__data_frame
 
 
-def get_nd_from_file(variables, var_type, obj_network, folder):
-
-    valid_types = ['str', 'float', 'int']
-    if var_type.lower() not in valid_types:
-        raise Exception('The variable type {} is not registered for the function get_nd_from_file.'.format(var_type))
+def get_nd_from_file(obj_network, folder, var_type, extension='csv'):
 
     try:
-        with open("{}{}_{}.{}".format(folder, obj_network.name, obj_network.code, variables)) as my_file:
+        with open("{}{}_{}.{}".format(folder, obj_network.name, obj_network.code, extension)) as my_file:
             my_dict_variables = dict()
             my_reader = csv.DictReader(my_file)
             fields = my_reader.fieldnames[:]
@@ -96,35 +114,28 @@ def get_nd_from_file(variables, var_type, obj_network, folder):
             for row in my_reader:
                 if row["EU_CD"] in obj_network.links:
                     my_dict = dict()
-                    if var_type.lower() == 'str':
-                        for field in fields:
-                            my_dict[field] = str(row[field])
-                    elif var_type.lower() == 'float':
-                        for field in fields:
-                            my_dict[field] = float(row[field])
-                    elif var_type.lower() == 'int':
-                        for field in fields:
-                            my_dict[field] = int(row[field])
+                    for field in fields:
+                        my_dict[field] = var_type(row[field])
                     my_dict_variables[row["EU_CD"]] = my_dict
                     found.append(row["EU_CD"])
                 else:
-                    print "The waterbody {} in the {} file is not in the network file.".format(row["EU_CD"], variables)
+                    print "The waterbody {} in the {} file is not in the network file.".format(row["EU_CD"], extension)
 
             missing = [elem for elem in obj_network.links if elem not in found]
             if missing:
-                raise Exception("The following waterbodies are not in the {} file: {}.".format(missing, variables))
+                raise Exception("The following waterbodies are not in the {} file: {}.".format(missing, extension))
 
         return my_dict_variables
 
     except IOError:
-        raise Exception("{}{}_{}.{} does not exist.".format(folder, obj_network.name, obj_network.code, variables))
+        raise Exception("{}{}_{}.{} does not exist.".format(folder, obj_network.name, obj_network.code, extension))
 
 
 def get_nd_distributions_from_file(specs_folder):
 
     try:
         my_file = '{}LOADINGS.dist'.format(specs_folder)
-        my_nd_distributions = pandas.read_csv(my_file, index_col=0).to_dict(orient='index')
+        my_nd_distributions = read_csv(my_file, var_type=float, ind_type=int, col4index='day_no')
         return my_nd_distributions
 
     except IOError:
