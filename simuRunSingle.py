@@ -91,15 +91,15 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
                 dict__nd_data[node][my_simu_slice[0]].update(my_last_lines[node])
 
             # Get input data
-            dict__nd_meteo = get_meteo_input_from_file(my__network, my__time_frame,
+            dict__nd_meteo = get_meteo_input_from_file(my__network, my__time_frame_warm_up,
                                                        my_data_slice, my_simu_slice,
                                                        data_datetime_start, data_datetime_end,
                                                        input_folder)
-            dict__nd_loadings = get_contaminant_input_from_file(my__network, my__time_frame,
+            dict__nd_loadings = get_contaminant_input_from_file(my__network, my__time_frame_warm_up,
                                                                 my_data_slice, my_simu_slice,
                                                                 input_folder, spec_directory)
             # Simulate
-            simulate(my__network, my__time_frame, my_simu_slice,
+            simulate(my__network, my__time_frame_warm_up, my_simu_slice,
                      dict__nd_data, dict__ls_models,
                      dict__nd_meteo, dict__nd_loadings)
 
