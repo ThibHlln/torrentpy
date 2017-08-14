@@ -9,13 +9,10 @@ import simuFiles as sF
 import simuRunSingle as sRS
 
 
-def main():
-    # Ask user for information on simulation
-    question_catch = raw_input('Name of the catchment? ')
-    catchment = question_catch.capitalize()
-
-    question_outlet = raw_input('European Code (EU_CD) of the catchment? [format IE_XX_##X######] ')
-    outlet = question_outlet.upper()
+def main(catchment, outlet):
+    # Format given parameters
+    catchment = catchment.capitalize()
+    outlet = outlet.upper()
 
     # Location of the different needed directories
     root = os.path.realpath('..')  # move to parent directory of this current python file
@@ -304,4 +301,6 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
 
 
 if __name__ == '__main__':
-    main()
+    my_catchment = raw_input('Name of the catchment? ')
+    my_outlet = raw_input('European Code (EU_CD) of the catchment? [format IE_XX_##X######] ')
+    main(my_catchment, my_outlet)
