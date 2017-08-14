@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from pandas import DataFrame
 import numpy as np
 from matplotlib import dates
+import logging
 
 from simuClasses import *
 import simuFiles as sF
@@ -40,7 +41,7 @@ def main():
                                             simu_datetime_end.strftime("%Y%m%d"))
 
     # Create a logger
-    logger = sRS.setup_logger(catchment, outlet, 'plot', output_folder)
+    sRS.setup_logger(catchment, outlet, 'SinglePlot.main', 'plot', output_folder, is_single_run=True)
 
     # Create a TimeFrame object
     my__time_frame = TimeFrame(data_datetime_start, data_datetime_end,
@@ -49,12 +50,21 @@ def main():
     # Create a Network object from network and waterBodies files
     my__network = Network(catchment, outlet, input_folder, spec_directory)
 
+    # Create a subset of the input discharge file
+    sF.get_df_flow_data_from_file(
+        catchment, outlet, my__time_frame,
+        input_folder, logger).to_csv('{}{}_{}.flow'.format(output_folder,
+                                                           catchment.capitalize(),
+                                                           outlet),
+                                     header='FLOW',
+                                     float_format='%e',
+                                     index_label='DateTime')
+
     # Plot the desired graphs
     plot_daily_hydro_hyeto(my__network, my__time_frame,
                            input_folder, output_folder, catchment, outlet,
                            data_datetime_start, data_datetime_end,
-                           plot_datetime_start, plot_datetime_end,
-                           logger)
+                           plot_datetime_start, plot_datetime_end)
 
 
 def set_up_plotting(catchment, outlet, input_dir):
@@ -137,9 +147,9 @@ def set_up_plotting(catchment, outlet, input_dir):
 def plot_daily_hydro_hyeto(my__network, my__time_frame,
                            in_folder, out_folder, catchment, outlet,
                            dt_start_data, dt_end_data,
-                           dt_start_plot, dt_end_plot,
-                           logger):
+                           dt_start_plot, dt_end_plot):
 
+    logger = logging.getLogger('SinglePlot.main')
     logger.info("{} # Reading results files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
 
     my_time_dt = my__time_frame.series_data[1:]

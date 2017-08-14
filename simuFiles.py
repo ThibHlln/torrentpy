@@ -71,34 +71,31 @@ def get_nd_meteo_data_from_file(catchment, link, my_tf, series_data, series_simu
     return my_dbl_dict
 
 
-def get_df_flow_data_from_file(catchment, link, my_tf,
-                               dt_start_data, dt_end_data, in_folder, logger):
-
-    my_start = dt_start_data.strftime("%Y%m%d")
-    my_end = dt_end_data.strftime("%Y%m%d")
+def get_df_flow_data_from_file(catchment, link, my_tf, in_folder, logger):
 
     flow_label = 'flow'
 
-    my__data_frame = DataFrame(index=my_tf.series_data, columns=[flow_label]).fillna(0.0)
+    my__data_frame = DataFrame(index=my_tf.series_data, columns=[flow_label]).fillna(-99.0)
 
     try:
-        my_flow_df = pandas.read_csv("{}{}_{}_{}_{}.{}".format(in_folder, catchment,
-                                                               link, my_start, my_end, flow_label),
-                                     index_col=0)
+        my_flow_df = pandas.read_csv("{}{}_{}.{}".format(in_folder, catchment, link, flow_label))
+
+        my_flow_df['DATETIME'] = my_flow_df['DATETIME'].apply(pandas.to_datetime)
+        my_flow_df['DATETIME'] = my_flow_df['DATETIME'].dt.date
+        my_flow_df.set_index('DATETIME', inplace=True)
 
         for my_dt_data in my_tf.series_data[1:]:  # ignore first value which is for the initial conditions
             try:
-                my_value = my_flow_df.get_value(my_dt_data.strftime("%Y-%m-%d %H:%M:%S"), flow_label.upper())
+                my_value = my_flow_df.get_value(my_dt_data.date(), flow_label.upper())
                 my__data_frame.set_value(my_dt_data, flow_label, float(my_value))
             except KeyError:  # could only be raised for .get_value(), when index or column does not exist
-                raise Exception("{}{}_{}_{}_{}.{} does not contain any value for {}.".format(
-                    in_folder, catchment, link, my_start, my_end, flow_label, my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
+                raise Exception("{}{}_{}.{} does not contain any value for {}.".format(
+                    in_folder, catchment, link, flow_label, my_dt_data.strftime("%Y-%m-%d")))
             except ValueError:  # could only be raised for float(), when my_value is not a number
-                raise Exception("{}{}_{}_{}_{}.{} contains an invalid value for {}.".format(
-                    in_folder, catchment, link, my_start, my_end, flow_label, my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
+                my__data_frame.set_value(my_dt_data, flow_label, float(-99.0))
 
     except IOError:
-        logger.info("{}{}_{}_{}_{}.{} does not exist.".format(in_folder, catchment, link, my_start, my_end, flow_label))
+        logger.info("{}{}_{}.{} does not exist.".format(in_folder, catchment, link, flow_label))
 
     return my__data_frame
 

@@ -35,7 +35,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
         os.makedirs(output_folder)
 
     # Create logger and handler
-    setup_logger(catchment, outlet, 'simu', output_folder, is_single_run)
+    setup_logger(catchment, outlet, 'SingleRun.main', 'simu', output_folder, is_single_run)
     logger = logging.getLogger('SingleRun.main')
 
     logger.warning("Starting simulation for {} {} [Slice-Up: {}, Warm-Up: {}].".format(catchment, outlet,
@@ -167,17 +167,6 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
         del dict__nd_data
         del dict__nd_loadings
 
-    # Generate gauged flow file in output folder (could be identical to input file if date ranges identical)
-    sF.get_df_flow_data_from_file(
-        catchment, outlet, my__time_frame,
-        data_datetime_start, data_datetime_end,
-        input_folder, logger).to_csv('{}{}_{}.flow'.format(output_folder,
-                                                           catchment.capitalize(),
-                                                           outlet),
-                                     header='FLOW',
-                                     float_format='%e',
-                                     index_label='DateTime')
-
     logger.warning("Ending simulation for {} {}.".format(catchment, outlet))
 
 
@@ -272,7 +261,7 @@ def setup_simulation(catchment, outlet, input_dir):
         simu_time_step_in_min, datetime_start_simu, datetime_end_simu
 
 
-def setup_logger(catchment, outlet, prefix, output_folder, is_single_run):
+def setup_logger(catchment, outlet, name, prefix, output_folder, is_single_run):
     """
     This function creates a logger in order to print in console as well as to save in .log file information
     about the simulation. The level of detail displayed is the console is customisable using the is_single_run
@@ -281,6 +270,7 @@ def setup_logger(catchment, outlet, prefix, output_folder, is_single_run):
 
     :param catchment: name of the catchment
     :param outlet: European code of the catchment
+    :param name: name of the logger to identify it
     :param prefix: prefix of the extension .log to specify what type of log file it is
     :param output_folder: path of the output folder where to save the log file
     :param is_single_run: boolean to determine if the logger is created is a single run session
@@ -288,7 +278,7 @@ def setup_logger(catchment, outlet, prefix, output_folder, is_single_run):
     :rtype: Logger
     """
     # Create Logger [ levels: debug < info < warning < error < critical ]
-    logger = logging.getLogger("SingleRun")
+    logger = logging.getLogger(name)
     logger.setLevel(logging.INFO)
     # Create FileHandler
     if os.path.isfile('{}{}_{}.{}.log'.format(output_folder, catchment, outlet, prefix)):  # del file if already exists
