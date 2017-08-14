@@ -4,9 +4,9 @@ import numpy as np
 from matplotlib import dates
 import logging
 
-from simuClasses import *
-import simuFiles as sF
-import simuRunSingle as sRS
+from scripts.simuClasses import *
+import scripts.simuFiles as sF
+import scripts.simuRunSingle as sRS
 
 
 def main(catchment, outlet):
@@ -15,7 +15,7 @@ def main(catchment, outlet):
     outlet = outlet.upper()
 
     # Location of the different needed directories
-    root = os.path.realpath('..')  # move to parent directory of this current python file
+    root = os.path.realpath('../..')  # move to parent directory of this current python file
     os.chdir(root)  # define parent directory as root in order to use only relative paths after this
     spec_directory = "scripts/specs/"
     input_directory = "in/"
@@ -38,7 +38,7 @@ def main(catchment, outlet):
                                             simu_datetime_end.strftime("%Y%m%d"))
 
     # Create a logger
-    sRS.setup_logger(catchment, outlet, 'SinglePlot.main', 'plot', output_folder, is_single_run=True)
+    logger = sRS.setup_logger(catchment, outlet, 'SinglePlot.main', 'plot', output_folder, is_single_run=True)
 
     # Create a TimeFrame object
     my__time_frame = TimeFrame(data_datetime_start, data_datetime_end,
