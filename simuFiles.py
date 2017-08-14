@@ -89,8 +89,7 @@ def get_df_flow_data_from_file(catchment, link, my_tf, in_folder, logger):
                 my_value = my_flow_df.get_value(my_dt_data.date(), flow_label.upper())
                 my__data_frame.set_value(my_dt_data, flow_label, float(my_value))
             except KeyError:  # could only be raised for .get_value(), when index or column does not exist
-                raise Exception("{}{}_{}.{} does not contain any value for {}.".format(
-                    in_folder, catchment, link, flow_label, my_dt_data.strftime("%Y-%m-%d")))
+                my__data_frame.set_value(my_dt_data, flow_label, float(-99.0))
             except ValueError:  # could only be raised for float(), when my_value is not a number
                 my__data_frame.set_value(my_dt_data, flow_label, float(-99.0))
 
