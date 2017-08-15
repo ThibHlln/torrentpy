@@ -228,13 +228,10 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
 
     fig1.spines['left'].set_visible(False)  # Remove axis line
     fig1.spines['bottom'].set_visible(False)
-    # fig1.get_xaxis().set_visible(False)  # Remove X axis values labels and graduations
     fig1.get_xaxis().set_ticklabels([])  # Remove X axis values only
-    # fig1.get_yaxis().set_ticks([])  # Remove Y axis graduations only
 
     fig1.yaxis.set_ticks_position('right')  # Choose location of axis (value + line): can take left, right, both
     fig1.yaxis.set_label_position('right')
-    # fig1.set_yticks([0, 20, 40, 60, 80])  # Set customised graduations of the Y axis
     fig1.set_ylabel('Rainfall (mm)')
     fig1.yaxis.grid(b=True, which='major', linestyle=':')
 
@@ -251,11 +248,12 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     fig2 = fig.add_axes([0.1, 0.2, 0.8, 0.7])
 
     # Plot the simulated flows as lines
-    fig2.plot(my_time_dt[index_start:index_end], simu_flow_m3s[index_start:index_end], color='#898989')
+    fig2.plot(my_time_dt[index_start:index_end], simu_flow_m3s[index_start:index_end], color='#898989',
+              label='Modelled')
 
     # Plot the measured flows as points
     fig2.plot(my_time_dt[index_start:index_end], gauged_flow_m3s[index_start:index_end],
-              'x', markersize=2.0, label='Measured Flows', color='#ffc511')
+              'x', markersize=2.0, label='Observed', color='#ffc511')
 
     ax2 = plt.axis()  # Get the current axis limits in a tuple (xmin, xmax, ymin, ymax)
     plt.axis((pyplot_start_data, pyplot_end_data, -0.2, ax2[3]))
@@ -279,13 +277,9 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
         # label.set_rotation(45)
         label.set_fontsize(10)
 
-    # fig2.set_yticks([0, 10, 20, 30, 40, 50])
-
-    # fig2.set_xlabel("Time")
     fig2.set_ylabel(u"River Discharge at the outlet (m{}/s)".format(u"\u00B3"))
-    # fig2.set_ylabel("River Discharge at the outlet (mm)")
 
-    # leg = fig2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), frameon=False)
+    fig2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), frameon=False)
 
     # __________________ Display and Save __________________
 
@@ -294,10 +288,54 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
 
     # Save image
     fig.set_size_inches(11, 6)
-    fig.savefig('{}{}_{}.png'.format(out_folder, catchment, outlet),
+    fig.savefig('{}{}_{}.hyeto.hydro.png'.format(out_folder, catchment, outlet),
                 dpi=1500, facecolor=fig.get_facecolor(), edgecolor='none')
 
     logger.info("{} # Ending.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+
+
+def plot_flow_duration_curve(obs_flows, obs_frequencies,
+                             mod_flows, mod_frequencies,
+                             out_folder, catchment, outlet):
+
+    # Create a general figure
+    fig = plt.figure(facecolor='white')
+    fig.patch.set_facecolor('#ffffff')
+
+    # __________________ FDC Modelled __________________
+
+    # Create a sub-figure for the hydrograph
+    fig1 = fig.add_axes([0.1, 0.2, 0.8, 0.7])
+
+    # Plot the simulated flows as lines
+    fig1.plot(mod_frequencies, mod_flows, color='#898989', label='Modelled')
+    fig1.plot(obs_frequencies, obs_flows, color='#ffc511', label='Observed')
+
+    fig1.patch.set_facecolor('none')
+
+    fig1.yaxis.set_ticks_position('left')
+    fig1.xaxis.set_ticks_position('bottom')
+
+    for label in fig1.xaxis.get_ticklabels():  # If one wants to work on the visual display of the graduation values
+        label.set_color('black')
+        # label.set_rotation(45)
+        label.set_fontsize(10)
+
+    for label in fig1.yaxis.get_ticklabels():  # If one wants to work on the visual display of the graduation values
+        label.set_color('black')
+        # label.set_rotation(45)
+        label.set_fontsize(10)
+
+    fig1.set_xlabel("Fraction of flow equalled or exceeded (-)")
+    fig1.set_ylabel(u"River Discharge (m{}/s)".format(u"\u00B3"))
+    fig1.legend(loc='center', bbox_to_anchor=(0.9, 0.9), frameon=False)
+
+    # __________________ Save __________________
+
+    # Save image
+    fig.set_size_inches(11, 6)
+    fig.savefig('{}{}_{}.fdc.png'.format(out_folder, catchment, outlet),
+                dpi=1500, facecolor=fig.get_facecolor(), edgecolor='none')
 
 
 if __name__ == '__main__':
