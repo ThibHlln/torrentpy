@@ -6,7 +6,7 @@ import logging
 from glob import glob
 from itertools import izip
 
-import simuPlot as sP
+import postprocPlot as ppP
 import scripts.simuRunSingle as sRS
 
 
@@ -16,7 +16,7 @@ def main(catchment, outlet):
     outlet = outlet.upper()
 
     # Location of the different needed directories
-    root = os.path.realpath('../..')  # move to parent directory of this current python file
+    root = "C:/PycharmProjects/Python/CatchmentSimulationFramework/"
     os.chdir(root)  # define parent directory as root in order to use only relative paths after this
     spec_directory = "scripts/specs/"
     input_directory = "in/"
@@ -30,7 +30,7 @@ def main(catchment, outlet):
     data_datetime_start, data_datetime_end, data_time_step_in_min, \
         simu_datetime_start, simu_datetime_end, simu_time_step_in_min, \
         plot_datetime_start, plot_datetime_end = \
-        sP.set_up_plotting(catchment, outlet, input_directory)
+        ppP.set_up_plotting(catchment, outlet, input_directory)
 
     # Precise the specific folders to use in the directories
     input_folder = "{}{}_{}/".format(input_directory, catchment, outlet)
@@ -79,13 +79,13 @@ def main(catchment, outlet):
     flows_mod_ord, flows_freq_mod = calculate_flow_frequency(flows_mod)
 
     logger.info("Plotting Flow Duration Curve.")
-    sP.plot_flow_duration_curve(flows_obs_ord, flows_freq_obs,
-                                flows_mod_ord, flows_freq_mod,
-                                output_folder, catchment, outlet)
+    ppP.plot_flow_duration_curve(flows_obs_ord, flows_freq_obs,
+                                 flows_mod_ord, flows_freq_mod,
+                                 output_folder, catchment, outlet)
     logger.info("Plotting Logarithmic Flow Duration Curve.")
-    sP.plot_flow_duration_curve_log(flows_obs_ord, flows_freq_obs,
-                                    flows_mod_ord, flows_freq_mod,
-                                    output_folder, catchment, outlet)
+    ppP.plot_flow_duration_curve_log(flows_obs_ord, flows_freq_obs,
+                                     flows_mod_ord, flows_freq_mod,
+                                     output_folder, catchment, outlet)
 
     logger.warning("Ending performance assessment for {} {}.".format(catchment, outlet))
 

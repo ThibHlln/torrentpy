@@ -16,7 +16,7 @@ def main(catchment, outlet):
     outlet = outlet.upper()
 
     # Location of the different needed directories
-    root = os.path.realpath('../..')  # move to parent directory of this current python file
+    root = "C:/PycharmProjects/Python/CatchmentSimulationFramework/"
     os.chdir(root)  # define parent directory as root in order to use only relative paths after this
     spec_directory = "scripts/specs/"
     input_directory = "in/"
