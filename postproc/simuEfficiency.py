@@ -5,6 +5,7 @@ import scipy.stats
 from itertools import izip
 
 import simuPlot as sP
+import scripts.simuRunSingle as sRS
 
 
 def main(catchment, outlet):
@@ -35,6 +36,9 @@ def main(catchment, outlet):
                                             simu_datetime_start.strftime("%Y%m%d"),
                                             simu_datetime_end.strftime("%Y%m%d"))
 
+    # Create a logger
+    logger = sRS.setup_logger(catchment, outlet, 'SinglePlot.main', 'plot', output_folder, is_single_run=True)
+
     # Collect the observed (OBS) and modelled (MOD) discharge data
     df_flows_obs = pandas.read_csv('{}{}_{}.flow'.format(output_folder, catchment, outlet))
     df_flows_mod = pandas.read_csv('{}{}_0000.node'.format(output_folder, catchment))
@@ -44,11 +48,15 @@ def main(catchment, outlet):
 
     # Assess the performance of the model
     my_dict_results = dict()
+    my_dict_results['PercentMissing'] = calculate_missing(nda_flows_obs)
     my_dict_results['NSE'] = calculate_nse(nda_flows_obs, nda_flows_mod)
     my_dict_results['BIAS'] = calculate_bias(nda_flows_obs, nda_flows_mod)
     my_dict_results['C2M'] = calculate_c2m(nda_flows_obs, nda_flows_mod)
 
-    print my_dict_results
+    my_df_results = pandas.DataFrame.from_dict(my_dict_results, orient='index')
+    my_df_results.index.name = "Indicator"
+    my_df_results.columns = ["Value"]
+    my_df_results.to_csv('{}{}_{}.performance'.format(output_folder, catchment, outlet), sep=',')
 
     # Generate flow duration curve
     flows_obs, flows_mod = listwise_deletion(nda_flows_obs, nda_flows_mod)
@@ -58,6 +66,23 @@ def main(catchment, outlet):
     sP.plot_flow_duration_curve(flows_obs_ord, flows_freq_obs,
                                 flows_mod_ord, flows_freq_mod,
                                 output_folder, catchment, outlet)
+
+    sP.plot_flow_duration_curve_log(flows_obs_ord, flows_freq_obs,
+                                    flows_mod_ord, flows_freq_mod,
+                                    output_folder, catchment, outlet)
+
+
+def calculate_missing(flows, criterion=-99.0):
+    total_length = len(flows)
+    # Count the steps that are missing values
+    length_not_missing = 0.0
+    for a in flows:
+        if not a == criterion:
+            length_not_missing += 1.0
+    # Calculate percentage of missing values
+    missing = (total_length - length_not_missing) / total_length * 100.0
+
+    return missing
 
 
 def delete_missing(flows, criterion=-99.0):
