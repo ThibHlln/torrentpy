@@ -2,6 +2,7 @@ import os
 import pandas
 import numpy
 import scipy.stats
+import logging
 from itertools import izip
 
 import simuPlot as sP
@@ -37,7 +38,9 @@ def main(catchment, outlet):
                                             simu_datetime_end.strftime("%Y%m%d"))
 
     # Create a logger
-    logger = sRS.setup_logger(catchment, outlet, 'SinglePlot.main', 'plot', output_folder, is_single_run=True)
+    sRS.setup_logger(catchment, outlet, 'SingleEfficiency.main', 'efficiency', output_folder, is_single_run=True)
+    logger = logging.getLogger('SingleEfficiency.main')
+    logger.warning("Starting performance assessment for {} {}.".format(catchment, outlet))
 
     # Collect the observed (OBS) and modelled (MOD) discharge data
     df_flows_obs = pandas.read_csv('{}{}_{}.flow'.format(output_folder, catchment, outlet))
@@ -48,9 +51,13 @@ def main(catchment, outlet):
 
     # Assess the performance of the model
     my_dict_results = dict()
+    logger.info("Calculating rate of missing observations.")
     my_dict_results['PercentMissing'] = calculate_missing(nda_flows_obs)
+    logger.info("Calculating Nash-Sutcliffe efficiency (NSE).")
     my_dict_results['NSE'] = calculate_nse(nda_flows_obs, nda_flows_mod)
+    logger.info("Calculating BIAS.")
     my_dict_results['BIAS'] = calculate_bias(nda_flows_obs, nda_flows_mod)
+    logger.info("Calculating modified NSE (C2M).")
     my_dict_results['C2M'] = calculate_c2m(nda_flows_obs, nda_flows_mod)
 
     my_df_results = pandas.DataFrame.from_dict(my_dict_results, orient='index')
@@ -59,17 +66,21 @@ def main(catchment, outlet):
     my_df_results.to_csv('{}{}_{}.performance'.format(output_folder, catchment, outlet), sep=',')
 
     # Generate flow duration curve
+    logger.info("Calculating flow frequencies.")
     flows_obs, flows_mod = listwise_deletion(nda_flows_obs, nda_flows_mod)
     flows_obs_ord, flows_freq_obs = calculate_flow_frequency(flows_obs)
     flows_mod_ord, flows_freq_mod = calculate_flow_frequency(flows_mod)
 
+    logger.info("Plotting Flow Duration Curve.")
     sP.plot_flow_duration_curve(flows_obs_ord, flows_freq_obs,
                                 flows_mod_ord, flows_freq_mod,
                                 output_folder, catchment, outlet)
-
+    logger.info("Plotting Logarithmic Flow Duration Curve.")
     sP.plot_flow_duration_curve_log(flows_obs_ord, flows_freq_obs,
                                     flows_mod_ord, flows_freq_mod,
                                     output_folder, catchment, outlet)
+
+    logger.warning("Ending performance assessment for {} {}.".format(catchment, outlet))
 
 
 def calculate_missing(flows, criterion=-99.0):
