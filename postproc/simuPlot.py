@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from pandas import DataFrame
 import numpy as np
+from glob import glob
 from matplotlib import dates
 import logging
 
@@ -42,6 +43,12 @@ def main(catchment, outlet):
     logger = logging.getLogger('SinglePlot.main')
     logger.warning("Starting plotting for {} {}.".format(catchment, outlet))
 
+    # Clean up the output folder for the desired file extensions
+    for my_extension in ["*.flow"]:
+        my_files = glob("{}/{}{}{}".format(root, output_folder, catchment, my_extension))
+        for my_file in my_files:
+            os.remove(my_file)
+
     # Create a TimeFrame object
     my__time_frame = TimeFrame(data_datetime_start, data_datetime_end,
                                int(data_time_step_in_min), int(simu_time_step_in_min), 0)
@@ -59,10 +66,15 @@ def main(catchment, outlet):
                                      float_format='%e',
                                      index_label='DateTime')
 
+    # Read the input files
+    rainfall, gauged_flow_m3s, simu_flow_m3s = read_results_files(my__network, my__time_frame,
+                                                                  input_folder, output_folder, catchment, outlet,
+                                                                  data_datetime_start, data_datetime_end)
+
     # Plot the desired graphs
-    plot_daily_hydro_hyeto(my__network, my__time_frame,
-                           input_folder, output_folder, catchment, outlet,
-                           data_datetime_start, data_datetime_end,
+    plot_daily_hydro_hyeto(my__time_frame,
+                           output_folder, catchment, outlet,
+                           rainfall, gauged_flow_m3s, simu_flow_m3s,
                            plot_datetime_start, plot_datetime_end)
 
 
@@ -143,21 +155,17 @@ def set_up_plotting(catchment, outlet, input_dir):
         datetime_start_plot, datetime_end_plot
 
 
-def plot_daily_hydro_hyeto(my__network, my__time_frame,
-                           in_folder, out_folder, catchment, outlet,
-                           dt_start_data, dt_end_data,
-                           dt_start_plot, dt_end_plot):
-
+def read_results_files(my__network, my__time_frame,
+                       in_folder, out_folder, catchment, outlet,
+                       dt_start_data, dt_end_data):
     logger = logging.getLogger('SinglePlot.main')
     logger.info("Reading results files.")
 
     my_time_dt = my__time_frame.series_data[1:]
     my_time_st = [my_dt.strftime('%Y-%m-%d %H:%M:%S') for my_dt in my_time_dt]
-
     # Get the average rainfall data over the catchment
     my_rain_mm = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
     my_area_m2 = np.empty(shape=(0, 1), dtype=np.float64)
-
     my_dict_desc = sF.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
     for link in my__network.links:
         try:
@@ -174,13 +182,11 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     my_rain_m = my_rain_mm / 1e3  # convert mm to m of rainfall
     catchment_area = np.sum(my_area_m2)  # get the total area of the catchment
     rainfall = my_rain_m.dot(my_area_m2)  # get a list of catchment rainfall in m3
-    rainfall *= 1e3/catchment_area  # get rainfall in mm
-
+    rainfall *= 1e3 / catchment_area  # get rainfall in mm
     # Get the simulated flow at the outlet of the catchment
     simu_flow_m3s = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
     my_df_node = pandas.read_csv("{}{}_0000.node".format(out_folder, catchment), index_col=0)
     simu_flow_m3s = np.c_[simu_flow_m3s, np.asarray(my_df_node['q_h2o'].loc[my_time_st].tolist())]
-
     # Get the measured flow near the outlet of the catchment
     gauged_flow_m3s = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
     gauged_flow_m3s = \
@@ -188,9 +194,18 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
               np.asarray(pandas.read_csv("{}{}_{}.flow".format(out_folder, catchment, outlet),
                                          index_col=0)['flow'].loc[my_time_st].tolist())]
 
+    return rainfall, gauged_flow_m3s, simu_flow_m3s
+
+
+def plot_daily_hydro_hyeto(my__tf,
+                           out_folder, catchment, outlet,
+                           rain, flow_gauged, flow_simulated,
+                           dt_start_plot, dt_end_plot):
+
+    logger = logging.getLogger('SinglePlot.main')
     logger.info("Plotting Hyetograph and Hydrograph.")
 
-    # Plot
+    my_time_dt = my__tf.series_data[1:]
 
     # Create a general figure
     fig = plt.figure(facecolor='white')
@@ -219,7 +234,7 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     # Create a sub-figure for the hyetograph
     fig1 = fig.add_axes([0.1, 0.7, 0.8, 0.2])  # give location of the graph (%: from left, from bottom, width, height)
 
-    fig1.bar(my_time_dt[index_start:index_end], rainfall[index_start:index_end],
+    fig1.bar(my_time_dt[index_start:index_end], rain[index_start:index_end],
              label='Hyetograph', width=1.0, facecolor='#4ec4f2', edgecolor='#4ec4f2')
     fig1.patch.set_facecolor('none')
 
@@ -250,11 +265,11 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     fig2 = fig.add_axes([0.1, 0.2, 0.8, 0.7])
 
     # Plot the simulated flows as lines
-    fig2.plot(my_time_dt[index_start:index_end], simu_flow_m3s[index_start:index_end], color='#898989',
+    fig2.plot(my_time_dt[index_start:index_end], flow_simulated[index_start:index_end], color='#898989',
               label='Modelled')
 
     # Plot the measured flows as points
-    fig2.plot(my_time_dt[index_start:index_end], gauged_flow_m3s[index_start:index_end],
+    fig2.plot(my_time_dt[index_start:index_end], flow_gauged[index_start:index_end],
               'x', markersize=2.0, label='Observed', color='#ffc511')
 
     ax2 = plt.axis()  # Get the current axis limits in a tuple (xmin, xmax, ymin, ymax)
