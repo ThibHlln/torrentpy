@@ -38,7 +38,9 @@ def main(catchment, outlet):
                                             simu_datetime_end.strftime("%Y%m%d"))
 
     # Create a logger
-    logger = sRS.setup_logger(catchment, outlet, 'SinglePlot.main', 'plot', output_folder, is_single_run=True)
+    sRS.setup_logger(catchment, outlet, 'SinglePlot.main', 'plot', output_folder, is_single_run=True)
+    logger = logging.getLogger('SinglePlot.main')
+    logger.warning("Starting plotting for {} {}.".format(catchment, outlet))
 
     # Create a TimeFrame object
     my__time_frame = TimeFrame(data_datetime_start, data_datetime_end,
@@ -147,7 +149,7 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
                            dt_start_plot, dt_end_plot):
 
     logger = logging.getLogger('SinglePlot.main')
-    logger.info("{} # Reading results files.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    logger.info("Reading results files.")
 
     my_time_dt = my__time_frame.series_data[1:]
     my_time_st = [my_dt.strftime('%Y-%m-%d %H:%M:%S') for my_dt in my_time_dt]
@@ -186,7 +188,7 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
               np.asarray(pandas.read_csv("{}{}_{}.flow".format(out_folder, catchment, outlet),
                                          index_col=0)['flow'].loc[my_time_st].tolist())]
 
-    logger.info("{} # Plotting.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    logger.info("Plotting Hyetograph and Hydrograph.")
 
     # Plot
 
@@ -291,7 +293,7 @@ def plot_daily_hydro_hyeto(my__network, my__time_frame,
     fig.savefig('{}{}_{}.hyeto.hydro.png'.format(out_folder, catchment, outlet),
                 dpi=1500, facecolor=fig.get_facecolor(), edgecolor='none')
 
-    logger.info("{} # Ending.".format(datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')))
+    logger.warning("Ending plotting for {} {}.".format(catchment, outlet))
 
 
 def plot_flow_duration_curve(obs_flows, obs_frequencies,
