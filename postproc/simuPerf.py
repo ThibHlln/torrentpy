@@ -3,6 +3,7 @@ import pandas
 import numpy
 import scipy.stats
 import logging
+from glob import glob
 from itertools import izip
 
 import simuPlot as sP
@@ -41,6 +42,12 @@ def main(catchment, outlet):
     sRS.setup_logger(catchment, outlet, 'SingleEfficiency.main', 'efficiency', output_folder, is_single_run=True)
     logger = logging.getLogger('SingleEfficiency.main')
     logger.warning("Starting performance assessment for {} {}.".format(catchment, outlet))
+
+    # Clean up the output folder for the desired file extensions
+    for my_extension in ["*.performance"]:
+        my_files = glob("{}/{}{}{}".format(root, output_folder, catchment, my_extension))
+        for my_file in my_files:
+            os.remove(my_file)
 
     # Collect the observed (OBS) and modelled (MOD) discharge data
     df_flows_obs = pandas.read_csv('{}{}_{}.flow'.format(output_folder, catchment, outlet))
