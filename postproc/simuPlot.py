@@ -338,6 +338,49 @@ def plot_flow_duration_curve(obs_flows, obs_frequencies,
                 dpi=1500, facecolor=fig.get_facecolor(), edgecolor='none')
 
 
+def plot_flow_duration_curve_log(obs_flows, obs_frequencies,
+                                 mod_flows, mod_frequencies,
+                                 out_folder, catchment, outlet):
+
+    # Create a general figure
+    fig = plt.figure(facecolor='white')
+    fig.patch.set_facecolor('#ffffff')
+
+    # __________________ FDC Modelled __________________
+
+    # Create a sub-figure for the hydrograph
+    fig1 = fig.add_axes([0.1, 0.2, 0.8, 0.7])
+
+    # Plot the simulated flows as lines
+    fig1.semilogy(mod_frequencies, mod_flows, color='#898989', label='Modelled')
+    fig1.semilogy(obs_frequencies, obs_flows, color='#ffc511', label='Observed')
+
+    fig1.patch.set_facecolor('none')
+
+    fig1.yaxis.set_ticks_position('left')
+    fig1.xaxis.set_ticks_position('bottom')
+
+    for label in fig1.xaxis.get_ticklabels():  # If one wants to work on the visual display of the graduation values
+        label.set_color('black')
+        # label.set_rotation(45)
+        label.set_fontsize(10)
+
+    for label in fig1.yaxis.get_ticklabels():  # If one wants to work on the visual display of the graduation values
+        label.set_color('black')
+        # label.set_rotation(45)
+        label.set_fontsize(10)
+
+    fig1.set_xlabel("Fraction of flow equalled or exceeded (-)")
+    fig1.set_ylabel(u"River Discharge (m{}/s)".format(u"\u00B3"))
+    fig1.legend(loc='center', bbox_to_anchor=(0.9, 0.9), frameon=False)
+
+    # __________________ Save __________________
+
+    # Save image
+    fig.set_size_inches(11, 6)
+    fig.savefig('{}{}_{}.fdc.log.png'.format(out_folder, catchment, outlet),
+                dpi=1500, facecolor=fig.get_facecolor(), edgecolor='none')
+
 if __name__ == '__main__':
     my_catchment = raw_input('Name of the catchment? ')
     my_outlet = raw_input('European Code (EU_CD) of the catchment? [format IE_XX_##X######] ')
