@@ -51,7 +51,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
                                        int(data_time_step_in_min), int(simu_time_step_in_min), slice_length)
 
     # Create a Network object from network and waterBodies files
-    my__network = Network(catchment, outlet, input_folder, spec_directory)
+    my__network = Network(catchment, outlet, input_folder, spec_directory, adding_up=True)
 
     # Create Models for the links
     dict__ls_models = generate_models_for_links(my__network, spec_directory, input_folder, output_folder)
