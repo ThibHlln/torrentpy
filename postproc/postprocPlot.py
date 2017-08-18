@@ -210,6 +210,7 @@ def plot_daily_hydro_hyeto(my__tf,
     # Create a general figure
     fig = plt.figure(facecolor='white')
     fig.patch.set_facecolor('#ffffff')
+    fig.suptitle(catchment)
 
     dt_start_data = my_time_dt[0]
     dt_end_data = my_time_dt[-1]
@@ -318,6 +319,7 @@ def plot_flow_duration_curve(obs_flows, obs_frequencies,
     # Create a general figure
     fig = plt.figure(facecolor='white')
     fig.patch.set_facecolor('#ffffff')
+    fig.suptitle(catchment)
 
     # __________________ FDC Modelled __________________
 
@@ -362,6 +364,7 @@ def plot_flow_duration_curve_log(obs_flows, obs_frequencies,
     # Create a general figure
     fig = plt.figure(facecolor='white')
     fig.patch.set_facecolor('#ffffff')
+    fig.suptitle(catchment)
 
     # __________________ FDC Modelled __________________
 
