@@ -10,9 +10,9 @@ def infer_parameters_from_descriptors(dict_desc, model):
     my_dict_param = dict()
 
     if model == "SMART":
-        smart.infer_parameters(dict_desc, my_dict_param)
+        smart.infer_parameters_cmt(dict_desc, my_dict_param)
     elif model == "LINRES":
-        linres.infer_parameters(dict_desc, my_dict_param)
+        linres.infer_parameters_cmt(dict_desc, my_dict_param)
     elif model == "INCAL":
         inca.infer_land_parameters(dict_desc, my_dict_param)
     elif model == "INCAS":

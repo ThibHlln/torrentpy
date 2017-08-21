@@ -305,7 +305,7 @@ def run(waterbody, dict_data_frame,
     }
 
 
-def infer_parameters(dict_desc, my_dict_param):
+def infer_parameters_cmt(dict_desc, my_dict_param):
     # HYDROLOGICAL MODEL
     # Parameter T: Rainfall aerial correction coefficient
     # my_dict['c_p_t'] = 65.622 * dict_desc['SAAPE'] ** (-0.652) * \
@@ -381,6 +381,97 @@ def infer_parameters(dict_desc, my_dict_param):
         (dict_desc['PNA'] + 1.0) ** 2.7813 * \
         ((dict_desc['Rkc'] + dict_desc['Rk']) + 1.0) ** (-1.6107) + \
         1.0
+    # Parameter GK: Groundwater routing parameter (hours)
+    my_dict_param['c_p_gk'] = 46950.0 + dict_desc['SlopeLow'] * 8676.0 + \
+        dict_desc['SAAPE'] * (-82.27) + \
+        (dict_desc['Rkc'] + dict_desc['Rk']) * (-7204.0) + \
+        (dict_desc['Pu'] + dict_desc['Pl']) * (-1911.0) + \
+        dict_desc['Made'] * (-127800.0) + \
+        dict_desc['WtdReCoMod'] * (-49470.0) + \
+        dict_desc['FOREST'] * 9257.0 + \
+        dict_desc['SAAR'] * (-5.379) + \
+        dict_desc['WtdReCoMod'] * dict_desc['SAAR'] * 41.68
+    if my_dict_param['c_p_gk'] < 0.3 * my_dict_param['c_p_fk']:
+        my_dict_param['c_p_gk'] = 3.0 * my_dict_param['c_p_fk']
+
+
+def infer_parameters_thesis(dict_desc, my_dict_param):
+    # HYDROLOGICAL MODEL
+    # Parameter T: Rainfall aerial correction coefficient
+    my_dict_param['c_p_t'] = 65.622 * dict_desc['SAAPE'] ** (-0.652) * \
+        dict_desc['TAYSLO'] ** 0.003 * \
+        (dict_desc['SlopeLow'] + 1.0) ** (-0.075) * \
+        (dict_desc['PEAT'] ** 0.5 + 1.0) ** (-0.221) * \
+        (dict_desc['Made'] ** 0.5 + 1.0) ** (-0.481)
+
+    # Parameter C: Evaporation decay parameter
+    my_dict_param['c_p_c'] = 9.04064 * dict_desc['SAAR'] ** (-0.71009) * \
+        dict_desc['Q.mm'] ** 0.57326 * \
+        dict_desc['FLATWET'] ** (-0.75321) * \
+        (dict_desc['AlluvMIN'] + 1.0) ** (-3.3778) * \
+        (dict_desc['FOREST'] + 1.0) ** (-0.71328) * \
+        ((dict_desc['Pu'] + dict_desc['Pl']) ** 0.5 + 1.0) ** 0.22084
+    if my_dict_param['c_p_c'] < 0.1:
+        my_dict_param['c_p_c'] = 0.1
+    elif my_dict_param['c_p_c'] > 1.0:
+        my_dict_param['c_p_c'] = 1.0
+
+    # Parameter H: Quick runoff coefficient
+    my_dict_param['c_p_h'] = 2.7886 * dict_desc['DRAIND'] ** 0.15655 * \
+        dict_desc['WtdReCoMod'] ** 0.03626 * \
+        (dict_desc['PoorDrain'] + 1.0) ** (-0.08069) * \
+        (dict_desc['Water'] ** 0.25 + 1.0) ** 0.10238 * \
+        (dict_desc['ModP'] + 1.0) ** (-0.14992) * \
+        ((dict_desc['Rkc'] + dict_desc['Rk']) + 1.0) ** (-0.14598) * \
+        ((dict_desc['Pu'] + dict_desc['Pl']) ** 0.5 + 1.0) ** (-0.17896) * \
+        ((dict_desc['Lg'] + dict_desc['Rg']) ** 0.5 + 1.0) ** 0.22405
+
+    # Parameter S: Drain flow parameter - fraction of saturation excess diverted to drain flow
+    drain_eff_factor = 0.8
+    my_dict_param['c_p_s'] = dict_desc['land_drain_ratio'] * drain_eff_factor
+
+    # Parameter D: Soil outflow coefficient
+    my_dict_param['c_p_d'] = 8.61144e-14 * dict_desc['SAAR'] ** 3.207 * \
+        dict_desc['AVG.SLOPE'] ** (-1.089) * \
+        (dict_desc['BFIsoil'] ** 2.0 + 1.0) ** (-3.765) * \
+        (dict_desc['URBEXT'] ** 0.5 + 1.0) ** 17.515 * \
+        (dict_desc['FOREST'] + 1.0) ** 9.544 * \
+        (dict_desc['WellDrain'] + 1.0) ** 5.654 * \
+        (dict_desc['HighP'] ** 0.5 + 1.0) ** (-6.206) * \
+        ((dict_desc['Rkd'] + dict_desc['Lk']) + 1.0) ** 1.553 * \
+        ((dict_desc['Lm'] + dict_desc['Rf']) + 1.0) ** 4.251 * \
+        exp(dict_desc['Ll']) ** (-1.186)
+
+    # Parameter Z: Effective soil depth (mm)
+    my_dict_param['c_p_z'] = 9183325.942 * dict_desc['SAAR'] ** (-1.8501) * \
+        dict_desc['DRAIND'] ** 0.6332 * \
+        (dict_desc['BFIsoil'] ** 2.0 + 1.0) ** 1.7288 * \
+        dict_desc['FARL'] ** (-2.9124) * \
+        (dict_desc['URBEXT'] ** 0.5 + 1.0) ** (-5.6337) * \
+        (dict_desc['HighP'] ** 0.5 + 1.0) ** 3.0505 * \
+        ((dict_desc['Lm'] + dict_desc['Rf']) + 1.0) ** (-2.1927) * \
+        exp(dict_desc['Ll']) ** 0.5544
+
+    # Parameter SK: Surface routing parameter (hours)
+    my_dict_param['c_p_sk'] = 2.8e5 * (dict_desc['BFIsoil'] ** 2.0 + 1.0) ** 1.32 * \
+        dict_desc['FARL'] ** (-8.366) * \
+        dict_desc['SAAR'] ** (-1.24) * \
+        (dict_desc['ARTDRAIN2'] + 1.0) ** (-0.529) * \
+        (dict_desc['PoorDrain'] + 1.0) ** (-1.605)
+
+    # Parameter FK: Interflow routing parameter (hours)
+    my_dict_param['c_p_fk'] = 5.67e-7 * dict_desc['SAAR'] ** 5.6188 * \
+        dict_desc['Q.mm'] ** (-3.0367) * \
+        (dict_desc['ARTDRAIN2'] + 1.0) ** (-1.2787) * \
+        (dict_desc['BFIsoil'] ** 2.0 + 1.0) ** 3.0169 * \
+        ((dict_desc['VulX'] + dict_desc['VulE']) ** 0.5 + 1.0) ** (-2.8231) * \
+        ((dict_desc['VulM'] + dict_desc['VulL']) + 1.0) ** 2.7265 * \
+        (dict_desc['URBEXT'] ** 0.5 + 1.0) ** (-10.386) * \
+        (dict_desc['FOREST'] + 1.0) ** (-2.4304) * \
+        (dict_desc['HighP'] ** 0.5 + 1.0) ** 6.0892 * \
+        (dict_desc['PNA'] + 1.0) ** 2.7813 * \
+        ((dict_desc['Rkc'] + dict_desc['Rk']) + 1.0) ** (-1.6107)
+
     # Parameter GK: Groundwater routing parameter (hours)
     my_dict_param['c_p_gk'] = 46950.0 + dict_desc['SlopeLow'] * 8676.0 + \
         dict_desc['SAAPE'] * (-82.27) + \
