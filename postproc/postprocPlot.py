@@ -307,7 +307,7 @@ def plot_daily_hydro_hyeto(my__tf,
     # Save image
     fig.set_size_inches(11, 6)
     fig.savefig('{}{}_{}.hyeto.hydro.png'.format(out_folder, catchment, outlet),
-                dpi=1500, facecolor=fig.get_facecolor(), edgecolor='none')
+                dpi=300, facecolor=fig.get_facecolor(), edgecolor='none')
 
     logger.warning("Ending plotting for {} {}.".format(catchment, outlet))
 
@@ -354,7 +354,7 @@ def plot_flow_duration_curve(obs_flows, obs_frequencies,
     # Save image
     fig.set_size_inches(11, 6)
     fig.savefig('{}{}_{}.fdc.png'.format(out_folder, catchment, outlet),
-                dpi=1500, facecolor=fig.get_facecolor(), edgecolor='none')
+                dpi=300, facecolor=fig.get_facecolor(), edgecolor='none')
 
 
 def plot_flow_duration_curve_log(obs_flows, obs_frequencies,
@@ -399,7 +399,7 @@ def plot_flow_duration_curve_log(obs_flows, obs_frequencies,
     # Save image
     fig.set_size_inches(11, 6)
     fig.savefig('{}{}_{}.fdc.log.png'.format(out_folder, catchment, outlet),
-                dpi=1500, facecolor=fig.get_facecolor(), edgecolor='none')
+                dpi=300, facecolor=fig.get_facecolor(), edgecolor='none')
 
 if __name__ == '__main__':
     my_catchment = raw_input('Name of the catchment? ')
