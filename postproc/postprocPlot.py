@@ -6,7 +6,7 @@ from matplotlib import dates
 import logging
 
 from scripts.simuClasses import *
-import postprocFunctions as ppF
+import postprocFiles as ppF
 import scripts.simuFiles as sF
 import scripts.simuRunSingle as sRS
 
