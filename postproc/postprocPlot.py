@@ -6,6 +6,7 @@ from matplotlib import dates
 import logging
 
 from scripts.simuClasses import *
+import postprocFunctions as ppF
 import scripts.simuFiles as sF
 import scripts.simuRunSingle as sRS
 
@@ -57,7 +58,7 @@ def main(catchment, outlet):
     my__network = Network(catchment, outlet, input_folder, spec_directory)
 
     # Create a subset of the input discharge file
-    sF.get_df_flow_data_from_file(
+    ppF.get_df_flow_data_from_file(
         catchment, outlet, my__time_frame,
         input_folder, logger).to_csv('{}{}_{}.flow'.format(output_folder,
                                                            catchment.capitalize(),
@@ -69,7 +70,8 @@ def main(catchment, outlet):
     # Read the input files
     rainfall, gauged_flow_m3s, simu_flow_m3s = read_results_files(my__network, my__time_frame,
                                                                   input_folder, output_folder, catchment, outlet,
-                                                                  data_datetime_start, data_datetime_end)
+                                                                  data_datetime_start, data_datetime_end,
+                                                                  output_folder)
 
     # Plot the desired graphs
     plot_daily_hydro_hyeto(my__time_frame,
@@ -157,7 +159,8 @@ def set_up_plotting(catchment, outlet, input_dir):
 
 def read_results_files(my__network, my__time_frame,
                        in_folder, out_folder, catchment, outlet,
-                       dt_start_data, dt_end_data):
+                       dt_start_data, dt_end_data,
+                       output_folder):
     logger = logging.getLogger('SinglePlot.main')
     logger.info("Reading results files.")
 
@@ -193,6 +196,10 @@ def read_results_files(my__network, my__time_frame,
         np.c_[gauged_flow_m3s,
               np.asarray(pandas.read_csv("{}{}_{}.flow".format(out_folder, catchment, outlet),
                                          index_col=0)['flow'].loc[my_time_st].tolist())]
+    # Save the rainfall lumped at the catchment scale in file
+    DataFrame({'DateTime': my__time_frame.series_data[1:], 'rain': rainfall.ravel()}).set_index(
+        'DateTime').to_csv(
+        '{}{}_{}.lumped.rain'.format(output_folder, catchment, outlet), float_format='%e')
 
     return rainfall, gauged_flow_m3s, simu_flow_m3s
 
