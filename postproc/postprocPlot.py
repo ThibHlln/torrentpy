@@ -186,6 +186,10 @@ def read_results_files(my__network, my__time_frame,
     catchment_area = np.sum(my_area_m2)  # get the total area of the catchment
     rainfall = my_rain_m.dot(my_area_m2)  # get a list of catchment rainfall in m3
     rainfall *= 1e3 / catchment_area  # get rainfall in mm
+    # Save the rainfall lumped at the catchment scale in file
+    DataFrame({'DATETIME': my__time_frame.series_data[1:], 'RAIN': rainfall.ravel()}).set_index(
+        'DATETIME').to_csv(
+        '{}{}_{}.lumped.rain'.format(output_folder, catchment, outlet), float_format='%e')
     # Get the simulated flow at the outlet of the catchment
     simu_flow_m3s = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
     my_df_node = pandas.read_csv("{}{}_0000.node".format(out_folder, catchment), index_col=0)
@@ -196,10 +200,6 @@ def read_results_files(my__network, my__time_frame,
         np.c_[gauged_flow_m3s,
               np.asarray(pandas.read_csv("{}{}_{}.flow".format(out_folder, catchment, outlet),
                                          index_col=0)['flow'].loc[my_time_st].tolist())]
-    # Save the rainfall lumped at the catchment scale in file
-    DataFrame({'DateTime': my__time_frame.series_data[1:], 'rain': rainfall.ravel()}).set_index(
-        'DateTime').to_csv(
-        '{}{}_{}.lumped.rain'.format(output_folder, catchment, outlet), float_format='%e')
 
     return rainfall, gauged_flow_m3s, simu_flow_m3s
 
