@@ -43,6 +43,12 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
 
     logger.info("Initialising.")
 
+    # Clean up the output folder for the desired file extensions
+    for my_extension in ["*.parameters", "*.node", "*.inputs", "*.outputs", "*.states"]:
+        my_files = glob("{}/{}{}{}".format(root, output_folder, catchment, my_extension))
+        for my_file in my_files:
+            os.remove(my_file)
+
     # Create a TimeFrame object for simulation run and warm-up run
     my__time_frame = TimeFrame(simu_datetime_start, simu_datetime_end,
                                int(data_time_step_in_min), int(simu_time_step_in_min), slice_length)
@@ -55,12 +61,6 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
 
     # Create Models for the links
     dict__ls_models = generate_models_for_links(my__network, spec_directory, input_folder, output_folder)
-
-    # Clean up the output folder for the desired file extensions
-    for my_extension in ["*.parameters", "*.node", "*.inputs", "*.outputs", "*.states"]:
-        my_files = glob("{}/{}{}{}".format(root, output_folder, catchment, my_extension))
-        for my_file in my_files:
-            os.remove(my_file)
 
     # Create files to store simulation results
     create_simulation_files(my__network, dict__ls_models, catchment, output_folder)
