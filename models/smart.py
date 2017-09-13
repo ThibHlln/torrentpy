@@ -314,6 +314,7 @@ def infer_parameters_cmt(dict_desc, my_dict_param):
     #     (dict_desc['PEAT'] ** 0.5 + 1.0) ** (-0.221) * \
     #     (dict_desc['Made'] ** 0.5 + 1.0) ** (-0.481)
     my_dict_param['c_p_t'] = 1.0
+
     # Parameter C: Evaporation decay parameter
     my_dict_param['c_p_c'] = log((9.04064 * dict_desc['SAAR'] ** (-0.71009) *
                                   dict_desc['Q.mm'] ** 0.57326 *
@@ -322,6 +323,7 @@ def infer_parameters_cmt(dict_desc, my_dict_param):
                                   (dict_desc['FOREST'] + 1.0) ** (-0.71328) *
                                   ((dict_desc['Pu'] + dict_desc['Pl']) ** 0.5 + 1.0) ** 0.22084) -
                                  1.0)
+
     if my_dict_param['c_p_c'] < 0.1:
         my_dict_param['c_p_c'] = 0.1
     elif my_dict_param['c_p_c'] > 1.0:
@@ -337,9 +339,21 @@ def infer_parameters_cmt(dict_desc, my_dict_param):
                                   ((dict_desc['Pu'] + dict_desc['Pl']) ** 0.5 + 1.0) ** (-0.17896) *
                                   ((dict_desc['Lg'] + dict_desc['Rg']) ** 0.5 + 1.0) ** 0.22405) -
                                  1.0)
+
+    if my_dict_param['c_p_h'] < 0.0:
+        my_dict_param['c_p_h'] = 0.0
+    elif my_dict_param['c_p_h'] > 1.0:
+        my_dict_param['c_p_h'] = 1.0
+
     # Parameter S: Drain flow parameter - fraction of saturation excess diverted to drain flow
     drain_eff_factor = 0.6
     my_dict_param['c_p_s'] = dict_desc['land_drain_ratio'] * drain_eff_factor
+
+    if my_dict_param['c_p_s'] < 0.0:
+        my_dict_param['c_p_s'] = 0.0
+    elif my_dict_param['c_p_s'] > 1.0:
+        my_dict_param['c_p_s'] = 1.0
+
     # Parameter D: Soil outflow coefficient
     my_dict_param['c_p_d'] = 8.61144e-14 * dict_desc['SAAR'] ** 3.207 * \
         dict_desc['AVG.SLOPE'] ** (-1.089) * \
@@ -351,6 +365,12 @@ def infer_parameters_cmt(dict_desc, my_dict_param):
         ((dict_desc['Rkd'] + dict_desc['Lk']) + 1.0) ** 1.553 * \
         ((dict_desc['Lm'] + dict_desc['Rf']) + 1.0) ** 4.251 * \
         exp(dict_desc['Ll']) ** (-1.186)
+
+    if my_dict_param['c_p_d'] < 0.0:
+        my_dict_param['c_p_d'] = 0.0
+    elif my_dict_param['c_p_d'] > 1.0:
+        my_dict_param['c_p_d'] = 1.0
+
     # Parameter Z: Effective soil depth (mm)
     my_dict_param['c_p_z'] = 9183325.942 * dict_desc['SAAR'] ** (-1.8501) * \
         dict_desc['DRAIND'] ** 0.6332 * \
@@ -361,6 +381,7 @@ def infer_parameters_cmt(dict_desc, my_dict_param):
         ((dict_desc['Lm'] + dict_desc['Rf']) + 1.0) ** (-2.1927) * \
         exp(dict_desc['Ll']) ** 0.5544 + \
         1.0
+
     # Parameter SK: Surface routing parameter (hours)
     my_dict_param['c_p_sk'] = 14612.0 * (dict_desc['BFIsoil'] ** 2.0 + 1.0) ** 2.015 * \
         dict_desc['FARL'] ** (-6.859) * \
@@ -368,6 +389,7 @@ def infer_parameters_cmt(dict_desc, my_dict_param):
         (dict_desc['ARTDRAIN2'] + 1.0) ** (-1.052) * \
         (dict_desc['PoorDrain'] + 1.0) ** (-1.467) + \
         1.0
+
     # Parameter FK: Interflow routing parameter (hours)
     my_dict_param['c_p_fk'] = 5.67e-7 * dict_desc['SAAR'] ** 5.6188 * \
         dict_desc['Q.mm'] ** (-3.0367) * \
@@ -381,6 +403,7 @@ def infer_parameters_cmt(dict_desc, my_dict_param):
         (dict_desc['PNA'] + 1.0) ** 2.7813 * \
         ((dict_desc['Rkc'] + dict_desc['Rk']) + 1.0) ** (-1.6107) + \
         1.0
+
     # Parameter GK: Groundwater routing parameter (hours)
     my_dict_param['c_p_gk'] = 46950.0 + dict_desc['SlopeLow'] * 8676.0 + \
         dict_desc['SAAPE'] * (-82.27) + \
@@ -391,6 +414,7 @@ def infer_parameters_cmt(dict_desc, my_dict_param):
         dict_desc['FOREST'] * 9257.0 + \
         dict_desc['SAAR'] * (-5.379) + \
         dict_desc['WtdReCoMod'] * dict_desc['SAAR'] * 41.68
+
     if my_dict_param['c_p_gk'] < 0.3 * my_dict_param['c_p_fk']:
         my_dict_param['c_p_gk'] = 3.0 * my_dict_param['c_p_fk']
 
@@ -411,6 +435,7 @@ def infer_parameters_thesis(dict_desc, my_dict_param):
         (dict_desc['AlluvMIN'] + 1.0) ** (-3.3778) * \
         (dict_desc['FOREST'] + 1.0) ** (-0.71328) * \
         ((dict_desc['Pu'] + dict_desc['Pl']) ** 0.5 + 1.0) ** 0.22084
+
     if my_dict_param['c_p_c'] < 0.1:
         my_dict_param['c_p_c'] = 0.1
     elif my_dict_param['c_p_c'] > 1.0:
@@ -426,9 +451,19 @@ def infer_parameters_thesis(dict_desc, my_dict_param):
         ((dict_desc['Pu'] + dict_desc['Pl']) ** 0.5 + 1.0) ** (-0.17896) * \
         ((dict_desc['Lg'] + dict_desc['Rg']) ** 0.5 + 1.0) ** 0.22405
 
+    if my_dict_param['c_p_h'] < 0.0:
+        my_dict_param['c_p_h'] = 0.0
+    elif my_dict_param['c_p_h'] > 1.0:
+        my_dict_param['c_p_h'] = 1.0
+
     # Parameter S: Drain flow parameter - fraction of saturation excess diverted to drain flow
     drain_eff_factor = 0.8
     my_dict_param['c_p_s'] = dict_desc['land_drain_ratio'] * drain_eff_factor
+
+    if my_dict_param['c_p_s'] < 0.0:
+        my_dict_param['c_p_s'] = 0.0
+    elif my_dict_param['c_p_s'] > 1.0:
+        my_dict_param['c_p_s'] = 1.0
 
     # Parameter D: Soil outflow coefficient
     my_dict_param['c_p_d'] = 8.61144e-14 * dict_desc['SAAR'] ** 3.207 * \
@@ -441,6 +476,11 @@ def infer_parameters_thesis(dict_desc, my_dict_param):
         ((dict_desc['Rkd'] + dict_desc['Lk']) + 1.0) ** 1.553 * \
         ((dict_desc['Lm'] + dict_desc['Rf']) + 1.0) ** 4.251 * \
         exp(dict_desc['Ll']) ** (-1.186)
+
+    if my_dict_param['c_p_d'] < 0.0:
+        my_dict_param['c_p_d'] = 0.0
+    elif my_dict_param['c_p_d'] > 1.0:
+        my_dict_param['c_p_d'] = 1.0
 
     # Parameter Z: Effective soil depth (mm)
     my_dict_param['c_p_z'] = 9183325.942 * dict_desc['SAAR'] ** (-1.8501) * \
@@ -482,5 +522,6 @@ def infer_parameters_thesis(dict_desc, my_dict_param):
         dict_desc['FOREST'] * 9257.0 + \
         dict_desc['SAAR'] * (-5.379) + \
         dict_desc['WtdReCoMod'] * dict_desc['SAAR'] * 41.68
+
     if my_dict_param['c_p_gk'] < 0.3 * my_dict_param['c_p_fk']:
         my_dict_param['c_p_gk'] = 3.0 * my_dict_param['c_p_fk']
