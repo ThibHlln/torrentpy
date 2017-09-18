@@ -1,14 +1,14 @@
 import pandas
 
 
-def get_df_flow_data_from_file(catchment, link, my_tf, in_folder, logger):
+def get_df_flow_data_from_file(catchment, link, gauge, my_tf, in_folder, logger):
 
     flow_label = 'flow'
 
     my__data_frame = pandas.DataFrame(index=my_tf.series_data[1:], columns=[flow_label]).fillna(-99.0)
 
     try:
-        my_flow_df = pandas.read_csv("{}{}_{}.{}".format(in_folder, catchment, link, flow_label),
+        my_flow_df = pandas.read_csv("{}{}_{}_{}.{}".format(in_folder, catchment, link, gauge, flow_label),
                                      converters={'FLOW': str})
 
         my_flow_df['DATETIME'] = my_flow_df['DATETIME'].apply(pandas.to_datetime)

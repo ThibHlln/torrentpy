@@ -1,16 +1,15 @@
-import os
-import pandas
 import numpy
 import scipy.stats
 import logging
 from glob import glob
 from itertools import izip
 
+from scripts.simuClasses import *
 import postprocPlot as ppP
 import scripts.simuRunSingle as sRS
 
 
-def main(catchment, outlet):
+def main(catchment, outlet, gauge):
     # Format given parameters
     catchment = catchment.capitalize()
     outlet = outlet.upper()
@@ -39,8 +38,8 @@ def main(catchment, outlet):
                                             simu_datetime_end.strftime("%Y%m%d"))
 
     # Create a logger
-    sRS.setup_logger(catchment, outlet, 'SingleEfficiency.main', 'efficiency', output_folder, is_single_run=True)
-    logger = logging.getLogger('SingleEfficiency.main')
+    sRS.setup_logger(catchment, outlet, 'SinglePerformance.main', 'performance', output_folder, is_single_run=True)
+    logger = logging.getLogger('SinglePerformance.main')
     logger.warning("Starting performance assessment for {} {}.".format(catchment, outlet))
 
     # Clean up the output folder for the desired file extensions
@@ -49,12 +48,21 @@ def main(catchment, outlet):
         for my_file in my_files:
             os.remove(my_file)
 
+    # Create a Network object from network and waterBodies files
+    my__network = Network(catchment, outlet, input_folder, spec_directory, adding_up=True)
+
+    # Determine gauged waterbody associated to the hydrometric gauge
+    gauged_waterbody = ppP.find_waterbody_from_gauge(input_folder, catchment, outlet, gauge)
+
     # Collect the observed (OBS) and modelled (MOD) discharge data
-    df_flows_obs = pandas.read_csv('{}{}_{}.flow'.format(output_folder, catchment, outlet))
-    df_flows_mod = pandas.read_csv('{}{}_0000.node'.format(output_folder, catchment))
+    df_flows_obs = pandas.read_csv('{}{}_{}_{}.flow'.format(output_folder, catchment, outlet, gauge))
+    df_flows_mod = pandas.read_csv('{}{}_{}.outputs'.format(output_folder, catchment, gauged_waterbody))
 
     nda_flows_obs = df_flows_obs['flow'].values
-    nda_flows_mod = df_flows_mod['q_h2o'].values
+    if my__network.modeUp:
+        nda_flows_mod = df_flows_mod['r_out_q_h2o'].values
+    else:
+        nda_flows_mod = df_flows_mod['r_out_q_h2o'].values + df_flows_mod['c_out_q_h2o'].values
 
     # Assess the performance of the model
     my_dict_results = dict()
@@ -186,4 +194,5 @@ def calculate_flow_frequency(flows):
 if __name__ == '__main__':
     my_catchment = raw_input('Name of the catchment? ')
     my_outlet = raw_input('European Code (EU_CD) of the catchment? [format IE_XX_##X######] ')
-    main(my_catchment, my_outlet)
+    my_gauge = raw_input('Code of the hydrometric gauge? [#####] ')
+    main(my_catchment, my_outlet, my_gauge)

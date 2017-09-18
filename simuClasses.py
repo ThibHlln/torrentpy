@@ -21,6 +21,8 @@ class Network:
         self.name = catchment.capitalize()
         # european code of the outlet
         self.code = outlet.upper()
+        # mode chosen to connect catchment and reach
+        self.modeUp = adding_up
         # path of the files necessary to generate the Network object
         self.networkFile = "{}{}_{}.network".format(input_folder, catchment, outlet)
         self.waterBodiesFile = "{}{}_{}.waterbodies".format(input_folder, catchment, outlet)
