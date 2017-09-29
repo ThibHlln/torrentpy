@@ -1,12 +1,12 @@
 import numpy
 import scipy.stats
 import logging
-from glob import glob
 from itertools import izip
 
 from scripts.simuClasses import *
 import postprocPlot as ppP
 import scripts.simuRunSingle as sRS
+import scripts.simuFiles as sF
 
 
 def main(catchment, outlet, gauge):
@@ -37,25 +37,20 @@ def main(catchment, outlet, gauge):
                                             simu_datetime_start.strftime("%Y%m%d"),
                                             simu_datetime_end.strftime("%Y%m%d"))
 
-    # Create a logger
-    sRS.setup_logger(catchment, outlet, 'SinglePerformance.main', 'performance', output_folder, is_single_run=True)
-    logger = logging.getLogger('SinglePerformance.main')
-    logger.warning("Starting performance assessment for {} {}.".format(catchment, outlet))
+    # Determine gauged waterbody associated to the hydrometric gauge
+    gauged_waterbody = ppP.find_waterbody_from_gauge(input_folder, catchment, outlet, gauge)
 
-    # Clean up the output folder for the desired file extensions
-    for my_extension in ["*.performance"]:
-        my_files = glob("{}/{}{}{}".format(root, output_folder, catchment, my_extension))
-        for my_file in my_files:
-            os.remove(my_file)
+    # Create a logger
+    sRS.setup_logger(
+        catchment, gauged_waterbody, 'SinglePerformance.main', 'performance', output_folder, is_single_run=True)
+    logger = logging.getLogger('SinglePerformance.main')
+    logger.warning("Starting performance assessment for {} {} {}.".format(catchment, outlet, gauge))
 
     # Create a Network object from network and waterBodies files
     my__network = Network(catchment, outlet, input_folder, spec_directory, adding_up=True)
 
-    # Determine gauged waterbody associated to the hydrometric gauge
-    gauged_waterbody = ppP.find_waterbody_from_gauge(input_folder, catchment, outlet, gauge)
-
     # Collect the observed (OBS) and modelled (MOD) discharge data
-    df_flows_obs = pandas.read_csv('{}{}_{}_{}.flow'.format(output_folder, catchment, outlet, gauge))
+    df_flows_obs = pandas.read_csv('{}{}_{}_{}.flow'.format(output_folder, catchment, gauged_waterbody, gauge))
     df_flows_mod = pandas.read_csv('{}{}_{}.outputs'.format(output_folder, catchment, gauged_waterbody))
 
     nda_flows_obs = df_flows_obs['flow'].values
@@ -68,6 +63,9 @@ def main(catchment, outlet, gauge):
     my_dict_results = dict()
     logger.info("Calculating rate of missing observations.")
     my_dict_results['PercentMissing'] = calculate_missing(nda_flows_obs)
+    logger.info("Calculating upstream drainage area.")
+    my_dict_results['DrainageArea'] = calculate_drainage_area(
+        my__network, input_folder, catchment, outlet, gauged_waterbody)
     logger.info("Calculating Nash-Sutcliffe efficiency (NSE).")
     my_dict_results['NSE'] = calculate_nse(nda_flows_obs, nda_flows_mod)
     logger.info("Calculating BIAS.")
@@ -78,7 +76,7 @@ def main(catchment, outlet, gauge):
     my_df_results = pandas.DataFrame.from_dict(my_dict_results, orient='index')
     my_df_results.index.name = "Indicator"
     my_df_results.columns = ["Value"]
-    my_df_results.to_csv('{}{}_{}.performance'.format(output_folder, catchment, outlet), sep=',')
+    my_df_results.to_csv('{}{}_{}.performance'.format(output_folder, catchment, gauged_waterbody), sep=',')
 
     # Generate flow duration curve
     logger.info("Calculating flow frequencies.")
@@ -89,13 +87,13 @@ def main(catchment, outlet, gauge):
     logger.info("Plotting Flow Duration Curve.")
     ppP.plot_flow_duration_curve(flows_obs_ord, flows_freq_obs,
                                  flows_mod_ord, flows_freq_mod,
-                                 output_folder, catchment, outlet)
+                                 output_folder, catchment, gauged_waterbody, gauge)
     logger.info("Plotting Logarithmic Flow Duration Curve.")
     ppP.plot_flow_duration_curve_log(flows_obs_ord, flows_freq_obs,
                                      flows_mod_ord, flows_freq_mod,
-                                     output_folder, catchment, outlet)
+                                     output_folder, catchment, gauged_waterbody, gauge)
 
-    logger.warning("Ending performance assessment for {} {}.".format(catchment, outlet))
+    logger.warning("Ending performance assessment for {} {} {}.".format(catchment, outlet, gauge))
 
 
 def calculate_missing(flows, criterion=-99.0):
@@ -109,6 +107,19 @@ def calculate_missing(flows, criterion=-99.0):
     missing = (total_length - length_not_missing) / total_length * 100.0
 
     return missing
+
+
+def calculate_drainage_area(my__network, in_folder, catchment, outlet, gauged_wb):
+    # Find all the waterbodies upstream of the gauge, including the gauged waterbody
+    all_wb = ppP.determine_gauging_zone(my__network, in_folder, catchment, outlet, gauged_wb)
+    # Collect the catchment descriptors
+    my_dict_desc = sF.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
+    # Calculate the total upstream drainage area using the descriptor files
+    drainage_area = 0.0
+    for waterbody in all_wb:
+        drainage_area += my_dict_desc[waterbody]['area']
+
+    return drainage_area
 
 
 def delete_missing(flows, criterion=-99.0):

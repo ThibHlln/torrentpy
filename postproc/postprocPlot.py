@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 from pandas import DataFrame
 import numpy as np
-from glob import glob
 from matplotlib import dates
 import logging
 
@@ -39,16 +38,13 @@ def main(catchment, outlet, gauge):
                                             simu_datetime_start.strftime("%Y%m%d"),
                                             simu_datetime_end.strftime("%Y%m%d"))
 
-    # Create a logger
-    sRS.setup_logger(catchment, outlet, 'SinglePlot.main', 'plot', output_folder, is_single_run=True)
-    logger = logging.getLogger('SinglePlot.main')
-    logger.warning("Starting plotting for {} {}.".format(catchment, outlet))
+    # Determine gauged waterbody associated to the hydrometric gauge
+    gauged_waterbody = find_waterbody_from_gauge(input_folder, catchment, outlet, gauge)
 
-    # Clean up the output folder for the desired file extensions
-    for my_extension in ["*.flow"]:
-        my_files = glob("{}/{}{}{}".format(root, output_folder, catchment, my_extension))
-        for my_file in my_files:
-            os.remove(my_file)
+    # Create a logger
+    sRS.setup_logger(catchment, gauged_waterbody, 'SinglePlot.main', 'plot', output_folder, is_single_run=True)
+    logger = logging.getLogger('SinglePlot.main')
+    logger.warning("Starting plotting for {} {} {}.".format(catchment, outlet, gauge))
 
     # Create a TimeFrame object
     my__time_frame = TimeFrame(data_datetime_start, data_datetime_end,
@@ -57,15 +53,12 @@ def main(catchment, outlet, gauge):
     # Create a Network object from network and waterBodies files
     my__network = Network(catchment, outlet, input_folder, spec_directory, adding_up=True)
 
-    # Determine gauged waterbody associated to the hydrometric gauge
-    gauged_waterbody = find_waterbody_from_gauge(input_folder, catchment, outlet, gauge)
-
     # Create a subset of the input discharge file
     ppF.get_df_flow_data_from_file(
         catchment, outlet, gauge, my__time_frame,
         input_folder, logger).to_csv('{}{}_{}_{}.flow'.format(output_folder,
                                                               catchment.capitalize(),
-                                                              outlet,
+                                                              gauged_waterbody,
                                                               gauge),
                                      header='FLOW',
                                      float_format='%e',
@@ -83,6 +76,8 @@ def main(catchment, outlet, gauge):
                            output_folder, catchment, gauge, gauged_waterbody,
                            rainfall, gauged_flow_m3s, simu_flow_m3s,
                            plot_datetime_start, plot_datetime_end)
+
+    logger.warning("Ending plotting for {} {} {}.".format(catchment, outlet, gauge))
 
 
 def set_up_plotting(catchment, outlet, input_dir):
@@ -270,7 +265,7 @@ def read_results_files(my__network, my__time_frame,
     gauged_flow_m3s = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
     gauged_flow_m3s = \
         np.c_[gauged_flow_m3s,
-              np.asarray(pandas.read_csv("{}{}_{}_{}.flow".format(out_folder, catchment, outlet, gauge),
+              np.asarray(pandas.read_csv("{}{}_{}_{}.flow".format(out_folder, catchment, gauged_wb, gauge),
                                          index_col=0)['flow'].loc[my_time_st].tolist())]
 
     return rainfall, gauged_flow_m3s, simu_flow_m3s
@@ -388,17 +383,15 @@ def plot_daily_hydro_hyeto(my__tf,
     fig.savefig('{}{}_{}.hyeto.hydro.png'.format(out_folder, catchment, gauged_wb),
                 dpi=300, facecolor=fig.get_facecolor(), edgecolor='none')
 
-    logger.warning("Ending plotting for {} {}.".format(catchment, gauged_wb))
-
 
 def plot_flow_duration_curve(obs_flows, obs_frequencies,
                              mod_flows, mod_frequencies,
-                             out_folder, catchment, outlet):
+                             out_folder, catchment, gauged_wb, gauge):
 
     # Create a general figure
     fig = plt.figure(facecolor='white')
     fig.patch.set_facecolor('#ffffff')
-    fig.suptitle(catchment)
+    fig.suptitle('{} {} ({})'.format(catchment, gauged_wb, gauge))
 
     # __________________ FDC Modelled __________________
 
@@ -432,18 +425,18 @@ def plot_flow_duration_curve(obs_flows, obs_frequencies,
 
     # Save image
     fig.set_size_inches(11, 6)
-    fig.savefig('{}{}_{}.fdc.png'.format(out_folder, catchment, outlet),
+    fig.savefig('{}{}_{}.fdc.png'.format(out_folder, catchment, gauged_wb),
                 dpi=300, facecolor=fig.get_facecolor(), edgecolor='none')
 
 
 def plot_flow_duration_curve_log(obs_flows, obs_frequencies,
                                  mod_flows, mod_frequencies,
-                                 out_folder, catchment, outlet):
+                                 out_folder, catchment, gauged_wb, gauge):
 
     # Create a general figure
     fig = plt.figure(facecolor='white')
     fig.patch.set_facecolor('#ffffff')
-    fig.suptitle(catchment)
+    fig.suptitle('{} {} ({})'.format(catchment, gauged_wb, gauge))
 
     # __________________ FDC Modelled __________________
 
@@ -477,7 +470,7 @@ def plot_flow_duration_curve_log(obs_flows, obs_frequencies,
 
     # Save image
     fig.set_size_inches(11, 6)
-    fig.savefig('{}{}_{}.fdc.log.png'.format(out_folder, catchment, outlet),
+    fig.savefig('{}{}_{}.fdc.log.png'.format(out_folder, catchment, gauged_wb),
                 dpi=300, facecolor=fig.get_facecolor(), edgecolor='none')
 
 
