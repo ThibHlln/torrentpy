@@ -14,24 +14,25 @@ def get_arguments_from_batch_file(batch_file):
             my_reader = DictReader(my_file)
             my_list_of_tuples = list()
             for line in my_reader:
-                my_list_of_tuples.append((line['Catchment'], line['OUTLET']))
+                my_list_of_tuples.append((line['Catchment'], line['Outlet'], line['Gauge']))
 
         return my_list_of_tuples
     except IOError:
         raise Exception('{} does not exist.'.format(batch_file))
 
 
-def single_run(catchment, outlet):
+def single_run(catchment, outlet, gauge):
     """
     :param catchment: name of the catchment
     :param outlet: european code of the outlet of the catchment
+    :param gauge: identification number of the hydrometric station
     :return: NOTHING
     """
     logger = logging.getLogger("MultiPostProc")
     logger.setLevel(logging.ERROR)
     try:
-        ppPl.main(catchment, outlet)
-        ppPf.main(catchment, outlet)
+        ppPl.main(catchment, outlet, gauge)
+        ppPf.main(catchment, outlet, gauge)
     except Exception as e:
         logger.exception(e)
         raise e
