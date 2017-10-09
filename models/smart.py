@@ -311,7 +311,7 @@ def infer_parameters_cmt(dict_desc, my_dict_param):
     # my_dict['c_p_t'] = 65.622 * dict_desc['SAAPE'] ** (-0.652) * \
     #     dict_desc['TAYSLO'] ** 0.003 * \
     #     (dict_desc['SlopeLow'] + 1.0) ** (-0.075) * \
-    #     (dict_desc['PEAT'] ** 0.5 + 1.0) ** (-0.221) * \
+    #     (dict_desc['Peat'] ** 0.5 + 1.0) ** (-0.221) * \
     #     (dict_desc['Made'] ** 0.5 + 1.0) ** (-0.481)
     my_dict_param['c_p_t'] = 1.0
 
@@ -425,7 +425,7 @@ def infer_parameters_thesis(dict_desc, my_dict_param):
     my_dict_param['c_p_t'] = 65.622 * dict_desc['SAAPE'] ** (-0.652) * \
         dict_desc['TAYSLO'] ** 0.003 * \
         (dict_desc['SlopeLow'] + 1.0) ** (-0.075) * \
-        (dict_desc['PEAT'] ** 0.5 + 1.0) ** (-0.221) * \
+        (dict_desc['Peat'] ** 0.5 + 1.0) ** (-0.221) * \
         (dict_desc['Made'] ** 0.5 + 1.0) ** (-0.481)
 
     # Parameter C: Evaporation decay parameter
