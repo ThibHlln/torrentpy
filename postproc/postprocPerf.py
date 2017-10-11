@@ -47,7 +47,12 @@ def main(catchment, outlet, gauge):
     logger.warning("Starting performance assessment for {} {} {}.".format(catchment, outlet, gauge))
 
     # Create a Network object from network and waterBodies files
-    my__network = Network(catchment, outlet, input_folder, spec_directory, adding_up=True)
+    my_df_info = pandas.read_csv('{}{}_{}.information'.format(output_folder, catchment, outlet), index_col=0)
+    if my_df_info.get_value('AddUp', 'Value') == 'True':
+        adding_up = True
+    else:
+        adding_up = False
+    my__network = Network(catchment, outlet, input_folder, spec_directory, adding_up=adding_up)
 
     # Collect the observed (OBS) and modelled (MOD) discharge data
     df_flows_obs = pandas.read_csv('{}{}_{}_{}.flow'.format(output_folder, catchment, gauged_waterbody, gauge))

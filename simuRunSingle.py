@@ -41,6 +41,13 @@ def main(catchment, outlet, slice_length, warm_up_in_days, adding_up, is_single_
     logger.warning("Starting simulation for {} {} [Slice-Up: {}, Warm-Up: {}, Adding-Up: {}].".format(
         catchment, outlet, slice_length, warm_up_in_days, adding_up))
 
+    # Store information about arguments used to call the run
+    my_df_info = pandas.DataFrame.from_dict(
+        {'SliceUp': slice_length, 'WarmUp': warm_up_in_days, 'AddUp': adding_up}, orient='index')
+    my_df_info.index.name = "Information"
+    my_df_info.columns = ["Value"]
+    my_df_info.to_csv('{}{}_{}.information'.format(output_folder, catchment, outlet), sep=',')
+
     logger.info("Initialising.")
 
     # Clean up the output folder for the desired file extensions

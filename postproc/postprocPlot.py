@@ -51,7 +51,12 @@ def main(catchment, outlet, gauge):
                                int(data_time_step_in_min), int(simu_time_step_in_min), 0)
 
     # Create a Network object from network and waterBodies files
-    my__network = Network(catchment, outlet, input_folder, spec_directory, adding_up=True)
+    my_df_info = pandas.read_csv('{}{}_{}.information'.format(output_folder, catchment, outlet), index_col=0)
+    if my_df_info.get_value('AddUp', 'Value') == 'True':
+        adding_up = True
+    else:
+        adding_up = False
+    my__network = Network(catchment, outlet, input_folder, spec_directory, adding_up=adding_up)
 
     # Create a subset of the input discharge file
     ppF.get_df_flow_data_from_file(
