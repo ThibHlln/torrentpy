@@ -9,7 +9,7 @@ import simuFiles as sF
 import simuFunctions as sFn
 
 
-def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
+def main(catchment, outlet, slice_length, warm_up_in_days, adding_up, is_single_run=False):
     # Location of the different needed directories
     root = "C:/PycharmProjects/Python/CatchmentSimulationFramework/"
     os.chdir(root)  # define root
@@ -38,8 +38,8 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
     setup_logger(catchment, outlet, 'SingleRun.main', 'simu', output_folder, is_single_run)
     logger = logging.getLogger('SingleRun.main')
 
-    logger.warning("Starting simulation for {} {} [Slice-Up: {}, Warm-Up: {}].".format(catchment, outlet,
-                                                                                       slice_length, warm_up_in_days))
+    logger.warning("Starting simulation for {} {} [Slice-Up: {}, Warm-Up: {}, Adding-Up: {}].".format(
+        catchment, outlet, slice_length, warm_up_in_days, adding_up))
 
     logger.info("Initialising.")
 
@@ -57,7 +57,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, is_single_run=False):
                                        int(data_time_step_in_min), int(simu_time_step_in_min), slice_length)
 
     # Create a Network object from network and waterBodies files
-    my__network = Network(catchment, outlet, input_folder, spec_directory, adding_up=True)
+    my__network = Network(catchment, outlet, input_folder, spec_directory, adding_up=adding_up)
 
     # Create Models for the links
     dict__ls_models = generate_models_for_links(my__network, spec_directory, input_folder, output_folder)
@@ -662,8 +662,14 @@ if __name__ == "__main__":
                         help="simulation period slice-up length in time steps")
     parser.add_argument('-w', '--warm_up', type=int, default=0,
                         help="warm-up duration in days")
+    parser.add_argument('-u', '--add_up', dest='add_up', action='store_true',
+                        help="add the catchment run-off to its upstream node ")
+    parser.add_argument('-d', '--add_down', dest='add_up', action='store_false',
+                        help="add the catchment run-off to its downstream node ")
+    parser.set_defaults(add_up=True)
 
     args = parser.parse_args()
 
     # Run the main() function
-    main(args.catchment.capitalize(), args.outlet.upper(), args.slice_up, args.warm_up, is_single_run=True)
+    main(args.catchment.capitalize(), args.outlet.upper(), args.slice_up, args.warm_up, args.add_up,
+         is_single_run=True)
