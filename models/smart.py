@@ -28,8 +28,8 @@ def run(waterbody, dict_data_frame,
     _____ c_p_t                 T: rainfall aerial correction coefficient
     _____ c_p_c                 C: evaporation decay parameter
     _____ c_p_h                 H: quick runoff coefficient
-    _____ c_p_s                 S: drain flow parameter - fraction of saturation excess diverted to drain flow
-    _____ c_p_d                 D: soil outflow coefficient
+    _____ c_p_d                 D: drain flow parameter - fraction of saturation excess diverted to drain flow
+    _____ c_p_s                 S: soil outflow coefficient
     _____ c_p_z                 Z: effective soil depth [mm]
     _____ c_p_sk                SK: surface routing parameter [hours]
     _____ c_p_fk                FK: inter flow routing parameter [hours]
@@ -80,8 +80,8 @@ def run(waterbody, dict_data_frame,
     c_p_t = dict_param["c_p_t"]
     c_p_c = dict_param["c_p_c"]
     c_p_h = dict_param["c_p_h"]
-    c_p_s = dict_param["c_p_s"]
     c_p_d = dict_param["c_p_d"]
+    c_p_s = dict_param["c_p_s"]
     c_p_z = dict_param["c_p_z"]
     c_p_sk = dict_param["c_p_sk"] * 3600.0  # convert hours in seconds
     c_p_fk = dict_param["c_p_fk"] * 3600.0  # convert hours in seconds
@@ -132,20 +132,20 @@ def run(waterbody, dict_data_frame,
                 dict_lvl_lyr[i] = dict_z_lyr[i]
                 excess_rain -= space_in_lyr
         # calculate saturation excess from remaining excess rainfall after filling layers
-        drain_flow = c_p_s * excess_rain
-        inter_flow = (1.0 - c_p_s) * excess_rain
+        drain_flow = c_p_d * excess_rain
+        inter_flow = (1.0 - c_p_d) * excess_rain
         # calculate leak from soil layers
-        d_prime = c_p_d * (lvl_total_start / c_p_z)
+        s_prime = c_p_s * (lvl_total_start / c_p_z)
         # leak to interflow
         for i in [1, 2, 3, 4, 5, 6]:
-            leak_interflow = dict_lvl_lyr[i] * (d_prime ** i)
+            leak_interflow = dict_lvl_lyr[i] * (s_prime ** i)
             if leak_interflow < dict_lvl_lyr[i]:
                 inter_flow += leak_interflow
                 dict_lvl_lyr[i] -= leak_interflow
         # leak to shallow groundwater flow
         shallow_flow = 0.0
         for i in [1, 2, 3, 4, 5, 6]:
-            leak_shallow_flow = dict_lvl_lyr[i] * (d_prime / i)
+            leak_shallow_flow = dict_lvl_lyr[i] * (s_prime / i)
             if leak_shallow_flow < dict_lvl_lyr[i]:
                 shallow_flow += leak_shallow_flow
                 dict_lvl_lyr[i] -= leak_shallow_flow
@@ -154,7 +154,7 @@ def run(waterbody, dict_data_frame,
         deep_flow = 0.0
         for i in [6, 5, 4, 3, 2, 1]:
             power += 1.0
-            leak_deep_flow = dict_lvl_lyr[i] * (d_prime ** power)
+            leak_deep_flow = dict_lvl_lyr[i] * (s_prime ** power)
             if leak_deep_flow < dict_lvl_lyr[i]:
                 deep_flow += leak_deep_flow
                 dict_lvl_lyr[i] -= leak_deep_flow
@@ -345,17 +345,17 @@ def infer_parameters_cmt(dict_desc, my_dict_param):
     elif my_dict_param['c_p_h'] > 1.0:
         my_dict_param['c_p_h'] = 1.0
 
-    # Parameter S: Drain flow parameter - fraction of saturation excess diverted to drain flow
+    # Parameter D: Drain flow parameter - fraction of saturation excess diverted to drain flow
     drain_eff_factor = 0.6
-    my_dict_param['c_p_s'] = dict_desc['land_drain_ratio'] * drain_eff_factor
+    my_dict_param['c_p_d'] = dict_desc['land_drain_ratio'] * drain_eff_factor
 
-    if my_dict_param['c_p_s'] < 0.0:
-        my_dict_param['c_p_s'] = 0.0
-    elif my_dict_param['c_p_s'] > 1.0:
-        my_dict_param['c_p_s'] = 1.0
+    if my_dict_param['c_p_d'] < 0.0:
+        my_dict_param['c_p_d'] = 0.0
+    elif my_dict_param['c_p_d'] > 1.0:
+        my_dict_param['c_p_d'] = 1.0
 
-    # Parameter D: Soil outflow coefficient
-    my_dict_param['c_p_d'] = 8.61144e-14 * dict_desc['SAAR'] ** 3.207 * \
+    # Parameter S: Soil outflow coefficient
+    my_dict_param['c_p_s'] = 8.61144e-14 * dict_desc['SAAR'] ** 3.207 * \
         dict_desc['AVG.SLOPE'] ** (-1.089) * \
         (dict_desc['BFIsoil'] ** 2.0 + 1.0) ** (-3.765) * \
         (dict_desc['URBEXT'] ** 0.5 + 1.0) ** 17.515 * \
@@ -366,10 +366,10 @@ def infer_parameters_cmt(dict_desc, my_dict_param):
         ((dict_desc['Lm'] + dict_desc['Rf']) + 1.0) ** 4.251 * \
         exp(dict_desc['Ll']) ** (-1.186)
 
-    if my_dict_param['c_p_d'] < 0.0:
-        my_dict_param['c_p_d'] = 0.0
-    elif my_dict_param['c_p_d'] > 1.0:
-        my_dict_param['c_p_d'] = 1.0
+    if my_dict_param['c_p_s'] < 0.0:
+        my_dict_param['c_p_s'] = 0.0
+    elif my_dict_param['c_p_s'] > 1.0:
+        my_dict_param['c_p_s'] = 1.0
 
     # Parameter Z: Effective soil depth (mm)
     my_dict_param['c_p_z'] = 9183325.942 * dict_desc['SAAR'] ** (-1.8501) * \
@@ -456,17 +456,17 @@ def infer_parameters_thesis(dict_desc, my_dict_param):
     elif my_dict_param['c_p_h'] > 1.0:
         my_dict_param['c_p_h'] = 1.0
 
-    # Parameter S: Drain flow parameter - fraction of saturation excess diverted to drain flow
+    # Parameter D: Drain flow parameter - fraction of saturation excess diverted to drain flow
     drain_eff_factor = 0.8
-    my_dict_param['c_p_s'] = dict_desc['land_drain_ratio'] * drain_eff_factor
+    my_dict_param['c_p_d'] = dict_desc['land_drain_ratio'] * drain_eff_factor
 
-    if my_dict_param['c_p_s'] < 0.0:
-        my_dict_param['c_p_s'] = 0.0
-    elif my_dict_param['c_p_s'] > 1.0:
-        my_dict_param['c_p_s'] = 1.0
+    if my_dict_param['c_p_d'] < 0.0:
+        my_dict_param['c_p_d'] = 0.0
+    elif my_dict_param['c_p_d'] > 1.0:
+        my_dict_param['c_p_d'] = 1.0
 
-    # Parameter D: Soil outflow coefficient
-    my_dict_param['c_p_d'] = 8.61144e-14 * dict_desc['SAAR'] ** 3.207 * \
+    # Parameter S: Soil outflow coefficient
+    my_dict_param['c_p_s'] = 8.61144e-14 * dict_desc['SAAR'] ** 3.207 * \
         dict_desc['AVG.SLOPE'] ** (-1.089) * \
         (dict_desc['BFIsoil'] ** 2.0 + 1.0) ** (-3.765) * \
         (dict_desc['URBEXT'] ** 0.5 + 1.0) ** 17.515 * \
@@ -477,10 +477,10 @@ def infer_parameters_thesis(dict_desc, my_dict_param):
         ((dict_desc['Lm'] + dict_desc['Rf']) + 1.0) ** 4.251 * \
         exp(dict_desc['Ll']) ** (-1.186)
 
-    if my_dict_param['c_p_d'] < 0.0:
-        my_dict_param['c_p_d'] = 0.0
-    elif my_dict_param['c_p_d'] > 1.0:
-        my_dict_param['c_p_d'] = 1.0
+    if my_dict_param['c_p_s'] < 0.0:
+        my_dict_param['c_p_s'] = 0.0
+    elif my_dict_param['c_p_s'] > 1.0:
+        my_dict_param['c_p_s'] = 1.0
 
     # Parameter Z: Effective soil depth (mm)
     my_dict_param['c_p_z'] = 9183325.942 * dict_desc['SAAR'] ** (-1.8501) * \

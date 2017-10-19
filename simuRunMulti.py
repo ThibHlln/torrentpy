@@ -87,7 +87,7 @@ if __name__ == '__main__':
     setup_logger('MultiRun', my_log_file, level=logging.DEBUG)
 
     cores = cpu_count()
-    pool = Pool(processes=cores, maxtasksperchild=1)
+    pool = Pool(processes=4, maxtasksperchild=1)
     # 'processes' is the number of simultaneous runs (children) allowed (maximum = number of processors available)
     # 'maxtasksperchild' is set to 1 to kill each child after task completion to make sure to clean memory properly
 
