@@ -161,8 +161,9 @@ def main(catchment, outlet, slice_length, warm_up_in_days, adding_up, is_single_
                  dict__nd_meteo, dict__nd_loadings)
 
         # Write results in files
-        update_simulation_files(my__network, my_data_slice, dict__nd_data, dict__ls_models,
-                                catchment, output_folder)
+        update_simulation_files(my__network, my__time_frame, my_data_slice, my_simu_slice,
+                                dict__nd_data, dict__ls_models,
+                                catchment, output_folder, report='data_step', method='summary')
 
         # Save history (last time step) for next slice
         for link in my__network.links:
@@ -597,16 +598,30 @@ def create_simulation_files(my__network, dict__ls_models,
             my_writer.writerow(['DateTime'] + my__network.variables)
 
 
-def update_simulation_files(my__network, my_list_datetime,
+def update_simulation_files(my__network, my__tf, my_data_slice, my_simu_slice,
                             dict__nd_data, dict__ls_models,
-                            catchment, output_folder):
+                            catchment, output_folder, report='data_step', method='raw'):
     """
     This function saves the simulated data into the CSV files for the nodes and the links.
+    It features two arguments:
+     - "report" allows to choose which time step to use to report the data (either 'data_step' or 'simu_step');
+     - "method" allows to choose how to deal with the report of results at a coarser scale than the simulated
+      time step. If 'summary' is chosen, the inputs are summed up, and states/outputs/nodes are averaged across all
+      the simulation time steps corresponding to the data time step being reported (e.g. previous 24 hours averaged
+      for each day when daily data simulated hourly). If 'raw' is chosen, only the inputs/states/outputs/nodes for the
+      exact time step chosen are reported (e.g. when daily data simulated hourly, only the value corresponding to the
+      exact hour of the data time step is reported, the other 23 hourly time steps are not explicitly used).
+
+    N.B. (report = 'simu_step', method = 'raw') and (report = 'data_step', method = 'raw') yield identical output files
 
     :param my__network: Network object for the simulated catchment
     :type my__network: Network
-    :param my_list_datetime: list of datetime for the period simulated
-    :type my_list_datetime: list()
+    :param my__tf: TimeFrame object for the simulation period
+    :type my__tf: TimeFrame
+    :param my_data_slice: list of datetime for the period simulated (at the data time step)
+    :type my_data_slice: list()
+    :param my_simu_slice: list of datetime for the period simulated (at the simulated time step)
+    :type my_simu_slice: list()
     :param dict__nd_data: dictionary containing the nested dictionaries for the nodes and the links for variables
         { key = link/node: value = nested_dictionary(index=datetime,column=variable) }
     :type dict__nd_data: dict()
@@ -617,44 +632,130 @@ def update_simulation_files(my__network, my_list_datetime,
     :type catchment: str()
     :param output_folder: path to the output folder where to save the simulation files
     :type output_folder: str()
+    :param report: choice to report the data at the simulation step 'simu_step', or only at the data step 'data_step'
+    :type report: str()
+    :param method: choice to summarise the data (i.e. averages/sums) when data time step > simu time step
+    :type method: str()
     :return: NOTHING, only updates the files in the output folder
     """
     logger = logging.getLogger('SingleRun.main')
-    # Save the Nested Dicts for the links (separating inputs, states, and outputs)
+
     logger.info("> Updating results in files.")
-    for link in my__network.links:
-        my_inputs = list()
-        my_states = list()
-        my_outputs = list()
 
-        for model in dict__ls_models[link]:
-            my_inputs += model.input_names
-            my_states += model.state_names
-            my_outputs += model.output_names
+    # Select the relevant list of DateTime given the argument used during function call
+    if report == 'data_step':
+        my_list_datetime = my_data_slice
+        divisor = my__tf.step_data / my__tf.step_simu
+    elif report == 'simu_step':
+        my_list_datetime = my_simu_slice
+        divisor = 1
+    else:
+        raise Exception('Unknown reporting time step for updating simulations files.')
 
-        with open('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
-            my_writer = csv.writer(my_file, delimiter=',')
-            for step in my_list_datetime[1:]:
-                my_writer.writerow([step] + ['%e' % dict__nd_data[link][step][my_input]
-                                             for my_input in my_inputs])
-        with open('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
-            my_writer = csv.writer(my_file, delimiter=',')
-            for step in my_list_datetime[1:]:
-                my_writer.writerow([step] + ['%e' % dict__nd_data[link][step][my_state]
-                                             for my_state in my_states])
-        with open('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
-            my_writer = csv.writer(my_file, delimiter=',')
-            for step in my_list_datetime[1:]:
-                my_writer.writerow([step] + ['%e' % dict__nd_data[link][step][my_output]
-                                             for my_output in my_outputs])
+    if method == 'summary':
+        # Save the Nested Dicts for the links (separating inputs, states, and outputs)
+        for link in my__network.links:
+            my_inputs = list()
+            my_states = list()
+            my_outputs = list()
 
-    # Save the Nested Dicts for the nodes
-    for node in my__network.nodes:
-        with open('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node), 'ab') as my_file:
-            my_writer = csv.writer(my_file, delimiter=',')
-            for step in my_list_datetime[1:]:
-                my_writer.writerow([step] + ['%e' % dict__nd_data[node][step][my_variable]
-                                             for my_variable in my__network.variables])
+            for model in dict__ls_models[link]:
+                my_inputs += model.input_names
+                my_states += model.state_names
+                my_outputs += model.output_names
+
+            with open('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
+                my_writer = csv.writer(my_file, delimiter=',')
+                for step in my_list_datetime[1:]:
+                    my_list = list()
+                    for my_input in my_inputs:
+                        my_values = list()
+                        for my_sub_step in xrange(0, -divisor, -1):
+                            my_values.append(
+                                dict__nd_data[link][
+                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.step_simu)][my_input])
+                        my_list.append('%e' % sum(my_values))
+                    my_writer.writerow([step] + my_list)
+
+            with open('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
+                my_writer = csv.writer(my_file, delimiter=',')
+                for step in my_list_datetime[1:]:
+                    my_list = list()
+                    for my_state in my_states:
+                        my_values = list()
+                        for my_sub_step in xrange(0, -divisor, -1):
+                            my_values.append(
+                                dict__nd_data[link][
+                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.step_simu)][my_state])
+                        my_list.append('%e' % (sum(my_values) / len(my_values)))
+                    my_writer.writerow([step] + my_list)
+
+            with open('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
+                my_writer = csv.writer(my_file, delimiter=',')
+                for step in my_list_datetime[1:]:
+                    my_list = list()
+                    for my_output in my_outputs:
+                        my_values = list()
+                        for my_sub_step in xrange(0, -divisor, -1):
+                            my_values.append(
+                                dict__nd_data[link][
+                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.step_simu)][my_output])
+                        my_list.append('%e' % (sum(my_values) / len(my_values)))
+                    my_writer.writerow([step] + my_list)
+
+        # Save the Nested Dicts for the nodes
+        for node in my__network.nodes:
+            with open('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node), 'ab') as my_file:
+                my_writer = csv.writer(my_file, delimiter=',')
+                for step in my_list_datetime[1:]:
+                    my_list = list()
+                    for my_variable in my__network.variables:
+                        my_values = list()
+                        for my_sub_step in xrange(0, -divisor, -1):
+                            my_values.append(
+                                dict__nd_data[node][
+                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.step_simu)][my_variable])
+                        my_list.append('%e' % (sum(my_values) / len(my_values)))
+                    my_writer.writerow([step] + my_list)
+
+    elif method == 'raw':
+        # Save the Nested Dicts for the links (separating inputs, states, and outputs)
+        for link in my__network.links:
+            my_inputs = list()
+            my_states = list()
+            my_outputs = list()
+
+            for model in dict__ls_models[link]:
+                my_inputs += model.input_names
+                my_states += model.state_names
+                my_outputs += model.output_names
+
+            with open('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
+                my_writer = csv.writer(my_file, delimiter=',')
+                for step in my_list_datetime[1:]:
+                    my_writer.writerow([step] + ['%e' % dict__nd_data[link][step][my_input]
+                                                 for my_input in my_inputs])
+            with open('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
+                my_writer = csv.writer(my_file, delimiter=',')
+                for step in my_list_datetime[1:]:
+                    my_writer.writerow([step] + ['%e' % dict__nd_data[link][step][my_state]
+                                                 for my_state in my_states])
+            with open('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
+                my_writer = csv.writer(my_file, delimiter=',')
+                for step in my_list_datetime[1:]:
+                    my_writer.writerow([step] + ['%e' % dict__nd_data[link][step][my_output]
+                                                 for my_output in my_outputs])
+
+        # Save the Nested Dicts for the nodes
+        for node in my__network.nodes:
+            with open('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node), 'ab') as my_file:
+                my_writer = csv.writer(my_file, delimiter=',')
+                for step in my_list_datetime[1:]:
+                    my_writer.writerow([step] + ['%e' % dict__nd_data[node][step][my_variable]
+                                                 for my_variable in my__network.variables])
+
+    else:
+        raise Exception("Unknown method for updating simulations files.")
 
 
 if __name__ == "__main__":
