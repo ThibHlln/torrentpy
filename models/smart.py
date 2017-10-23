@@ -35,7 +35,7 @@ def run(waterbody, dict_data_frame,
     _____ c_p_fk                FK: inter flow routing parameter [hours]
     _____ c_p_gk                GK: groundwater routing parameter [hours]
     ___ Outputs * out_ *
-    _____ c_out_aeva            actual evapotranspiration [mm]
+    _____ c_out_aeva            actual evapotranspiration [m3/s]
     _____ c_out_q_h2o_ove       overland flow [m3/s]
     _____ c_out_q_h2o_dra       drain flow [m3/s]
     _____ c_out_q_h2o_int       inter flow [m3/s]
@@ -114,11 +114,11 @@ def run(waterbody, dict_data_frame,
     # calculate excess rainfall
     excess_rain = rain - c_in_peva
     # initialise actual evapotranspiration variable
-    c_out_aeva = 0.0
+    aeva = 0.0
 
     if excess_rain >= 0.0:  # excess rainfall available for runoff and infiltration
         # actual evapotranspiration = potential evapotranspiration
-        c_out_aeva += c_in_peva
+        aeva += c_in_peva
         # calculate surface runoff using quick runoff parameter H and relative soil moisture content
         h_prime = c_p_h * (lvl_total_start / c_p_z)
         overland_flow = h_prime * excess_rain  # excess rainfall contribution to quick surface runoff store
@@ -165,14 +165,14 @@ def run(waterbody, dict_data_frame,
         deep_flow = 0.0  # no soil moisture contribution to deep groundwater flow runoff store
 
         deficit_rain = excess_rain * (-1.0)  # excess is negative => excess is actually a deficit
-        c_out_aeva += rain
+        aeva += rain
         for i in [1, 2, 3, 4, 5, 6]:  # attempt to satisfy PE from soil layers (from top layer [1] to bottom layer [6]
             if dict_lvl_lyr[i] >= deficit_rain:  # i.e. all moisture required available in this soil layer
                 dict_lvl_lyr[i] -= deficit_rain  # soil layer is reduced by the moisture required
-                c_out_aeva += deficit_rain  # this moisture contributes to the actual evapotranspiration
+                aeva += deficit_rain  # this moisture contributes to the actual evapotranspiration
                 deficit_rain = 0.0  # the full moisture still required has been met
             else:  # i.e. not all moisture required available in this soil layer
-                c_out_aeva += dict_lvl_lyr[i]  # takes what is available in this layer for evapotranspiration
+                aeva += dict_lvl_lyr[i]  # takes what is available in this layer for evapotranspiration
                 # effectively reduce the evapotranspiration demand for the next layer using parameter C
                 # i.e. the more you move down through the soil layers, the less AET can meet PET (exponentially)
                 deficit_rain = c_p_c * (deficit_rain - dict_lvl_lyr[i])
@@ -184,6 +184,9 @@ def run(waterbody, dict_data_frame,
         lvl_total_end += dict_lvl_lyr[i]
 
     # /!\ all calculations in S.I. units now (i.e. mm converted into cubic metres)
+
+    # calculate actual evapotranspiration as a flux
+    c_out_aeva = aeva / 1e3 * area_m2 / time_step_sec  # [m3/s]
 
     # route overland flow (quick surface runoff)
     c_out_q_h2o_ove = c_s_v_h2o_ove / c_p_sk  # [m3/s]
