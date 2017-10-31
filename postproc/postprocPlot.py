@@ -157,6 +157,29 @@ def set_up_plotting(catchment, outlet, input_dir):
     except ValueError:
         raise Exception("The plot ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
+    # Check if temporal information is consistent
+    if datetime_start_data > datetime_end_data:
+        raise Exception("The data time frame is inconsistent.")
+
+    if datetime_start_simu > datetime_end_simu:
+        raise Exception("The simulation time frame is inconsistent.")
+
+    if datetime_start_plot > datetime_end_plot:
+        raise Exception("The plotting time frame is inconsistent.")
+
+    if datetime_start_simu < datetime_start_data:
+        raise Exception("The simulation start is earlier than the data start.")
+    if datetime_end_simu > datetime_end_data:
+        raise Exception("The simulation end is later than the data end.")
+
+    if datetime_start_plot < datetime_start_simu:
+        raise Exception("The plotting start is earlier than the simulation start.")
+    if datetime_end_plot > datetime_end_simu:
+        raise Exception("The plotting end is later than the simulation end.")
+
+    if data_time_step_in_min % simu_time_step_in_min != 0.0:
+        raise Exception("The data time step is not a multiple of the simulation time step.")
+
     return datetime_start_data, datetime_end_data, data_time_step_in_min, \
         datetime_start_simu, datetime_end_simu, simu_time_step_in_min, \
         datetime_start_plot, datetime_end_plot

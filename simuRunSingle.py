@@ -258,10 +258,17 @@ def setup_simulation(catchment, outlet, input_dir):
         raise Exception("The simulation time step is invalid. [not an integer]")
 
     # Check if temporal information is consistent
+    if datetime_start_data > datetime_end_data:
+        raise Exception("The data time frame is inconsistent.")
+
+    if datetime_start_simu > datetime_end_simu:
+        raise Exception("The simulation time frame is inconsistent.")
+
     if datetime_start_simu < datetime_start_data:
         raise Exception("The simulation start is earlier than the data start.")
     if datetime_end_simu > datetime_end_data:
         raise Exception("The simulation end is later than the data end.")
+
     if data_time_step_in_min % simu_time_step_in_min != 0.0:
         raise Exception("The data time step is not a multiple of the simulation time step.")
 
