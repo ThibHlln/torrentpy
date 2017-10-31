@@ -435,11 +435,11 @@ class TimeFrame:
     """
     This class defines the temporal attributes of the simulation period. It contains the start and the end of the
     simulation as well as the lists of DateTime series for the simulation time steps and the data time steps (that
-    can be identical or nested). It also slices the series into slices in order to reduce the memory demand during the
-    simulation.
+    can be identical or nested). It also breaks down the series into slices in order to reduce the memory demand during
+    the simulation.
 
-    N.B. 1: The simulation step needs to be a multiple if the data step and the simulation step can be greater than
-    or equal to the data step
+    N.B. 1: The simulation gap needs to be a multiple if the data gap and the simulation gap can be greater than
+    or equal to the data gap
     N.B. 2: The start and the end of the simulation are defined by the user, the class always adds one data step
     prior to the start date in order to set the initial conditions, one or more simulation steps are added in
     consequence depending if the simulation step in a multiple of the data step or not (i.e. equal)
@@ -451,13 +451,13 @@ class TimeFrame:
         self.start = datetime_start
         # DateTime of the end of the time period simulated
         self.end = datetime_end
-        # Time step of the data used for simulation
-        self.step_data = data_increment_in_minutes
-        # Time step of the simulation
-        self.step_simu = simu_increment_in_minutes
-        # List of DateTime for the data
+        # Time gap of the data used for simulation
+        self.gap_data = data_increment_in_minutes
+        # Time gap of the simulation
+        self.gap_simu = simu_increment_in_minutes
+        # List of DateTime for the data (i.e. list of time steps)
         self.series_data = TimeFrame.get_list_datetime(self, 'data')
-        # List of DateTime for the simulation
+        # List of DateTime for the simulation (i.e. list of time steps)
         self.series_simu = TimeFrame.get_list_datetime(self, 'simu')
         # List of Lists of DateTime for simulation and for data, respectively
         self.slices_simu, self.slices_data = \
@@ -465,12 +465,12 @@ class TimeFrame:
 
     def get_list_datetime(self, option):
         """
-        This function returns a list of DateTime by using the start and the end of the simulation and the time step
-        (either the data time step or the simulation time step, using the option parameter to specify which one).
+        This function returns a list of DateTime by using the start and the end of the simulation and the time gap
+        (either the data time gap or the simulation time gap, using the option parameter to specify which one).
 
         N.B. For the initial conditions, the function always adds:
-            - [if 'data' option] one data step prior to the data start date [if 'data' option]
-            - [if 'simu' option] one (or more if data step > simulation step) simulation step(s)
+            - [if 'data' option] one data step prior to the data start date
+            - [if 'simu' option] one (or more if data gap > simulation gap) simulation step(s)
             prior to the simulation start date
 
         :param option: choice to specify if function should work on data or on simulation series
@@ -478,11 +478,11 @@ class TimeFrame:
         :return: a list of DateTime
         :rtype: list()
         """
-        gap = self.end - self.start
-        options = {'data': self.step_data, 'simu': self.step_simu}
+        extent = self.end - self.start
+        options = {'data': self.gap_data, 'simu': self.gap_simu}
 
-        start_index = int(self.step_data / options[option])
-        end_index = int(gap.total_seconds() // (options[option] * 60)) + 1
+        start_index = int(self.gap_data / options[option])
+        end_index = int(extent.total_seconds() // (options[option] * 60)) + 1
 
         my_list_datetime = list()
         for factor in xrange(-start_index, end_index, 1):  # add one or more datetime before start
@@ -493,9 +493,11 @@ class TimeFrame:
 
     def slice_list_datetime(self, expected_length):
         """
-        This function returns two lists of lists of DateTime for simulation and data respectively, by using the DateTime
-        series and the expected length of the time slice. A time slice is a subset of a time series. The function
-        adjusts the expected length to make sure that the slicing is done between two data time steps.
+        This function returns two lists of lists of DateTime for simulation and data, respectively. It uses the two
+        DateTime series and the expected length of the simulation time slice. A time slice is a subset of a time
+        series as follows : [ series ] = [ slice 1 ] + [ slice 2 ] + ... + [ slice n ]
+        The function adjusts the expected length to make sure that the slicing is done between two data
+        time steps.
 
         N.B. the last slice is usually shorter than the others, unless the input time series is a multiple
         of the adjusted length
@@ -505,16 +507,16 @@ class TimeFrame:
         :return: two lists of time slices for simulation and data, respectively
         :rtype: list(), list()
         """
-        divisor = self.step_data / self.step_simu
+        simu_steps_per_data_step = self.gap_data / self.gap_simu
 
         # Adjust the length to make sure that it slices exactly between two steps of the data
-        simu_length = (expected_length * self.step_simu) // self.step_data * divisor
-        data_length = simu_length / divisor
+        simu_length = (expected_length * self.gap_simu) // self.gap_data * simu_steps_per_data_step
+        data_length = simu_length / simu_steps_per_data_step
 
         my_simu_slices = list()
         my_data_slices = list()
 
-        if simu_length > 0:  # the expected length is longer than one data time step
+        if simu_length > 0:  # the expected length is longer than one data time gap
             stop_index = int(ceil(float(len(self.series_simu)) / float(simu_length)))
             for i in xrange(0, stop_index, 1):
                 start_index = i * simu_length

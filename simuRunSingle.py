@@ -22,8 +22,8 @@ def main(catchment, outlet, slice_length, warm_up_in_days, adding_up, is_single_
         raise Exception("The combination [ {} - {} ] is incorrect.".format(catchment, outlet))
 
     # Set up the simulation (either with .simulation file or through the console)
-    data_time_step_in_min, data_datetime_start, data_datetime_end, \
-        simu_time_step_in_min, simu_datetime_start, simu_datetime_end = \
+    data_time_gap_in_min, data_datetime_start, data_datetime_end, \
+        simu_time_gap_in_min, simu_datetime_start, simu_datetime_end = \
         setup_simulation(catchment, outlet, input_directory)
 
     # Precise the specific folders to use in the directories
@@ -58,10 +58,10 @@ def main(catchment, outlet, slice_length, warm_up_in_days, adding_up, is_single_
 
     # Create a TimeFrame object for simulation run and warm-up run
     my__time_frame = TimeFrame(simu_datetime_start, simu_datetime_end,
-                               int(data_time_step_in_min), int(simu_time_step_in_min), slice_length)
+                               int(data_time_gap_in_min), int(simu_time_gap_in_min), slice_length)
     my__time_frame_warm_up = TimeFrame(my__time_frame.start, my__time_frame.start +
                                        datetime.timedelta(days=warm_up_in_days - 1),
-                                       int(data_time_step_in_min), int(simu_time_step_in_min), slice_length)
+                                       int(data_time_gap_in_min), int(simu_time_gap_in_min), slice_length)
 
     # Create a Network object from network and waterBodies files
     my__network = Network(catchment, outlet, input_folder, spec_directory, adding_up=adding_up)
@@ -163,7 +163,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, adding_up, is_single_
         # Write results in files
         update_simulation_files(my__network, my__time_frame, my_data_slice, my_simu_slice,
                                 dict__nd_data, dict__ls_models,
-                                catchment, output_folder, report='data_step', method='summary')
+                                catchment, output_folder, report='data_gap', method='summary')
 
         # Save history (last time step) for next slice
         for link in my__network.links:
@@ -193,10 +193,10 @@ def setup_simulation(catchment, outlet, input_dir):
     :param input_dir: path of the directory where the input files are located
     :type input_dir: str
     :return:
-        data_time_step_in_min: time step in minutes in the input files
+        data_time_gap_in_min: time increment in minutes in the input files
         datetime_start_data: datetime for the start date in the input files
         datetime_end_data: datetime for the end date in the input files
-        simu_time_step_in_min: time step in minutes for the simulation
+        simu_time_gap_in_min: time increment in minutes for the simulation
         datetime_start_simu: datetime for the start date of the simulation
         datetime_end_simu: datetime for the end date of the simulation
         warm_up_in_days: number of days to run in order to determine the initial conditions for the states of the links
@@ -241,21 +241,21 @@ def setup_simulation(catchment, outlet, input_dir):
     except ValueError:
         raise Exception("The simulation ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
-        question_data_time_step = my_answers_df.get_value('data_time_step_min', 'ANSWER')
+        question_data_time_gap = my_answers_df.get_value('data_time_gap_min', 'ANSWER')
     except KeyError:
-        question_data_time_step = raw_input('Time step for data? [integer in minutes] ')
+        question_data_time_gap = raw_input('Time gap for data? [integer in minutes] ')
     try:
-        data_time_step_in_min = float(int(question_data_time_step))
+        data_time_gap_in_min = float(int(question_data_time_gap))
     except ValueError:
-        raise Exception("The data time step is invalid. [not an integer]")
+        raise Exception("The data time gap is invalid. [not an integer]")
     try:
-        question_simu_time_step = my_answers_df.get_value('simu_time_step_min', 'ANSWER')
+        question_simu_time_gap = my_answers_df.get_value('simu_time_gap_min', 'ANSWER')
     except KeyError:
-        question_simu_time_step = raw_input('Time step for simulation? [integer in minutes] ')
+        question_simu_time_gap = raw_input('Time gap for simulation? [integer in minutes] ')
     try:
-        simu_time_step_in_min = float(int(question_simu_time_step))
+        simu_time_gap_in_min = float(int(question_simu_time_gap))
     except ValueError:
-        raise Exception("The simulation time step is invalid. [not an integer]")
+        raise Exception("The simulation time gap is invalid. [not an integer]")
 
     # Check if temporal information is consistent
     if datetime_start_data > datetime_end_data:
@@ -269,11 +269,11 @@ def setup_simulation(catchment, outlet, input_dir):
     if datetime_end_simu > datetime_end_data:
         raise Exception("The simulation end is later than the data end.")
 
-    if data_time_step_in_min % simu_time_step_in_min != 0.0:
-        raise Exception("The data time step is not a multiple of the simulation time step.")
+    if data_time_gap_in_min % simu_time_gap_in_min != 0.0:
+        raise Exception("The data time gap is not a multiple of the simulation time gap.")
 
-    return data_time_step_in_min, datetime_start_data, datetime_end_data, \
-        simu_time_step_in_min, datetime_start_simu, datetime_end_simu
+    return data_time_gap_in_min, datetime_start_data, datetime_end_data, \
+        simu_time_gap_in_min, datetime_start_simu, datetime_end_simu
 
 
 def setup_logger(catchment, outlet, name, prefix, output_folder, is_single_run):
@@ -405,9 +405,9 @@ def get_meteo_input_from_file(my__network, my__time_frame, my_data_slice, my_sim
     :type my__network: Network
     :param my__time_frame: TimeFrame object for the simulation period
     :type my__time_frame: TimeFrame
-    :param my_data_slice: list of DateTime corresponding to the simulation slice (separated by the data time step)
+    :param my_data_slice: list of DateTime corresponding to the simulation slice (separated by the data time gap)
     :type my_data_slice: list()
-    :param my_simu_slice: list of DateTime to be simulated (separated by the simulation time step)
+    :param my_simu_slice: list of DateTime to be simulated (separated by the simulation time gap)
     :type my_simu_slice: list()
     :param datetime_start_data: datetime of the first data in the meteorological files (used in file name)
     :type datetime_start_data: Datetime.Datetime
@@ -441,9 +441,9 @@ def get_contaminant_input_from_file(my__network, my__time_frame, my_data_slice, 
     :type my__network: Network
     :param my__time_frame: TimeFrame object for the simulation period
     :type my__time_frame: TimeFrame
-    :param my_data_slice: list of DateTime corresponding to the simulation slice (separated by the data time step)
+    :param my_data_slice: list of DateTime corresponding to the simulation slice (separated by the data time gap)
     :type my_data_slice: list()
-    :param my_simu_slice: list of DateTime to be simulated (separated by the simulation time step)
+    :param my_simu_slice: list of DateTime to be simulated (separated by the simulation time gap)
     :type my_simu_slice: list()
     :param input_folder: path to the input folder where to find the loadings file and the applications file
     :type input_folder: str()
@@ -510,7 +510,7 @@ def simulate(my__network, my__time_frame, my_simu_slice,
             for model in dict__ls_models[link]:
                 model.run(my__network, link, dict__nd_data,
                           dict__nd_meteo, dict__nd_loadings,
-                          step, my__time_frame.step_simu,
+                          step, my__time_frame.gap_simu,
                           logger_simu)
         # Sum up everything coming towards each node
         for node in my__network.nodes:
@@ -607,27 +607,33 @@ def create_simulation_files(my__network, dict__ls_models,
 
 def update_simulation_files(my__network, my__tf, my_data_slice, my_simu_slice,
                             dict__nd_data, dict__ls_models,
-                            catchment, output_folder, report='data_step', method='raw'):
+                            catchment, output_folder, report='data_gap', method='raw'):
     """
-    This function saves the simulated data into the CSV files for the nodes and the links.
+    This function saves the simulation variables into the CSV files for the nodes and the links.
     It features two arguments:
-     - "report" allows to choose which time step to use to report the data (either 'data_step' or 'simu_step');
-     - "method" allows to choose how to deal with the report of results at a coarser scale than the simulated
-      time step. If 'summary' is chosen, the inputs are summed up, and states/outputs/nodes are averaged across all
-      the simulation time steps corresponding to the data time step being reported (e.g. previous 24 hours averaged
-      for each day when daily data simulated hourly). If 'raw' is chosen, only the inputs/states/outputs/nodes for the
-      exact time step chosen are reported (e.g. when daily data simulated hourly, only the value corresponding to the
-      exact hour of the data time step is reported, the other 23 hourly time steps are not explicitly used).
+     - "report" allows to choose which time gap to use to report the simulation variables ('data_gap' or 'simu_gap');
+     - "method" allows to choose how to deal with the report of results at a coarser time scale than the simulated
+      time gap:
+        -> If 'summary' is chosen
+         --> the inputs are summed up across all the simulation time steps included in the reporting gap
+             (e.g. previous 24 hourly time steps summed up for each day when daily data simulated hourly)
+         --> the states/outputs/nodes are averaged across all the simulation time steps included in the reporting gap
+             (e.g. previous 24 hourly time steps averaged for each day when daily data simulated hourly)
+        -> If 'raw' is chosen
+         --> the inputs/states/outputs/nodes for the exact time steps corresponding to the data time gap end are
+             reported (e.g. when daily data simulated hourly, only the value for the last hourly time step is
+             reported for each day, the other 23 hourly time steps are not explicitly used)
 
-    N.B. (report = 'simu_step', method = 'raw') and (report = 'data_step', method = 'raw') yield identical output files
+    N.B. (report = 'simu_gap', method = 'raw') and (report = 'simu_gap', method = 'average') yield identical output
+    files because the average is applied to only one data value.
 
     :param my__network: Network object for the simulated catchment
     :type my__network: Network
     :param my__tf: TimeFrame object for the simulation period
     :type my__tf: TimeFrame
-    :param my_data_slice: list of datetime for the period simulated (at the data time step)
+    :param my_data_slice: list of datetime for the period simulated (separated by data time gap)
     :type my_data_slice: list()
-    :param my_simu_slice: list of datetime for the period simulated (at the simulated time step)
+    :param my_simu_slice: list of datetime for the period simulated (separated by simulated time gap)
     :type my_simu_slice: list()
     :param dict__nd_data: dictionary containing the nested dictionaries for the nodes and the links for variables
         { key = link/node: value = nested_dictionary(index=datetime,column=variable) }
@@ -639,9 +645,11 @@ def update_simulation_files(my__network, my__tf, my_data_slice, my_simu_slice,
     :type catchment: str()
     :param output_folder: path to the output folder where to save the simulation files
     :type output_folder: str()
-    :param report: choice to report the data at the simulation step 'simu_step', or only at the data step 'data_step'
+    :param report: choice on the time gap to report simulation variables :
+     'simu_gap' = at the simulation gap / 'data_gap' = only at the data gap
     :type report: str()
-    :param method: choice to summarise the data (i.e. averages/sums) when data time step > simu time step
+    :param method: choice on the technique to process simulation variables when reporting time gap > simu time gap :
+     'summary' = sums for inputs and averages for the rest / 'raw' = last values only for all
     :type method: str()
     :return: NOTHING, only updates the files in the output folder
     """
@@ -650,14 +658,14 @@ def update_simulation_files(my__network, my__tf, my_data_slice, my_simu_slice,
     logger.info("> Updating results in files.")
 
     # Select the relevant list of DateTime given the argument used during function call
-    if report == 'data_step':
-        my_list_datetime = my_data_slice
-        divisor = my__tf.step_data / my__tf.step_simu
-    elif report == 'simu_step':
-        my_list_datetime = my_simu_slice
-        divisor = 1
+    if report == 'data_gap':
+        my_list_datetime = my_data_slice  # list of reporting time steps
+        simu_steps_per_reporting_step = my__tf.gap_data / my__tf.gap_simu
+    elif report == 'simu_gap':
+        my_list_datetime = my_simu_slice  # list of reporting time steps
+        simu_steps_per_reporting_step = 1
     else:
-        raise Exception('Unknown reporting time step for updating simulations files.')
+        raise Exception('Unknown reporting time gap for updating simulations files.')
 
     if method == 'summary':
         # Save the Nested Dicts for the links (separating inputs, states, and outputs)
@@ -677,10 +685,10 @@ def update_simulation_files(my__network, my__tf, my_data_slice, my_simu_slice,
                     my_list = list()
                     for my_input in my_inputs:
                         my_values = list()
-                        for my_sub_step in xrange(0, -divisor, -1):
+                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
                             my_values.append(
                                 dict__nd_data[link][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.step_simu)][my_input])
+                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_input])
                         my_list.append('%e' % sum(my_values))
                     my_writer.writerow([step] + my_list)
 
@@ -690,10 +698,10 @@ def update_simulation_files(my__network, my__tf, my_data_slice, my_simu_slice,
                     my_list = list()
                     for my_state in my_states:
                         my_values = list()
-                        for my_sub_step in xrange(0, -divisor, -1):
+                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
                             my_values.append(
                                 dict__nd_data[link][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.step_simu)][my_state])
+                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_state])
                         my_list.append('%e' % (sum(my_values) / len(my_values)))
                     my_writer.writerow([step] + my_list)
 
@@ -703,10 +711,10 @@ def update_simulation_files(my__network, my__tf, my_data_slice, my_simu_slice,
                     my_list = list()
                     for my_output in my_outputs:
                         my_values = list()
-                        for my_sub_step in xrange(0, -divisor, -1):
+                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
                             my_values.append(
                                 dict__nd_data[link][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.step_simu)][my_output])
+                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_output])
                         my_list.append('%e' % (sum(my_values) / len(my_values)))
                     my_writer.writerow([step] + my_list)
 
@@ -718,10 +726,10 @@ def update_simulation_files(my__network, my__tf, my_data_slice, my_simu_slice,
                     my_list = list()
                     for my_variable in my__network.variables:
                         my_values = list()
-                        for my_sub_step in xrange(0, -divisor, -1):
+                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
                             my_values.append(
                                 dict__nd_data[node][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.step_simu)][my_variable])
+                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_variable])
                         my_list.append('%e' % (sum(my_values) / len(my_values)))
                     my_writer.writerow([step] + my_list)
 
@@ -774,7 +782,7 @@ if __name__ == "__main__":
     parser.add_argument('outlet', type=str,
                         help="european code of the catchment outlet [format IE_XX_##X######]")
     parser.add_argument('-s', '--slice_up', type=int, default=0,
-                        help="simulation period slice-up length in time steps")
+                        help="length of simulation period slice-up in time steps")
     parser.add_argument('-w', '--warm_up', type=int, default=0,
                         help="warm-up duration in days")
     parser.add_argument('-u', '--add_up', dest='add_up', action='store_true',

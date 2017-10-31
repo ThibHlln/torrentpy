@@ -34,7 +34,7 @@ def get_nd_meteo_data_from_file(catchment, link, my_tf, series_data, series_simu
 
     my_dbl_dict = {i: {c: 0.0 for c in my_meteo_data_types} for i in series_simu}
 
-    divisor = my_tf.step_data / my_tf.step_simu
+    divisor = my_tf.gap_data / my_tf.gap_simu
 
     for meteo_type in my_meteo_data_types:
         try:
@@ -54,7 +54,7 @@ def get_nd_meteo_data_from_file(catchment, link, my_tf, series_data, series_simu
                         in_folder, catchment, link, my_start, my_end, meteo_type,
                         my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
                 for my_sub_step in xrange(0, -divisor, -1):
-                    my_dt_simu = my_dt_data + datetime.timedelta(minutes=my_sub_step * my_tf.step_simu)
+                    my_dt_simu = my_dt_data + datetime.timedelta(minutes=my_sub_step * my_tf.gap_simu)
                     if (meteo_type == 'rain') or (meteo_type == 'peva'):
                         my_dbl_dict[my_dt_simu][meteo_type] = float(my_portion)
                     else:

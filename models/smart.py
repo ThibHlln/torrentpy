@@ -48,7 +48,7 @@ def run(waterbody, dict_data_frame,
     # # 1.0. Define internal constants
     nb_soil_layers = 6.0  # number of layers in soil column [-]
     area_m2 = dict_desc[waterbody]['area']  # catchment area [m2]
-    time_step_sec = time_gap * 60.0  # [seconds]
+    time_gap_sec = time_gap * 60.0  # [seconds]
 
     # # 1.1. Collect inputs, states, and parameters
     c_in_rain = dict_meteo[waterbody][datetime_time_step]["rain"]
@@ -186,12 +186,12 @@ def run(waterbody, dict_data_frame,
     # /!\ all calculations in S.I. units now (i.e. mm converted into cubic metres)
 
     # calculate actual evapotranspiration as a flux
-    c_out_aeva = aeva / 1e3 * area_m2 / time_step_sec  # [m3/s]
+    c_out_aeva = aeva / 1e3 * area_m2 / time_gap_sec  # [m3/s]
 
     # route overland flow (quick surface runoff)
     c_out_q_h2o_ove = c_s_v_h2o_ove / c_p_sk  # [m3/s]
     c_s_v_h2o_ove_old = c_s_v_h2o_ove
-    c_s_v_h2o_ove += (overland_flow / 1e3 * area_m2) - (c_out_q_h2o_ove * time_step_sec)  # [m3] - [m3]
+    c_s_v_h2o_ove += (overland_flow / 1e3 * area_m2) - (c_out_q_h2o_ove * time_gap_sec)  # [m3] - [m3]
     if c_s_v_h2o_ove < 0.0:
         logger.debug(''.join([
             'SMART # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
@@ -200,7 +200,7 @@ def run(waterbody, dict_data_frame,
     # route drain flow (quick interflow runoff)
     c_out_q_h2o_dra = c_s_v_h2o_dra / c_p_sk  # [m3/s]
     c_s_v_h2o_dra_old = c_s_v_h2o_dra
-    c_s_v_h2o_dra += (drain_flow / 1e3 * area_m2) - (c_out_q_h2o_dra * time_step_sec)  # [m3] - [m3]
+    c_s_v_h2o_dra += (drain_flow / 1e3 * area_m2) - (c_out_q_h2o_dra * time_gap_sec)  # [m3] - [m3]
     if c_s_v_h2o_dra < 0.0:
         logger.debug(''.join([
             'SMART # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
@@ -209,7 +209,7 @@ def run(waterbody, dict_data_frame,
     # route interflow (slow interflow runoff)
     c_out_q_h2o_int = c_s_v_h2o_int / c_p_fk  # [m3/s]
     c_s_v_h2o_int_old = c_s_v_h2o_int
-    c_s_v_h2o_int += (inter_flow / 1e3 * area_m2) - (c_out_q_h2o_int * time_step_sec)  # [m3] - [m3]
+    c_s_v_h2o_int += (inter_flow / 1e3 * area_m2) - (c_out_q_h2o_int * time_gap_sec)  # [m3] - [m3]
     if c_s_v_h2o_int < 0.0:
         logger.debug(''.join([
             'SMART # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
@@ -218,7 +218,7 @@ def run(waterbody, dict_data_frame,
     # route shallow groundwater flow (slow shallow GW runoff)
     c_out_q_h2o_sgw = c_s_v_h2o_sgw / c_p_gk  # [m3/s]
     c_s_v_h2o_sgw_old = c_s_v_h2o_sgw
-    c_s_v_h2o_sgw += (shallow_flow / 1e3 * area_m2) - (c_out_q_h2o_sgw * time_step_sec)  # [m3] - [m3]
+    c_s_v_h2o_sgw += (shallow_flow / 1e3 * area_m2) - (c_out_q_h2o_sgw * time_gap_sec)  # [m3] - [m3]
     if c_s_v_h2o_sgw < 0.0:
         logger.debug(''.join([
             'SMART # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
@@ -227,7 +227,7 @@ def run(waterbody, dict_data_frame,
     # route deep groundwater flow (slow deep GW runoff)
     c_out_q_h2o_dgw = c_s_v_h2o_dgw / c_p_gk  # [m3/s]
     c_s_v_h2o_dgw_old = c_s_v_h2o_dgw
-    c_s_v_h2o_dgw += (deep_flow / 1e3 * area_m2) - (c_out_q_h2o_dgw * time_step_sec)  # [m3] - [m3]
+    c_s_v_h2o_dgw += (deep_flow / 1e3 * area_m2) - (c_out_q_h2o_dgw * time_gap_sec)  # [m3] - [m3]
     if c_s_v_h2o_dgw < 0.0:
         logger.debug(''.join([
             'SMART # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),

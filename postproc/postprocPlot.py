@@ -27,8 +27,8 @@ def main(catchment, outlet, gauge):
         raise Exception("The combination [ {} - {} ] is incorrect.".format(catchment, outlet))
 
     # Set up the plotting session (either with .simulation file or through the console)
-    data_datetime_start, data_datetime_end, data_time_step_in_min, \
-        simu_datetime_start, simu_datetime_end, simu_time_step_in_min, \
+    data_datetime_start, data_datetime_end, data_time_gap_in_min, \
+        simu_datetime_start, simu_datetime_end, simu_time_gap_in_min, \
         plot_datetime_start, plot_datetime_end = \
         set_up_plotting(catchment, outlet, input_directory)
 
@@ -48,7 +48,7 @@ def main(catchment, outlet, gauge):
 
     # Create a TimeFrame object
     my__time_frame = TimeFrame(data_datetime_start, data_datetime_end,
-                               int(data_time_step_in_min), int(simu_time_step_in_min), 0)
+                               int(data_time_gap_in_min), int(simu_time_gap_in_min), 0)
 
     # Create a Network object from network and waterBodies files
     my_df_info = pandas.read_csv('{}{}_{}.information'.format(output_folder, catchment, outlet), index_col=0)
@@ -109,13 +109,13 @@ def set_up_plotting(catchment, outlet, input_dir):
     except ValueError:
         raise Exception("The data ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
-        question_data_time_step = my_answers_df.get_value('data_time_step_min', 'ANSWER')
+        question_data_time_gap = my_answers_df.get_value('data_time_gap_min', 'ANSWER')
     except KeyError:
-        question_data_time_step = raw_input('Time step for data? [integer in minutes] ')
+        question_data_time_gap = raw_input('Time gap for data? [integer in minutes] ')
     try:
-        data_time_step_in_min = float(int(question_data_time_step))
+        data_time_gap_in_min = float(int(question_data_time_gap))
     except ValueError:
-        raise Exception("The data time step is invalid. [not an integer]")
+        raise Exception("The data time gap is invalid. [not an integer]")
     try:
         question_start_simu = my_answers_df.get_value('simu_start_datetime', 'ANSWER')
     except KeyError:
@@ -133,13 +133,13 @@ def set_up_plotting(catchment, outlet, input_dir):
     except ValueError:
         raise Exception("The simulation ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
-        question_simu_time_step = my_answers_df.get_value('simu_time_step_min', 'ANSWER')
+        question_simu_time_gap = my_answers_df.get_value('simu_time_gap_min', 'ANSWER')
     except KeyError:
-        question_simu_time_step = raw_input('Time step for simulation? [integer in minutes] ')
+        question_simu_time_gap = raw_input('Time gap for simulation? [integer in minutes] ')
     try:
-        simu_time_step_in_min = float(int(question_simu_time_step))
+        simu_time_gap_in_min = float(int(question_simu_time_gap))
     except ValueError:
-        raise Exception("The simulation time step is invalid. [not an integer]")
+        raise Exception("The simulation time gap is invalid. [not an integer]")
     try:
         question_start_plot = my_answers_df.get_value('plot_start_datetime', 'ANSWER')
     except KeyError:
@@ -177,11 +177,11 @@ def set_up_plotting(catchment, outlet, input_dir):
     if datetime_end_plot > datetime_end_simu:
         raise Exception("The plotting end is later than the simulation end.")
 
-    if data_time_step_in_min % simu_time_step_in_min != 0.0:
-        raise Exception("The data time step is not a multiple of the simulation time step.")
+    if data_time_gap_in_min % simu_time_gap_in_min != 0.0:
+        raise Exception("The data time gap is not a multiple of the simulation time gap.")
 
-    return datetime_start_data, datetime_end_data, data_time_step_in_min, \
-        datetime_start_simu, datetime_end_simu, simu_time_step_in_min, \
+    return datetime_start_data, datetime_end_data, data_time_gap_in_min, \
+        datetime_start_simu, datetime_end_simu, simu_time_gap_in_min, \
         datetime_start_plot, datetime_end_plot
 
 
