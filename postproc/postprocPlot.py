@@ -60,7 +60,7 @@ def main(catchment, outlet, gauge):
 
     # Create a subset of the input discharge file
     ppF.get_df_flow_data_from_file(
-        catchment, outlet, gauge, my__time_frame,
+        catchment, outlet, gauge, my__time_frame, plot_datetime_start, plot_datetime_end,
         input_folder, logger).to_csv('{}{}_{}_{}.flow'.format(output_folder,
                                                               catchment.capitalize(),
                                                               gauged_waterbody,
