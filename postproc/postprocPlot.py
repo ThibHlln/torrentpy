@@ -39,7 +39,7 @@ def main(catchment, outlet, gauge):
                                             simu_datetime_end.strftime("%Y%m%d"))
 
     # Determine gauged waterbody associated to the hydrometric gauge
-    gauged_waterbody = find_waterbody_from_gauge(input_folder, catchment, outlet, gauge)
+    gauged_waterbody, gauged_area = find_waterbody_from_gauge(input_folder, catchment, outlet, gauge)
 
     # Create a logger
     sRS.setup_logger(catchment, gauged_waterbody, 'SinglePlot.main', 'plot', output_folder, is_single_run=True)
@@ -58,9 +58,18 @@ def main(catchment, outlet, gauge):
         adding_up = False
     my__network = Network(catchment, outlet, input_folder, spec_directory, adding_up=adding_up)
 
+    # Read the rainfall files
+    rainfall, catchment_area = \
+        read_rain_files(my__network, my__time_frame,
+                        catchment, outlet,
+                        data_datetime_start, data_datetime_end,
+                        gauged_waterbody,
+                        input_folder, output_folder)
+
     # Create a subset of the input discharge file
     ppF.get_df_flow_data_from_file(
-        catchment, outlet, gauge, my__time_frame, plot_datetime_start, plot_datetime_end,
+        catchment, outlet, catchment_area, gauge, gauged_area,
+        my__time_frame, plot_datetime_start, plot_datetime_end,
         input_folder, logger).to_csv('{}{}_{}_{}.flow'.format(output_folder,
                                                               catchment.capitalize(),
                                                               gauged_waterbody,
@@ -69,12 +78,12 @@ def main(catchment, outlet, gauge):
                                      float_format='%e',
                                      index_label='DateTime')
 
-    # Read the input files
-    rainfall, gauged_flow_m3s, simu_flow_m3s = read_results_files(my__network, my__time_frame,
-                                                                  input_folder, output_folder, catchment, outlet,
-                                                                  data_datetime_start, data_datetime_end,
-                                                                  gauge, gauged_waterbody,
-                                                                  output_folder)
+    # Read the flow files
+    gauged_flow_m3s, simu_flow_m3s = \
+        read_flow_files(my__network, my__time_frame,
+                        catchment,
+                        gauge, gauged_waterbody,
+                        output_folder)
 
     # Plot the desired graphs
     plot_daily_hydro_hyeto(my__time_frame,
@@ -192,17 +201,18 @@ def find_waterbody_from_gauge(in_folder, catchment, outlet, gauge):
         with open('{}{}_{}.gauges'.format(in_folder, catchment, outlet)) as my_file:
             my_reader = csv.DictReader(my_file)
             for line in my_reader:
-                dict_gauges[line['Gauge']] = line['Waterbody']
+                dict_gauges[line['Gauge']] = (line['Waterbody'], line['GaugedAreaSqKM'])
 
     except IOError:
         raise Exception('{}{}_{}.gauges'.format(in_folder, catchment, outlet))
 
     try:
-        gauged_waterbody = dict_gauges[gauge]
+        gauged_waterbody = dict_gauges[gauge][0]
+        gauged_area = float(dict_gauges[gauge][1])
     except KeyError:
         raise Exception('Gauge {} is not in the gauges file for {} {}.'.format(gauge, catchment, outlet))
 
-    return gauged_waterbody
+    return gauged_waterbody, gauged_area
 
 
 def determine_gauging_zone(my__network, in_folder, catchment, outlet, gauged_waterbody):
@@ -239,13 +249,13 @@ def determine_gauging_zone(my__network, in_folder, catchment, outlet, gauged_wat
     return all_links
 
 
-def read_results_files(my__network, my__time_frame,
-                       in_folder, out_folder, catchment, outlet,
-                       dt_start_data, dt_end_data,
-                       gauge, gauged_wb,
-                       output_folder):
+def read_rain_files(my__network, my__time_frame,
+                    catchment, outlet,
+                    dt_start_data, dt_end_data,
+                    gauged_wb,
+                    in_folder, out_folder):
     logger = logging.getLogger('SinglePlot.main')
-    logger.info("Reading results files.")
+    logger.info("Reading rainfall files.")
 
     my_time_dt = my__time_frame.series_data[1:]
     my_time_st = [my_dt.strftime('%Y-%m-%d %H:%M:%S') for my_dt in my_time_dt]
@@ -277,7 +287,20 @@ def read_results_files(my__network, my__time_frame,
     # Save the rainfall lumped at the catchment scale in file
     DataFrame({'DATETIME': my__time_frame.series_data[1:], 'RAIN': rainfall.ravel()}).set_index(
         'DATETIME').to_csv(
-        '{}{}_{}.lumped.rain'.format(output_folder, catchment, gauged_wb), float_format='%e')
+        '{}{}_{}.lumped.rain'.format(out_folder, catchment, gauged_wb), float_format='%e')
+
+    return rainfall, catchment_area
+
+
+def read_flow_files(my__network, my__time_frame,
+                    catchment,
+                    gauge, gauged_wb,
+                    out_folder):
+    logger = logging.getLogger('SinglePlot.main')
+    logger.info("Reading flow files.")
+
+    my_time_dt = my__time_frame.series_data[1:]
+    my_time_st = [my_dt.strftime('%Y-%m-%d %H:%M:%S') for my_dt in my_time_dt]
 
     # Get the simulated flow at the outlet of the catchment
     simu_flow_m3s = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
@@ -296,7 +319,7 @@ def read_results_files(my__network, my__time_frame,
               np.asarray(pandas.read_csv("{}{}_{}_{}.flow".format(out_folder, catchment, gauged_wb, gauge),
                                          index_col=0)['flow'].loc[my_time_st].tolist())]
 
-    return rainfall, gauged_flow_m3s, simu_flow_m3s
+    return gauged_flow_m3s, simu_flow_m3s
 
 
 def plot_daily_hydro_hyeto(my__tf,
