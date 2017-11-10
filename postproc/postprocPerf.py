@@ -38,7 +38,7 @@ def main(catchment, outlet, gauge):
                                             simu_datetime_end.strftime("%Y%m%d"))
 
     # Determine gauged waterbody associated to the hydrometric gauge
-    gauged_waterbody = ppP.find_waterbody_from_gauge(input_folder, catchment, outlet, gauge)
+    gauged_waterbody, gauged_area = ppP.find_waterbody_from_gauge(input_folder, catchment, outlet, gauge)
 
     # Create a logger
     sRS.setup_logger(
@@ -71,12 +71,18 @@ def main(catchment, outlet, gauge):
     logger.info("Calculating upstream drainage area.")
     my_dict_results['DrainageArea'] = calculate_drainage_area(
         my__network, input_folder, catchment, outlet, gauged_waterbody)
-    logger.info("Calculating Nash-Sutcliffe efficiency (NSE).")
-    my_dict_results['NSE'] = calculate_nse(nda_flows_obs, nda_flows_mod)
-    logger.info("Calculating BIAS.")
-    my_dict_results['BIAS'] = calculate_bias(nda_flows_obs, nda_flows_mod)
-    logger.info("Calculating modified NSE (C2M).")
-    my_dict_results['C2M'] = calculate_c2m(nda_flows_obs, nda_flows_mod)
+
+    if my_dict_results['PercentMissing'] <= 30.0:
+        logger.info("Calculating Nash-Sutcliffe efficiency (NSE).")
+        my_dict_results['NSE'] = calculate_nse(nda_flows_obs, nda_flows_mod)
+        logger.info("Calculating BIAS.")
+        my_dict_results['BIAS'] = calculate_bias(nda_flows_obs, nda_flows_mod)
+        logger.info("Calculating modified NSE (C2M).")
+        my_dict_results['C2M'] = calculate_c2m(nda_flows_obs, nda_flows_mod)
+    else:
+        my_dict_results['NSE'] = -999.0
+        my_dict_results['BIAS'] = -999.0
+        my_dict_results['C2M'] = -999.0
 
     my_df_results = pandas.DataFrame.from_dict(my_dict_results, orient='index')
     my_df_results.index.name = "Indicator"
