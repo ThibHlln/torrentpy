@@ -95,6 +95,11 @@ def main(catchment, outlet, gauge):
     flows_obs_ord, flows_freq_obs = calculate_flow_frequency(flows_obs)
     flows_mod_ord, flows_freq_mod = calculate_flow_frequency(flows_mod)
 
+    pandas.DataFrame({'Flow_Observed': flows_obs_ord, 'Flow_Observed_Frequencies': flows_freq_obs,
+                      'Flow_Modelled': flows_mod_ord, 'Flow_Modelled_Frequencies': flows_freq_mod}).to_csv(
+        '{}{}_{}.fdc'.format(output_folder, catchment, gauged_waterbody), sep=',', index=False
+    )
+
     logger.info("Plotting Flow Duration Curve.")
     ppP.plot_flow_duration_curve(flows_obs_ord, flows_freq_obs,
                                  flows_mod_ord, flows_freq_mod,
@@ -110,12 +115,12 @@ def main(catchment, outlet, gauge):
 def calculate_missing(flows, criterion=-99.0):
     total_length = len(flows)
     # Count the steps that are missing values
-    length_not_missing = 0.0
+    length_missing = 0.0
     for a in flows:
-        if not a == criterion:
-            length_not_missing += 1.0
+        if a == criterion:
+            length_missing += 1.0
     # Calculate percentage of missing values
-    missing = (total_length - length_not_missing) / total_length * 100.0
+    missing = length_missing / total_length * 100.0
 
     return missing
 
@@ -131,17 +136,6 @@ def calculate_drainage_area(my__network, in_folder, catchment, outlet, gauged_wb
         drainage_area += my_dict_desc[waterbody]['area']
 
     return drainage_area
-
-
-def delete_missing(flows, criterion=-99.0):
-    # Remove the steps that are missing values
-    list_val = list()
-    for a in flows:
-        if not a == criterion:
-            list_val.append(a)
-    nda_flows_val = numpy.asarray(list_val)
-
-    return nda_flows_val
 
 
 def listwise_deletion(flows_obs, flows_mod, criterion=-99.0):
@@ -201,10 +195,10 @@ def calculate_c2m(flows_obs, flows_mod):
 
 def calculate_flow_frequency(flows):
 
-    # order the flows from slowest to quickest
+    # order the flows from smallest to largest
     flows_ordered = numpy.sort(flows)
     # rank the flows
-    flows_ranked = scipy.stats.rankdata(flows_ordered, method='max')
+    flows_ranked = scipy.stats.rankdata(flows_ordered, method='min')
     # calculate rank complementary
     flows_ranked_comp = (len(flows) + 1) - flows_ranked
     # calculate frequency
