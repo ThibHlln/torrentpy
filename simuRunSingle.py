@@ -9,13 +9,11 @@ import simuFiles as sF
 import simuFunctions as sFn
 
 
-def main(catchment, outlet, slice_length, warm_up_in_days, adding_up, is_single_run=False):
+def main(catchment, outlet, slice_length, warm_up_in_days, root, adding_up, is_single_run=False):
     # Location of the different needed directories
-    root = "C:/PycharmProjects/Python/CatchmentSimulationFramework/"
-    os.chdir(root)  # define root
-    spec_directory = "scripts/specs/"
-    input_directory = "in/"
-    output_directory = "out/"
+    spec_directory = ''.join([root, "/scripts/specs/"])
+    input_directory = ''.join([root, "/in/"])
+    output_directory = ''.join([root, "/out/"])
 
     # Check if combination catchment/outlet is coherent by using the name of the input folder
     if not os.path.exists("{}{}_{}".format(input_directory, catchment, outlet)):
@@ -774,6 +772,9 @@ def update_simulation_files(my__network, my__tf, my_data_slice, my_simu_slice,
 
 
 if __name__ == "__main__":
+    # Define the root of the CSF
+    csf_root = os.path.realpath('..')  # move to parent directory of this current python file
+
     # Collect the arguments of the program call
     parser = argparse.ArgumentParser(description="simulate hydrology and water quality "
                                                  "for one catchment and one time period")
@@ -794,5 +795,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Run the main() function
-    main(args.catchment.capitalize(), args.outlet.upper(), args.slice_up, args.warm_up, args.add_up,
-         is_single_run=True)
+    main(args.catchment.capitalize(), args.outlet.upper(), args.slice_up, args.warm_up, csf_root,
+         args.add_up, is_single_run=True)

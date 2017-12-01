@@ -1,5 +1,5 @@
 from multiprocessing import Pool, cpu_count, log_to_stderr
-from os import path, chdir, remove
+from os import path, remove
 from csv import DictReader
 from sys import exit
 import logging
@@ -23,7 +23,7 @@ def setup_logger(name, log_file, level=logging.DEBUG):
     logger.addHandler(handler)
 
 
-def get_arguments_from_batch_file(batch_file, log_file):
+def get_arguments_from_batch_file(batch_file, root, log_file):
     try:
         with open(batch_file, 'rb') as my_file:
             my_reader = DictReader(my_file)
@@ -31,14 +31,14 @@ def get_arguments_from_batch_file(batch_file, log_file):
             for line in my_reader:
                 my_list_of_tuples.append((line['Catchment'], line['OUTLET'],
                                           int(line['#SliceUp']), int(line['#WarmUp']),
-                                          log_file))
+                                          root, log_file))
 
         return my_list_of_tuples
     except IOError:
         exit('{} does not exist.'.format(batch_file))
 
 
-def single_run(catchment, outlet, slice_up, warm_up, log_file):
+def single_run(catchment, outlet, slice_up, warm_up, root, log_file):
     """
     This function allows to call the function responsible for the simulation of one catchment for one time period.
     It avoids calling the single run simulator with arguments in command lines by providing the arguments as parameters
@@ -47,6 +47,7 @@ def single_run(catchment, outlet, slice_up, warm_up, log_file):
     :param outlet: european code of the outlet of the catchment
     :param slice_up: length of the time slices over the time period
     :param warm_up: durations of the warm-up
+    :param root: location of the root of the CSF folder
     :param log_file: location of the log file to use for the FileHandler
     :return: NOTHING
     """
@@ -58,7 +59,7 @@ def single_run(catchment, outlet, slice_up, warm_up, log_file):
     logger = logging.getLogger("MultiRun.single_run")
     logger.addHandler(handler)
     try:
-        sRS.main(catchment, outlet, slice_up, warm_up)
+        sRS.main(catchment, outlet, slice_up, warm_up, root, adding_up=True)
     except Exception as e:
         mp_logger.error('Exception for arguments ({}, {}, {}, {})'.format(catchment, outlet, slice_up, warm_up))
         logger.error('Exception for arguments ({}, {}, {}, {})'.format(catchment, outlet, slice_up, warm_up))
@@ -77,21 +78,21 @@ def single_run_star(args):
 
 
 if __name__ == '__main__':
-    chdir("C:/PycharmProjects/Python/CatchmentSimulationFramework/")  # define root
-    input_dir = "in/"
-    output_dir = "out/"
+    csf_root = path.realpath('..')  # move to parent directory of this current python file
+    input_dir = ''.join([csf_root, "/in/"])
+    output_dir = ''.join([csf_root, "/out/"])
 
-    my_log_file = '{}/batch.log'.format(output_dir)
+    my_log_file = '{}/simulation.batch.log'.format(output_dir)
     my_batch_file = '{}/simulation.batch'.format(input_dir)
 
     setup_logger('MultiRun', my_log_file, level=logging.DEBUG)
 
     cores = cpu_count()
-    pool = Pool(processes=4, maxtasksperchild=1)
+    pool = Pool(processes=cores, maxtasksperchild=1)
     # 'processes' is the number of simultaneous runs (children) allowed (maximum = number of processors available)
     # 'maxtasksperchild' is set to 1 to kill each child after task completion to make sure to clean memory properly
 
-    arguments = get_arguments_from_batch_file(my_batch_file, my_log_file)
+    arguments = get_arguments_from_batch_file(my_batch_file, csf_root, my_log_file)
 
     results = pool.imap_unordered(single_run_star, iterable=arguments)
 
