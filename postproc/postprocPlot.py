@@ -10,17 +10,11 @@ import scripts.simuFiles as sF
 import scripts.simuRunSingle as sRS
 
 
-def main(catchment, outlet, gauge):
-    # Format given parameters
-    catchment = catchment.capitalize()
-    outlet = outlet.upper()
-
+def main(catchment, outlet, gauge, root):
     # Location of the different needed directories
-    root = "C:/PycharmProjects/Python/CatchmentSimulationFramework/"
-    os.chdir(root)  # define parent directory as root in order to use only relative paths after this
-    spec_directory = "scripts/specs/"
-    input_directory = "in/"
-    output_directory = "out/"
+    spec_directory = ''.join([root, "/scripts/specs/"])
+    input_directory = ''.join([root, "/in/"])
+    output_directory = ''.join([root, "/out/"])
 
     # Check if combination catchment/outlet is coherent by using the name of the input folder
     if not os.path.exists("{}{}_{}".format(input_directory, catchment, outlet)):
@@ -526,7 +520,13 @@ def plot_flow_duration_curve_log(obs_flows, obs_frequencies,
 
 
 if __name__ == '__main__':
+    # Define the root of the CSF
+    csf_root = os.path.realpath('../..')  # move to parent directory of this current python file
+
+    # Collect the arguments of the program call
     my_catchment = raw_input('Name of the catchment? ')
     my_outlet = raw_input('European Code (EU_CD) of the catchment? [format IE_XX_##X######] ')
     my_gauge = raw_input('Code of the hydrometric gauge? [#####] ')
-    main(my_catchment, my_outlet, my_gauge)
+
+    # Run the main() function
+    main(my_catchment.capitalize(), my_outlet.upper(), my_gauge, csf_root)
