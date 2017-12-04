@@ -11,6 +11,10 @@ import scripts.simuRunSingle as sRS
 
 
 def main(catchment, outlet, gauge, root):
+    # Format catchment and outlet names
+    catchment = catchment.capitalize()
+    outlet = outlet.upper()
+
     # Location of the different needed directories
     spec_directory = ''.join([root, "/scripts/specs/"])
     input_directory = ''.join([root, "/in/"])
@@ -529,4 +533,4 @@ if __name__ == '__main__':
     my_gauge = raw_input('Code of the hydrometric gauge? [#####] ')
 
     # Run the main() function
-    main(my_catchment.capitalize(), my_outlet.upper(), my_gauge, csf_root)
+    main(my_catchment, my_outlet, my_gauge, csf_root)

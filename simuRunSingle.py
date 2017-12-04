@@ -10,6 +10,10 @@ import simuFunctions as sFn
 
 
 def main(catchment, outlet, slice_length, warm_up_in_days, root, adding_up, is_single_run=False):
+    # Format catchment and outlet names
+    catchment = catchment.capitalize()
+    outlet = outlet.upper()
+
     # Location of the different needed directories
     spec_directory = ''.join([root, "/scripts/specs/"])
     input_directory = ''.join([root, "/in/"])
@@ -795,5 +799,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Run the main() function
-    main(args.catchment.capitalize(), args.outlet.upper(), args.slice_up, args.warm_up, csf_root,
+    main(args.catchment, args.outlet, args.slice_up, args.warm_up, csf_root,
          args.add_up, is_single_run=True)
