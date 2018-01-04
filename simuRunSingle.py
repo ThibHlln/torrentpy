@@ -53,8 +53,8 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, adding_up, is_s
     logger.info("Initialising.")
 
     # Clean up the output folder for the desired file extensions
-    for my_extension in ["*.parameters", "*.node", "*.inputs", "*.outputs", "*.states"]:
-        my_files = glob("{}/{}{}{}".format(root, output_folder, catchment, my_extension))
+    for my_extension in [".parameters", ".node", ".inputs", ".outputs", ".states"]:
+        my_files = glob("{}{}*{}".format(output_folder, catchment, my_extension))
         for my_file in my_files:
             os.remove(my_file)
 
