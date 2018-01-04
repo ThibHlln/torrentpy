@@ -58,11 +58,20 @@ def main(catchment, outlet, gauge, root):
 
     # Read the rainfall files
     rainfall, catchment_area = \
-        read_rain_files(my__network, my__time_frame,
-                        catchment, outlet,
-                        data_datetime_start, data_datetime_end,
-                        gauged_waterbody,
-                        input_folder, output_folder)
+        read_meteo_files(my__network, my__time_frame,
+                         catchment, outlet,
+                         'rain',
+                         data_datetime_start, data_datetime_end,
+                         gauged_waterbody,
+                         input_folder, output_folder)
+
+    # Read the potential evapotranspiration files (in order to create .lumped.peva files)
+    read_meteo_files(my__network, my__time_frame,
+                     catchment, outlet,
+                     'peva',
+                     data_datetime_start, data_datetime_end,
+                     gauged_waterbody,
+                     input_folder, output_folder)
 
     # Create a subset of the input discharge file
     ppF.get_df_flow_data_from_file(
@@ -247,47 +256,52 @@ def determine_gauging_zone(my__network, in_folder, catchment, outlet, gauged_wat
     return all_links
 
 
-def read_rain_files(my__network, my__time_frame,
-                    catchment, outlet,
-                    dt_start_data, dt_end_data,
-                    gauged_wb,
-                    in_folder, out_folder):
+def read_meteo_files(my__network, my__time_frame,
+                     catchment, outlet,
+                     meteo_type,
+                     dt_start_data, dt_end_data,
+                     gauged_wb,
+                     in_folder, out_folder):
     logger = logging.getLogger('SinglePlot.main')
-    logger.info("Reading rainfall files.")
+    logger.info("Reading {} files.".format(meteo_type.lower()))
 
     my_time_dt = my__time_frame.series_data[1:]
     my_time_st = [my_dt.strftime('%Y-%m-%d %H:%M:%S') for my_dt in my_time_dt]
 
-    # Get the average rainfall data over the catchment
+    # Get the average aerial meteo data over the catchment
     links_in_zone = determine_gauging_zone(my__network, in_folder, catchment, outlet, gauged_wb)
 
-    my_rain_mm = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
+    my_data_mm = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
     my_area_m2 = np.empty(shape=(0, 1), dtype=np.float64)
     my_dict_desc = sF.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
 
     for link in links_in_zone:
         try:
-            my_df_inputs = pandas.read_csv("{}{}_{}_{}_{}.rain".format(in_folder, catchment, link,
-                                                                       dt_start_data.strftime("%Y%m%d"),
-                                                                       dt_end_data.strftime("%Y%m%d")),
+            my_df_inputs = pandas.read_csv("{}{}_{}_{}_{}.{}".format(in_folder, catchment, link,
+                                                                     dt_start_data.strftime("%Y%m%d"),
+                                                                     dt_end_data.strftime("%Y%m%d"),
+                                                                     meteo_type.lower()),
                                            index_col=0)
         except IOError:
-            raise Exception("No rainfall file for {}_{}_{}_{} in {}.".format(
-                catchment, link, dt_start_data.strftime("%Y%m%d"), dt_end_data.strftime("%Y%m%d"), in_folder))
-        my_rain_mm = np.c_[my_rain_mm, np.asarray(my_df_inputs['RAIN'].loc[my_time_st].tolist())]
-
-        my_area_m2 = np.r_[my_area_m2, np.array([[my_dict_desc[link]['area']]])]
-    my_rain_m = my_rain_mm / 1e3  # convert mm to m of rainfall
+            raise Exception("No {} file for {}_{}_{}_{} in {}.".format(
+                meteo_type,
+                catchment, link, dt_start_data.strftime("%Y%m%d"), dt_end_data.strftime("%Y%m%d"),
+                in_folder))
+        my_data_mm = \
+            np.c_[my_data_mm, np.asarray(my_df_inputs['{}'.format(meteo_type.upper())].loc[my_time_st].tolist())]
+        my_area_m2 = \
+            np.r_[my_area_m2, np.array([[my_dict_desc[link]['area']]])]
+    my_data_m = my_data_mm / 1e3  # convert mm to m of meteo data
     catchment_area = np.sum(my_area_m2)  # get the total area of the catchment
-    rainfall = my_rain_m.dot(my_area_m2)  # get a list of catchment rainfall in m3
-    rainfall *= 1e3 / catchment_area  # get rainfall in mm
+    meteo_data = my_data_m.dot(my_area_m2)  # get a list of catchment meteo data in m3
+    meteo_data *= 1e3 / catchment_area  # get meteo data in mm
 
-    # Save the rainfall lumped at the catchment scale in file
-    DataFrame({'DATETIME': my__time_frame.series_data[1:], 'RAIN': rainfall.ravel()}).set_index(
-        'DATETIME').to_csv(
-        '{}{}_{}.lumped.rain'.format(out_folder, catchment, gauged_wb), float_format='%e')
+    # Save the meteo data lumped at the catchment scale in file
+    DataFrame({'DATETIME': my__time_frame.series_data[1:],
+               '{}'.format(meteo_type.upper()): meteo_data.ravel()}).set_index('DATETIME').to_csv(
+        '{}{}_{}.lumped.{}'.format(out_folder, catchment, gauged_wb, meteo_type.lower()), float_format='%e')
 
-    return rainfall, catchment_area
+    return meteo_data, catchment_area
 
 
 def read_flow_files(my__network, my__time_frame,
