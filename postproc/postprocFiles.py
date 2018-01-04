@@ -31,6 +31,6 @@ def get_df_flow_data_from_file(catchment, link, catchment_area, gauge, gauged_ar
                     my__data_frame.set_value(my_dt_step, flow_label, float(-99.0))
 
         except IOError:
-            logger.info("{}{}_{}.{} does not exist.".format(in_folder, catchment, link, flow_label))
+            logger.info("{}{}_{}_{}.{} does not exist.".format(in_folder, catchment, link, gauge, flow_label))
 
     return my__data_frame
