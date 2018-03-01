@@ -84,9 +84,28 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, adding_up, is_s
                                                    my__time_frame_warm_up.series_simu,
                                                    data_datetime_start, data_datetime_end,
                                                    input_folder)
-        # Initialise dicts to link time slices together (use last time step of one as first for the other)
+        # Initialise dicts needed to link time slices together (use last time step of one as first for the other)
         for link in my__network.links:
-            my_last_lines[link] = dict()
+            # Get the area of the catchment of the link
+            area_m2 = my__network.descriptors[link]['area']
+            # Get the value of the models parameters
+            parameters = dict()
+            for model in dict__ls_models[link]:
+                parameters.update(model.parameters)
+            # Set the initial conditions for the states to "educated guesses"
+            my_last_lines[link] = \
+                {'c_s_v_h2o_ove': (1200 * 0.45) * 0.10 / 1000 * area_m2 / 8766 * parameters['c_p_sk'],
+                 'c_s_v_h2o_int': (1200 * 0.45) * 0.15 / 1000 * area_m2 / 8766 * parameters['c_p_fk'],
+                 'c_s_v_h2o_dra': (1200 * 0.45) * 0.15 / 1000 * area_m2 / 8766 * parameters['c_p_fk'],
+                 'c_s_v_h2o_sgw': (1200 * 0.45) * 0.30 / 1000 * area_m2 / 8766 * parameters['c_p_gk'],
+                 'c_s_v_h2o_dgw': (1200 * 0.45) * 0.30 / 1000 * area_m2 / 8766 * parameters['c_p_gk'],
+                 'c_s_v_h2o_ly1': (parameters['c_p_z'] / 12) / 1000 * area_m2,
+                 'c_s_v_h2o_ly2': (parameters['c_p_z'] / 12) / 1000 * area_m2,
+                 'c_s_v_h2o_ly3': (parameters['c_p_z'] / 12) / 1000 * area_m2,
+                 'c_s_v_h2o_ly4': (parameters['c_p_z'] / 12) / 1000 * area_m2,
+                 'c_s_v_h2o_ly5': (parameters['c_p_z'] / 12) / 1000 * area_m2,
+                 'c_s_v_h2o_ly6': (parameters['c_p_z'] / 12) / 1000 * area_m2,
+                 'r_s_v_h2o': (1200 * 0.45) / 1000 * area_m2 / 8766 * parameters['r_p_k_h2o']}
         for node in my__network.nodes:
             my_last_lines[node] = dict()
 
@@ -124,9 +143,28 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, adding_up, is_s
             del dict__nd_data
             del dict__nd_loadings
     else:  # Warm-up run not required
-        # Initialise dicts to link time slices together (use last time step of one as first for the other)
+        # Initialise dicts needed to link time slices together (use last time step of one as first for the other)
         for link in my__network.links:
-            my_last_lines[link] = dict()
+            # Get the area of the catchment of the link
+            area_m2 = my__network.descriptors[link]['area']
+            # Get the value of the models parameters
+            parameters = dict()
+            for model in dict__ls_models[link]:
+                parameters.update(model.parameters)
+            # Set the initial conditions for the states to "educated guesses"
+            my_last_lines[link] = \
+                {'c_s_v_h2o_ove': (1200 * 0.45) * 0.10 / 1000 * area_m2 / 8766 * parameters['c_p_sk'],
+                 'c_s_v_h2o_int': (1200 * 0.45) * 0.15 / 1000 * area_m2 / 8766 * parameters['c_p_fk'],
+                 'c_s_v_h2o_dra': (1200 * 0.45) * 0.15 / 1000 * area_m2 / 8766 * parameters['c_p_fk'],
+                 'c_s_v_h2o_sgw': (1200 * 0.45) * 0.30 / 1000 * area_m2 / 8766 * parameters['c_p_gk'],
+                 'c_s_v_h2o_dgw': (1200 * 0.45) * 0.30 / 1000 * area_m2 / 8766 * parameters['c_p_gk'],
+                 'c_s_v_h2o_ly1': (parameters['c_p_z'] / 12) / 1000 * area_m2,
+                 'c_s_v_h2o_ly2': (parameters['c_p_z'] / 12) / 1000 * area_m2,
+                 'c_s_v_h2o_ly3': (parameters['c_p_z'] / 12) / 1000 * area_m2,
+                 'c_s_v_h2o_ly4': (parameters['c_p_z'] / 12) / 1000 * area_m2,
+                 'c_s_v_h2o_ly5': (parameters['c_p_z'] / 12) / 1000 * area_m2,
+                 'c_s_v_h2o_ly6': (parameters['c_p_z'] / 12) / 1000 * area_m2,
+                 'r_s_v_h2o': (1200 * 0.45) / 1000 * area_m2 / 8766 * parameters['r_p_k_h2o'] / 3600}
         for node in my__network.nodes:
             my_last_lines[node] = dict()
 
