@@ -13,7 +13,7 @@ def run(obj_network, waterbody, dict_data_frame,
     ___ States * s_ *
     _____ r_s_v_h2o       volume of water in store [m3]
     ___ Parameters * p_ *
-    _____ r_p_k_h2o       linear factor k for water where Storage = k.Flow [s]
+    _____ r_p_k_h2o       linear factor k for water where Storage = k.Flow [hours]
     ___ Outputs * out_ *
     _____ r_out_q_h2o     flow at outlet [m3/s]
     """
@@ -25,7 +25,7 @@ def run(obj_network, waterbody, dict_data_frame,
     # # 1.1. Collect inputs, states, and parameters
     r_in_q_h2o = dict_data_frame[node_up][datetime_time_step + timedelta(minutes=-time_gap)]["q_h2o"]
     r_s_v_h2o = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["r_s_v_h2o"]
-    r_p_k_h2o = dict_param["r_p_k_h2o"]  # in seconds
+    r_p_k_h2o = dict_param["r_p_k_h2o"] * 3600.0  # convert hours into seconds
 
     # # 1.2. Hydrological calculations
 
@@ -63,6 +63,7 @@ def infer_parameters_cmt(dict_desc, my_dict_param):
     #     (q ** 0.4 * slp ** 0.3) / ((3.67 * q ** 0.45) ** 0.4 * (n ** 0.6))
     # )
     rk = l / 1.0
+    rk /= 3600.0  # convert seconds into hours
     my_dict_param['r_p_k_h2o'] = rk
 
 
@@ -76,4 +77,5 @@ def infer_parameters_thesis(dict_desc, my_dict_param):
     rk = l / (
         (q ** 0.4 * slp ** 0.3) / ((3.67 * q ** 0.45) ** 0.4 * (n ** 0.6))
     )
+    rk /= 3600.0  # convert seconds into hours
     my_dict_param['r_p_k_h2o'] = rk

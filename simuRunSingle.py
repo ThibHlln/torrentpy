@@ -164,7 +164,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, adding_up, is_s
                  'c_s_v_h2o_ly4': (parameters['c_p_z'] / 12) / 1000 * area_m2,
                  'c_s_v_h2o_ly5': (parameters['c_p_z'] / 12) / 1000 * area_m2,
                  'c_s_v_h2o_ly6': (parameters['c_p_z'] / 12) / 1000 * area_m2,
-                 'r_s_v_h2o': (1200 * 0.45) / 1000 * area_m2 / 8766 * parameters['r_p_k_h2o'] / 3600}
+                 'r_s_v_h2o': (1200 * 0.45) / 1000 * area_m2 / 8766 * parameters['r_p_k_h2o']}
         for node in my__network.nodes:
             my_last_lines[node] = dict()
 
