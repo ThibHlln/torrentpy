@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from pandas import DataFrame
 import numpy as np
 from matplotlib import dates
+import matplotlib as mpl
 import logging
 import argparse
 
@@ -351,6 +352,22 @@ def plot_daily_hydro_hyeto(my__tf,
     fig.patch.set_facecolor('#ffffff')
     fig.suptitle('{} {} ({})'.format(catchment, gauged_wb, gauge))
 
+    # set the default plotting parameters
+    font = {
+        'weight': 'normal',
+        'size': 10,
+        'family': 'sans-serif',
+        'sans-serif': 'Helvetica'
+    }
+    mpl.rc('font', **font)
+    mpl.rcParams['axes.linewidth'] = 0.3
+    mpl.rcParams['xtick.major.width'] = 0.3
+    mpl.rcParams['xtick.minor.width'] = 0.3
+    mpl.rcParams['ytick.major.width'] = 0.3
+    mpl.rcParams['ytick.minor.width'] = 0.3
+    mpl.rcParams['grid.linewidth'] = 0.5
+    mpl.rcParams['grid.linestyle'] = ':'
+
     dt_start_data = my_time_dt[0]
     dt_end_data = my_time_dt[-1]
 
@@ -390,7 +407,7 @@ def plot_daily_hydro_hyeto(my__tf,
     fig1.yaxis.set_ticks_position('right')  # Choose location of axis (value + line): can take left, right, both
     fig1.yaxis.set_label_position('right')
     fig1.set_ylabel('Rainfall (mm)')
-    fig1.yaxis.grid(b=True, which='major', linestyle=':')
+    fig1.yaxis.grid(b=True, which='major', linestyle=':', dashes=(1, 5))
 
     for label in fig1.yaxis.get_ticklabels():  # If one wants to work on the visual display of the graduation values
         label.set_color('black')
@@ -406,11 +423,11 @@ def plot_daily_hydro_hyeto(my__tf,
 
     # Plot the simulated flows as lines
     fig2.plot(my_time_dt[index_start:index_end], flow_simulated[index_start:index_end], color='#898989',
-              label='Modelled')
+              label='Modelled', linewidth=0.7)
 
     # Plot the measured flows as points
     fig2.plot(my_time_dt[index_start:index_end], flow_gauged[index_start:index_end],
-              'x', markersize=2.0, label='Observed', color='#ffc511')
+              'x', markersize=1.0, label='Observed', color='#ffc511')
 
     ax2 = plt.axis()  # Get the current axis limits in a tuple (xmin, xmax, ymin, ymax)
     plt.axis((pyplot_start_data, pyplot_end_data, -0.2, ax2[3]))
@@ -445,8 +462,8 @@ def plot_daily_hydro_hyeto(my__tf,
 
     # Save image
     fig.set_size_inches(11, 6)
-    fig.savefig('{}{}_{}.hyeto.hydro.png'.format(out_folder, catchment, gauged_wb),
-                dpi=300, facecolor=fig.get_facecolor(), edgecolor='none')
+    fig.savefig('{}{}_{}.hyeto.hydro.pdf'.format(out_folder, catchment, gauged_wb),
+                format='pdf', facecolor=fig.get_facecolor(), edgecolor='none')
 
 
 def plot_flow_duration_curve(obs_flows, obs_frequencies,
@@ -458,14 +475,30 @@ def plot_flow_duration_curve(obs_flows, obs_frequencies,
     fig.patch.set_facecolor('#ffffff')
     fig.suptitle('{} {} ({})'.format(catchment, gauged_wb, gauge))
 
+    # set the default plotting parameters
+    font = {
+        'weight': 'normal',
+        'size': 10,
+        'family': 'sans-serif',
+        'sans-serif': 'Helvetica'
+    }
+    mpl.rc('font', **font)
+    mpl.rcParams['axes.linewidth'] = 0.3
+    mpl.rcParams['xtick.major.width'] = 0.3
+    mpl.rcParams['xtick.minor.width'] = 0.3
+    mpl.rcParams['ytick.major.width'] = 0.3
+    mpl.rcParams['ytick.minor.width'] = 0.3
+    mpl.rcParams['grid.linewidth'] = 0.5
+    mpl.rcParams['grid.linestyle'] = ':'
+
     # __________________ FDC Modelled __________________
 
     # Create a sub-figure for the hydrograph
     fig1 = fig.add_axes([0.1, 0.2, 0.8, 0.7])
 
     # Plot the simulated flows as lines
-    fig1.plot(mod_frequencies, mod_flows, color='#898989', label='Modelled')
-    fig1.plot(obs_frequencies, obs_flows, color='#ffc511', label='Observed')
+    fig1.plot(mod_frequencies, mod_flows, color='#898989', label='Modelled', linewidth=0.7)
+    fig1.plot(obs_frequencies, obs_flows, color='#ffc511', label='Observed', linewidth=0.7)
 
     fig1.patch.set_facecolor('none')
 
@@ -490,8 +523,8 @@ def plot_flow_duration_curve(obs_flows, obs_frequencies,
 
     # Save image
     fig.set_size_inches(11, 6)
-    fig.savefig('{}{}_{}.fdc.png'.format(out_folder, catchment, gauged_wb),
-                dpi=300, facecolor=fig.get_facecolor(), edgecolor='none')
+    fig.savefig('{}{}_{}.fdc.pdf'.format(out_folder, catchment, gauged_wb),
+                format='pdf', facecolor=fig.get_facecolor(), edgecolor='none')
 
 
 def plot_flow_duration_curve_log(obs_flows, obs_frequencies,
@@ -503,14 +536,30 @@ def plot_flow_duration_curve_log(obs_flows, obs_frequencies,
     fig.patch.set_facecolor('#ffffff')
     fig.suptitle('{} {} ({})'.format(catchment, gauged_wb, gauge))
 
+    # set the default plotting parameters
+    font = {
+        'weight': 'normal',
+        'size': 10,
+        'family': 'sans-serif',
+        'sans-serif': 'Helvetica'
+    }
+    mpl.rc('font', **font)
+    mpl.rcParams['axes.linewidth'] = 0.3
+    mpl.rcParams['xtick.major.width'] = 0.3
+    mpl.rcParams['xtick.minor.width'] = 0.3
+    mpl.rcParams['ytick.major.width'] = 0.3
+    mpl.rcParams['ytick.minor.width'] = 0.3
+    mpl.rcParams['grid.linewidth'] = 0.5
+    mpl.rcParams['grid.linestyle'] = ':'
+
     # __________________ FDC Modelled __________________
 
     # Create a sub-figure for the hydrograph
     fig1 = fig.add_axes([0.1, 0.2, 0.8, 0.7])
 
     # Plot the simulated flows as lines
-    fig1.semilogy(mod_frequencies, mod_flows, color='#898989', label='Modelled')
-    fig1.semilogy(obs_frequencies, obs_flows, color='#ffc511', label='Observed')
+    fig1.semilogy(mod_frequencies, mod_flows, color='#898989', label='Modelled', linewidth=0.7)
+    fig1.semilogy(obs_frequencies, obs_flows, color='#ffc511', label='Observed', linewidth=0.7)
 
     fig1.patch.set_facecolor('none')
 
@@ -535,8 +584,8 @@ def plot_flow_duration_curve_log(obs_flows, obs_frequencies,
 
     # Save image
     fig.set_size_inches(11, 6)
-    fig.savefig('{}{}_{}.fdc.log.png'.format(out_folder, catchment, gauged_wb),
-                dpi=300, facecolor=fig.get_facecolor(), edgecolor='none')
+    fig.savefig('{}{}_{}.fdc.log.pdf'.format(out_folder, catchment, gauged_wb),
+                format='pdf', facecolor=fig.get_facecolor(), edgecolor='none')
 
 
 if __name__ == '__main__':
