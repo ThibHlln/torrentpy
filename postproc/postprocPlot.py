@@ -84,7 +84,8 @@ def main(catchment, outlet, gauge, root):
                                                               gauge),
                                      header='FLOW',
                                      float_format='%e',
-                                     index_label='DateTime')
+                                     index_label='DateTime',
+                                     date_format='%Y-%m-%d %H:%M:%S')
 
     # Read the flow files
     gauged_flow_m3s, simu_flow_m3s = \
