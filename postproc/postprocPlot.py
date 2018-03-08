@@ -76,17 +76,9 @@ def main(catchment, outlet, gauge, root):
                      input_folder, output_folder)
 
     # Create a subset of the input discharge file
-    ppF.get_df_flow_data_from_file(
-        catchment, outlet, catchment_area, gauge, gauged_area,
-        my__time_frame, plot_datetime_start, plot_datetime_end,
-        input_folder, logger).to_csv('{}{}_{}_{}.flow'.format(output_folder,
-                                                              catchment.capitalize(),
-                                                              gauged_waterbody,
-                                                              gauge),
-                                     header='FLOW',
-                                     float_format='%e',
-                                     index_label='DateTime',
-                                     date_format='%Y-%m-%d %H:%M:%S')
+    ppF.create_subset_flow_file(catchment, outlet, catchment_area, gauge, gauged_area,
+                                my__time_frame, plot_datetime_start, plot_datetime_end,
+                                input_folder, output_folder, logger)
 
     # Read the flow files
     gauged_flow_m3s, simu_flow_m3s = \
