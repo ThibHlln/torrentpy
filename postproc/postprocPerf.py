@@ -2,6 +2,7 @@ import numpy
 import scipy.stats
 import logging
 from itertools import izip
+import argparse
 
 from scripts.simuClasses import *
 import postprocPlot as ppP
@@ -210,9 +211,17 @@ if __name__ == '__main__':
     csf_root = os.path.realpath('../..')  # move to parent directory of this current python file
 
     # Collect the arguments of the program call
-    my_catchment = raw_input('Name of the catchment? ')
-    my_outlet = raw_input('European Code (EU_CD) of the catchment? [format IE_XX_##X######] ')
-    my_gauge = raw_input('Code of the hydrometric gauge? [#####] ')
+    parser = argparse.ArgumentParser(description="simulate hydrology and water quality "
+                                                 "for one catchment and one time period")
+    parser.add_argument('catchment', type=str,
+                        help="name of the catchment")
+    parser.add_argument('outlet', type=str,
+                        help="european code of the catchment outlet [format IE_XX_##X######]")
+    parser.add_argument('gauge', type=str,
+                        help="code of the hydrometric gauge [5-digit code]")
+    parser.set_defaults(add_up=True)
+
+    args = parser.parse_args()
 
     # Run the main() function
-    main(my_catchment, my_outlet, my_gauge, csf_root)
+    main(args.catchment, args.outlet, args.gauge, csf_root)
