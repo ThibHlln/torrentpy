@@ -218,7 +218,7 @@ def find_waterbody_from_gauge(in_folder, catchment, outlet, gauge):
 
     try:
         gauged_waterbody = dict_gauges[gauge][0]
-        gauged_area = float(dict_gauges[gauge][1])
+        gauged_area = float(dict_gauges[gauge][1]) * 1e6  # converts km2 into m2
     except KeyError:
         raise Exception('Gauge {} is not in the gauges file for {} {}.'.format(gauge, catchment, outlet))
 
