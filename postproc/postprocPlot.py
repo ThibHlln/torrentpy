@@ -384,7 +384,7 @@ def plot_daily_hydro_hyeto(my__tf,
     fig1 = fig.add_axes([0.1, 0.7, 0.8, 0.2])  # give location of the graph (%: from left, from bottom, width, height)
 
     fig1.bar(my_time_dt[index_start:index_end], rain[index_start:index_end],
-             label='Hyetograph', width=1.0, facecolor='#4ec4f2', edgecolor='#4ec4f2')
+             label='Hyetograph', facecolor='#4ec4f2', edgecolor='#4ec4f2', linewidth=0)
     fig1.patch.set_facecolor('none')
 
     # Get the current axis limits in a tuple (xmin, xmax, ymin, ymax)
@@ -415,11 +415,11 @@ def plot_daily_hydro_hyeto(my__tf,
 
     # Plot the simulated flows as lines
     fig2.plot(my_time_dt[index_start:index_end], flow_simulated[index_start:index_end], color='#898989',
-              label='Modelled', linewidth=0.7)
+              label='Modelled', linewidth=0.5)
 
     # Plot the measured flows as points
     fig2.plot(my_time_dt[index_start:index_end], flow_gauged[index_start:index_end],
-              'x', markersize=1.0, label='Observed', color='#ffc511')
+              'x', markersize=0.5, label='Observed', color='#ffc511')
 
     ax2 = plt.axis()  # Get the current axis limits in a tuple (xmin, xmax, ymin, ymax)
     plt.axis((pyplot_start_data, pyplot_end_data, -0.2, ax2[3]))

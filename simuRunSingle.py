@@ -126,9 +126,11 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, adding_up, is_s
                 dict__nd_data[node][my_simu_slice[0]].update(my_last_lines[node])
 
             # Get other input data
-            dict__nd_loadings = get_contaminant_input_from_file(my__network, my__time_frame_warm_up,
-                                                                my_data_slice, my_simu_slice,
-                                                                input_folder, spec_directory)
+            # dict__nd_loadings = get_contaminant_input_from_file(my__network, my__time_frame_warm_up,
+            #                                                     my_data_slice, my_simu_slice,
+            #                                                     input_folder, spec_directory)
+            dict__nd_loadings = dict()
+
             # Simulate
             simulate(my__network, my__time_frame_warm_up, my_simu_slice,
                      dict__nd_data, dict__nd_meteo, dict__nd_loadings,
@@ -194,9 +196,11 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, adding_up, is_s
             dict__nd_data[node][my_simu_slice[0]].update(my_last_lines[node])
 
         # Get other input data
-        dict__nd_loadings = get_contaminant_input_from_file(my__network, my__time_frame,
-                                                            my_data_slice, my_simu_slice,
-                                                            input_folder, spec_directory)
+        # dict__nd_loadings = get_contaminant_input_from_file(my__network, my__time_frame,
+        #                                                     my_data_slice, my_simu_slice,
+        #                                                     input_folder, spec_directory)
+        dict__nd_loadings = dict()
+
         # Simulate
         simulate(my__network, my__time_frame, my_simu_slice,
                  dict__nd_data, dict__nd_meteo, dict__nd_loadings,
@@ -381,15 +385,15 @@ def generate_models_for_links(my__network, specifications_folder, input_folder, 
     for link in my__network.links:
         # Declare Model objects
         if my__network.categories[link] == "11":  # river headwater
-            dict__c_models[link] = Model("CATCHMENT", "SMART_INCAL", my__network, link,
+            dict__c_models[link] = Model("CATCHMENT", "SMART", my__network, link,
                                          specifications_folder, input_folder, output_folder)
-            dict__r_models[link] = Model("RIVER", "LINRES_INCAS", my__network, link,
+            dict__r_models[link] = Model("RIVER", "LINRES", my__network, link,
                                          specifications_folder, input_folder, output_folder)
             dict__ls_models[link] = [dict__c_models[link], dict__r_models[link]]
         elif my__network.categories[link] == "10":  # river
-            dict__c_models[link] = Model("CATCHMENT", "SMART_INCAL", my__network, link,
+            dict__c_models[link] = Model("CATCHMENT", "SMART", my__network, link,
                                          specifications_folder, input_folder, output_folder)
-            dict__r_models[link] = Model("RIVER", "LINRES_INCAS", my__network, link,
+            dict__r_models[link] = Model("RIVER", "LINRES", my__network, link,
                                          specifications_folder, input_folder, output_folder)
             dict__ls_models[link] = [dict__c_models[link], dict__r_models[link]]
         elif my__network.categories[link] == "20":  # lake
@@ -590,27 +594,27 @@ def simulate(my__network, my__time_frame, my_simu_slice,
                 dict__nd_data[node][step - delta][variable] = my_dict_variables[variable]
                 my_dict_variables[variable] = 0.0
             # Sum up the contaminants
-            for variable in ["c_no3", "c_nh4", "c_dph", "c_pph", "c_sed"]:
-                for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
-                    if my__network.categories[link] == "11":  # headwater river
-                        my_dict_variables[variable] += dict__nd_data[link][step - delta]["".join(["r_out_", variable])] * \
-                                                       dict__nd_data[link][step - delta]["r_out_q_h2o"]
-                    elif my__network.categories[link] == "10":  # river
-                        my_dict_variables[variable] += dict__nd_data[link][step - delta]["".join(["r_out_", variable])] * \
-                                                       dict__nd_data[link][step - delta]["r_out_q_h2o"]
-                    elif my__network.categories[link] == "20":  # lake
-                        my_dict_variables[variable] += dict__nd_data[link][step - delta]["".join(["l_out_", variable])] * \
-                                                       dict__nd_data[link][step - delta]["l_out_q_h2o"]
-                for link in my__network.adding.get(node):  # for the catchment of the link downstream of this node
-                    if my__network.categories[link] == "11":  # headwater river
-                        my_dict_variables[variable] += dict__nd_data[link][step]["".join(["c_out_", variable])] * \
-                                                       dict__nd_data[link][step]["c_out_q_h2o"]
-                    elif my__network.categories[link] == "10":  # river
-                        my_dict_variables[variable] += dict__nd_data[link][step]["".join(["c_out_", variable])] * \
-                                                       dict__nd_data[link][step]["c_out_q_h2o"]
-                if q_h2o > 0.0:
-                    dict__nd_data[node][step - delta][variable] = my_dict_variables[variable] / q_h2o
-                my_dict_variables[variable] = 0.0
+            # for variable in ["c_no3", "c_nh4", "c_dph", "c_pph", "c_sed"]:
+            #     for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
+            #         if my__network.categories[link] == "11":  # headwater river
+            #             my_dict_variables[variable] += dict__nd_data[link][step - delta]["".join(["r_out_", variable])] * \
+            #                                            dict__nd_data[link][step - delta]["r_out_q_h2o"]
+            #         elif my__network.categories[link] == "10":  # river
+            #             my_dict_variables[variable] += dict__nd_data[link][step - delta]["".join(["r_out_", variable])] * \
+            #                                            dict__nd_data[link][step - delta]["r_out_q_h2o"]
+            #         elif my__network.categories[link] == "20":  # lake
+            #             my_dict_variables[variable] += dict__nd_data[link][step - delta]["".join(["l_out_", variable])] * \
+            #                                            dict__nd_data[link][step - delta]["l_out_q_h2o"]
+            #     for link in my__network.adding.get(node):  # for the catchment of the link downstream of this node
+            #         if my__network.categories[link] == "11":  # headwater river
+            #             my_dict_variables[variable] += dict__nd_data[link][step]["".join(["c_out_", variable])] * \
+            #                                            dict__nd_data[link][step]["c_out_q_h2o"]
+            #         elif my__network.categories[link] == "10":  # river
+            #             my_dict_variables[variable] += dict__nd_data[link][step]["".join(["c_out_", variable])] * \
+            #                                            dict__nd_data[link][step]["c_out_q_h2o"]
+            #     if q_h2o > 0.0:
+            #         dict__nd_data[node][step - delta][variable] = my_dict_variables[variable] / q_h2o
+            #     my_dict_variables[variable] = 0.0
         # Calculate water and contaminant routing in river reach for each link
         for link in my__network.links:
             if link in dict__r_models:
@@ -643,20 +647,20 @@ def simulate(my__network, my__time_frame, my_simu_slice,
             dict__nd_data[node][step][variable] = my_dict_variables[variable]
             my_dict_variables[variable] = 0.0
         # Sum up the contaminants
-        for variable in ["c_no3", "c_nh4", "c_dph", "c_pph", "c_sed"]:
-            for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
-                if my__network.categories[link] == "11":  # headwater river
-                    my_dict_variables[variable] += dict__nd_data[link][step]["".join(["r_out_", variable])] * \
-                                                   dict__nd_data[link][step]["r_out_q_h2o"]
-                elif my__network.categories[link] == "10":  # river
-                    my_dict_variables[variable] += dict__nd_data[link][step]["".join(["r_out_", variable])] * \
-                                                   dict__nd_data[link][step]["r_out_q_h2o"]
-                elif my__network.categories[link] == "20":  # lake
-                    my_dict_variables[variable] += dict__nd_data[link][step]["".join(["l_out_", variable])] * \
-                                                   dict__nd_data[link][step]["l_out_q_h2o"]
-            if q_h2o > 0.0:
-                dict__nd_data[node][step][variable] = my_dict_variables[variable] / q_h2o
-            my_dict_variables[variable] = 0.0
+        # for variable in ["c_no3", "c_nh4", "c_dph", "c_pph", "c_sed"]:
+        #     for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
+        #         if my__network.categories[link] == "11":  # headwater river
+        #             my_dict_variables[variable] += dict__nd_data[link][step]["".join(["r_out_", variable])] * \
+        #                                            dict__nd_data[link][step]["r_out_q_h2o"]
+        #         elif my__network.categories[link] == "10":  # river
+        #             my_dict_variables[variable] += dict__nd_data[link][step]["".join(["r_out_", variable])] * \
+        #                                            dict__nd_data[link][step]["r_out_q_h2o"]
+        #         elif my__network.categories[link] == "20":  # lake
+        #             my_dict_variables[variable] += dict__nd_data[link][step]["".join(["l_out_", variable])] * \
+        #                                            dict__nd_data[link][step]["l_out_q_h2o"]
+        #     if q_h2o > 0.0:
+        #         dict__nd_data[node][step][variable] = my_dict_variables[variable] / q_h2o
+        #     my_dict_variables[variable] = 0.0
 
 
 def create_simulation_files(my__network, dict__ls_models,
