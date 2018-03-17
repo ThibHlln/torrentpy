@@ -25,7 +25,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, adding_up, is_s
 
     # Set up the simulation (either with .simulation file or through the console)
     data_time_gap_in_min, data_datetime_start, data_datetime_end, \
-        simu_time_gap_in_min, simu_datetime_start, simu_datetime_end = \
+        simu_time_gap_in_min, simu_datetime_start, simu_datetime_end, water_quality = \
         setup_simulation(catchment, outlet, input_directory)
 
     # Precise the specific folders to use in the directories
@@ -66,7 +66,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, adding_up, is_s
                                        int(data_time_gap_in_min), int(simu_time_gap_in_min), slice_length)
 
     # Create a Network object from network and waterBodies files
-    my__network = Network(catchment, outlet, input_folder, spec_directory, adding_up=adding_up)
+    my__network = Network(catchment, outlet, input_folder, spec_directory, adding_up=adding_up, wq=water_quality)
 
     # Create Models for the links
     dict__ls_models, dict__c_models, dict__r_models, dict__l_models = \
@@ -126,10 +126,9 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, adding_up, is_s
                 dict__nd_data[node][my_simu_slice[0]].update(my_last_lines[node])
 
             # Get other input data
-            # dict__nd_loadings = get_contaminant_input_from_file(my__network, my__time_frame_warm_up,
-            #                                                     my_data_slice, my_simu_slice,
-            #                                                     input_folder, spec_directory)
-            dict__nd_loadings = dict()
+            dict__nd_loadings = get_contaminant_input_from_file(my__network, my__time_frame_warm_up,
+                                                                my_data_slice, my_simu_slice,
+                                                                input_folder, spec_directory) if water_quality else {}
 
             # Simulate
             simulate(my__network, my__time_frame_warm_up, my_simu_slice,
@@ -196,10 +195,9 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, adding_up, is_s
             dict__nd_data[node][my_simu_slice[0]].update(my_last_lines[node])
 
         # Get other input data
-        # dict__nd_loadings = get_contaminant_input_from_file(my__network, my__time_frame,
-        #                                                     my_data_slice, my_simu_slice,
-        #                                                     input_folder, spec_directory)
-        dict__nd_loadings = dict()
+        dict__nd_loadings = get_contaminant_input_from_file(my__network, my__time_frame,
+                                                            my_data_slice, my_simu_slice,
+                                                            input_folder, spec_directory) if water_quality else {}
 
         # Simulate
         simulate(my__network, my__time_frame, my_simu_slice,
@@ -231,7 +229,7 @@ def setup_simulation(catchment, outlet, input_dir):
     if there is a .simulation file available in the input folder, and then check in the file if each required input is
     available. If there is no file available, it will ask for everything to be typed by the user in the console. If
     there is a file available but some inputs are missing, it will ask for the missing ones to be typed by the user in
-    the console.
+    the console (except for water_quality that takes False as default, if not specified).
 
     :param catchment: name of the catchment to simulate
     :type catchment: str
@@ -247,6 +245,7 @@ def setup_simulation(catchment, outlet, input_dir):
         datetime_start_simu: datetime for the start date of the simulation
         datetime_end_simu: datetime for the end date of the simulation
         warm_up_in_days: number of days to run in order to determine the initial conditions for the states of the links
+        water_quality: boolean for decision on water quality simulations (True for on, False for off)
     """
     try:  # see if there is a .simulation file to set up the simulation
         my_answers_df = pandas.read_csv("{}{}_{}/{}_{}.simulation".format(input_dir, catchment, outlet,
@@ -303,6 +302,15 @@ def setup_simulation(catchment, outlet, input_dir):
         simu_time_gap_in_min = float(int(question_simu_time_gap))
     except ValueError:
         raise Exception("The simulation time gap is invalid. [not an integer]")
+    try:
+        question_water_quality = my_answers_df.get_value('water_quality', 'ANSWER')
+    except KeyError:
+        water_quality = False
+    else:
+        if question_water_quality == "on":
+            water_quality = True
+        else:
+            water_quality = False
 
     # Check if temporal information is consistent
     if datetime_start_data > datetime_end_data:
@@ -320,7 +328,7 @@ def setup_simulation(catchment, outlet, input_dir):
         raise Exception("The data time gap is not a multiple of the simulation time gap.")
 
     return data_time_gap_in_min, datetime_start_data, datetime_end_data, \
-        simu_time_gap_in_min, datetime_start_simu, datetime_end_simu
+        simu_time_gap_in_min, datetime_start_simu, datetime_end_simu, water_quality
 
 
 def setup_logger(catchment, outlet, name, prefix, output_folder, is_single_run):
@@ -382,29 +390,54 @@ def generate_models_for_links(my__network, specifications_folder, input_folder, 
     dict__r_models = dict()  # key: waterbody, value: river model object
     dict__l_models = dict()  # key: waterbody, value: lake model object
     dict__ls_models = dict()   # key: waterbody, value: list of river model objects
-    for link in my__network.links:
-        # Declare Model objects
-        if my__network.categories[link] == "11":  # river headwater
-            dict__c_models[link] = Model("CATCHMENT", "SMART", my__network, link,
-                                         specifications_folder, input_folder, output_folder)
-            dict__r_models[link] = Model("RIVER", "LINRES", my__network, link,
-                                         specifications_folder, input_folder, output_folder)
-            dict__ls_models[link] = [dict__c_models[link], dict__r_models[link]]
-        elif my__network.categories[link] == "10":  # river
-            dict__c_models[link] = Model("CATCHMENT", "SMART", my__network, link,
-                                         specifications_folder, input_folder, output_folder)
-            dict__r_models[link] = Model("RIVER", "LINRES", my__network, link,
-                                         specifications_folder, input_folder, output_folder)
-            dict__ls_models[link] = [dict__c_models[link], dict__r_models[link]]
-        elif my__network.categories[link] == "20":  # lake
-            dict__l_models[link] = Model("LAKE", "BATHTUB", my__network, link,
-                                         specifications_folder, input_folder, output_folder)
-            dict__ls_models[link] = [dict__l_models[link]]
-            # For now, no direct rainfall on open water in model
-            # need to be changed, but to do so, need remove lake polygon from sub-basin polygon)
-        else:  # unknown (e.g. 21 would be a lake headwater)
-            raise Exception("Waterbody {}: {} is not a registered type of waterbody.".format(
-                link, my__network.categories[link]))
+    if my__network.waterQuality:
+        for link in my__network.links:
+            # Declare Model objects
+            if my__network.categories[link] == "11":  # river headwater
+                dict__c_models[link] = Model("CATCHMENT", "SMART_INCAL", my__network, link,
+                                             specifications_folder, input_folder, output_folder)
+                dict__r_models[link] = Model("RIVER", "LINRES_INCAS", my__network, link,
+                                             specifications_folder, input_folder, output_folder)
+                dict__ls_models[link] = [dict__c_models[link], dict__r_models[link]]
+            elif my__network.categories[link] == "10":  # river
+                dict__c_models[link] = Model("CATCHMENT", "SMART_INCAL", my__network, link,
+                                             specifications_folder, input_folder, output_folder)
+                dict__r_models[link] = Model("RIVER", "LINRES_INCAS", my__network, link,
+                                             specifications_folder, input_folder, output_folder)
+                dict__ls_models[link] = [dict__c_models[link], dict__r_models[link]]
+            elif my__network.categories[link] == "20":  # lake
+                dict__l_models[link] = Model("LAKE", "BATHTUB", my__network, link,
+                                             specifications_folder, input_folder, output_folder)
+                dict__ls_models[link] = [dict__l_models[link]]
+                # For now, no direct rainfall on open water in model
+                # need to be changed, but to do so, need remove lake polygon from sub-basin polygon)
+            else:  # unknown (e.g. 21 would be a lake headwater)
+                raise Exception("Waterbody {}: {} is not a registered type of waterbody.".format(
+                    link, my__network.categories[link]))
+    else:
+        for link in my__network.links:
+            # Declare Model objects
+            if my__network.categories[link] == "11":  # river headwater
+                dict__c_models[link] = Model("CATCHMENT", "SMART", my__network, link,
+                                             specifications_folder, input_folder, output_folder)
+                dict__r_models[link] = Model("RIVER", "LINRES", my__network, link,
+                                             specifications_folder, input_folder, output_folder)
+                dict__ls_models[link] = [dict__c_models[link], dict__r_models[link]]
+            elif my__network.categories[link] == "10":  # river
+                dict__c_models[link] = Model("CATCHMENT", "SMART", my__network, link,
+                                             specifications_folder, input_folder, output_folder)
+                dict__r_models[link] = Model("RIVER", "LINRES", my__network, link,
+                                             specifications_folder, input_folder, output_folder)
+                dict__ls_models[link] = [dict__c_models[link], dict__r_models[link]]
+            elif my__network.categories[link] == "20":  # lake
+                dict__l_models[link] = Model("LAKE", "BATHTUB", my__network, link,
+                                             specifications_folder, input_folder, output_folder)
+                dict__ls_models[link] = [dict__l_models[link]]
+                # For now, no direct rainfall on open water in model
+                # need to be changed, but to do so, need remove lake polygon from sub-basin polygon)
+            else:  # unknown (e.g. 21 would be a lake headwater)
+                raise Exception("Waterbody {}: {} is not a registered type of waterbody.".format(
+                    link, my__network.categories[link]))
 
     return dict__ls_models, dict__c_models, dict__r_models, dict__l_models
 
@@ -565,7 +598,7 @@ def simulate(my__network, my__time_frame, my_simu_slice,
     for variable in my__network.variables:
         my_dict_variables[variable] = 0.0
     for step in my_simu_slice[1:]:  # ignore the index 0 because it is the initial conditions
-        # Calculate water and contaminant runoff from catchment for each link
+        # Calculate water (and contaminant) runoff from catchment for each link
         for link in my__network.links:
             if link in dict__c_models:
                 dict__c_models[link].run(my__network, link, dict__nd_data,
@@ -575,7 +608,7 @@ def simulate(my__network, my__time_frame, my_simu_slice,
         # Sum up everything coming towards each node
         delta = datetime.timedelta(minutes=my__time_frame.gap_simu)
         for node in my__network.nodes:
-            # Sum up the flows
+            # Sum up outputs for hydrology
             q_h2o = 0.0
             for variable in ["q_h2o"]:
                 for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
@@ -593,36 +626,37 @@ def simulate(my__network, my__time_frame, my_simu_slice,
                 q_h2o += my_dict_variables[variable]
                 dict__nd_data[node][step - delta][variable] = my_dict_variables[variable]
                 my_dict_variables[variable] = 0.0
-            # Sum up the contaminants
-            # for variable in ["c_no3", "c_nh4", "c_dph", "c_pph", "c_sed"]:
-            #     for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
-            #         if my__network.categories[link] == "11":  # headwater river
-            #             my_dict_variables[variable] += dict__nd_data[link][step - delta]["".join(["r_out_", variable])] * \
-            #                                            dict__nd_data[link][step - delta]["r_out_q_h2o"]
-            #         elif my__network.categories[link] == "10":  # river
-            #             my_dict_variables[variable] += dict__nd_data[link][step - delta]["".join(["r_out_", variable])] * \
-            #                                            dict__nd_data[link][step - delta]["r_out_q_h2o"]
-            #         elif my__network.categories[link] == "20":  # lake
-            #             my_dict_variables[variable] += dict__nd_data[link][step - delta]["".join(["l_out_", variable])] * \
-            #                                            dict__nd_data[link][step - delta]["l_out_q_h2o"]
-            #     for link in my__network.adding.get(node):  # for the catchment of the link downstream of this node
-            #         if my__network.categories[link] == "11":  # headwater river
-            #             my_dict_variables[variable] += dict__nd_data[link][step]["".join(["c_out_", variable])] * \
-            #                                            dict__nd_data[link][step]["c_out_q_h2o"]
-            #         elif my__network.categories[link] == "10":  # river
-            #             my_dict_variables[variable] += dict__nd_data[link][step]["".join(["c_out_", variable])] * \
-            #                                            dict__nd_data[link][step]["c_out_q_h2o"]
-            #     if q_h2o > 0.0:
-            #         dict__nd_data[node][step - delta][variable] = my_dict_variables[variable] / q_h2o
-            #     my_dict_variables[variable] = 0.0
-        # Calculate water and contaminant routing in river reach for each link
+            # Sum up outputs for water quality
+            if my__network.waterQuality:
+                for variable in ["c_no3", "c_nh4", "c_dph", "c_pph", "c_sed"]:
+                    for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
+                        if my__network.categories[link] == "11":  # headwater river
+                            my_dict_variables[variable] += dict__nd_data[link][step - delta]["".join(["r_out_", variable])] * \
+                                                           dict__nd_data[link][step - delta]["r_out_q_h2o"]
+                        elif my__network.categories[link] == "10":  # river
+                            my_dict_variables[variable] += dict__nd_data[link][step - delta]["".join(["r_out_", variable])] * \
+                                                           dict__nd_data[link][step - delta]["r_out_q_h2o"]
+                        elif my__network.categories[link] == "20":  # lake
+                            my_dict_variables[variable] += dict__nd_data[link][step - delta]["".join(["l_out_", variable])] * \
+                                                           dict__nd_data[link][step - delta]["l_out_q_h2o"]
+                    for link in my__network.adding.get(node):  # for the catchment of the link downstream of this node
+                        if my__network.categories[link] == "11":  # headwater river
+                            my_dict_variables[variable] += dict__nd_data[link][step]["".join(["c_out_", variable])] * \
+                                                           dict__nd_data[link][step]["c_out_q_h2o"]
+                        elif my__network.categories[link] == "10":  # river
+                            my_dict_variables[variable] += dict__nd_data[link][step]["".join(["c_out_", variable])] * \
+                                                           dict__nd_data[link][step]["c_out_q_h2o"]
+                    if q_h2o > 0.0:
+                        dict__nd_data[node][step - delta][variable] = my_dict_variables[variable] / q_h2o
+                    my_dict_variables[variable] = 0.0
+        # Calculate water (and contaminant) routing in river reach for each link
         for link in my__network.links:
             if link in dict__r_models:
                 dict__r_models[link].run(my__network, link, dict__nd_data,
                                          dict__nd_meteo, dict__nd_loadings,
                                          step, my__time_frame.gap_simu,
                                          logger_simu)
-        # Calculate water and contaminant routing in lake for each link
+        # Calculate water (and contaminant) routing in lake for each link
         for link in my__network.links:
             if link in dict__l_models:
                 dict__l_models[link].run(my__network, link, dict__nd_data,
@@ -633,7 +667,7 @@ def simulate(my__network, my__time_frame, my_simu_slice,
     # Sum up everything that was routed towards each node at penultimate time step
     step = my_simu_slice[-1]
     for node in my__network.nodes:
-        # Sum up the flows
+        # Sum up outputs for hydrology
         q_h2o = 0.0
         for variable in ["q_h2o"]:
             for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
@@ -646,21 +680,22 @@ def simulate(my__network, my__time_frame, my_simu_slice,
             q_h2o += my_dict_variables[variable]
             dict__nd_data[node][step][variable] = my_dict_variables[variable]
             my_dict_variables[variable] = 0.0
-        # Sum up the contaminants
-        # for variable in ["c_no3", "c_nh4", "c_dph", "c_pph", "c_sed"]:
-        #     for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
-        #         if my__network.categories[link] == "11":  # headwater river
-        #             my_dict_variables[variable] += dict__nd_data[link][step]["".join(["r_out_", variable])] * \
-        #                                            dict__nd_data[link][step]["r_out_q_h2o"]
-        #         elif my__network.categories[link] == "10":  # river
-        #             my_dict_variables[variable] += dict__nd_data[link][step]["".join(["r_out_", variable])] * \
-        #                                            dict__nd_data[link][step]["r_out_q_h2o"]
-        #         elif my__network.categories[link] == "20":  # lake
-        #             my_dict_variables[variable] += dict__nd_data[link][step]["".join(["l_out_", variable])] * \
-        #                                            dict__nd_data[link][step]["l_out_q_h2o"]
-        #     if q_h2o > 0.0:
-        #         dict__nd_data[node][step][variable] = my_dict_variables[variable] / q_h2o
-        #     my_dict_variables[variable] = 0.0
+        # Sum up output for water quality
+        if my__network.waterQuality:
+            for variable in ["c_no3", "c_nh4", "c_dph", "c_pph", "c_sed"]:
+                for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
+                    if my__network.categories[link] == "11":  # headwater river
+                        my_dict_variables[variable] += dict__nd_data[link][step]["".join(["r_out_", variable])] * \
+                                                       dict__nd_data[link][step]["r_out_q_h2o"]
+                    elif my__network.categories[link] == "10":  # river
+                        my_dict_variables[variable] += dict__nd_data[link][step]["".join(["r_out_", variable])] * \
+                                                       dict__nd_data[link][step]["r_out_q_h2o"]
+                    elif my__network.categories[link] == "20":  # lake
+                        my_dict_variables[variable] += dict__nd_data[link][step]["".join(["l_out_", variable])] * \
+                                                       dict__nd_data[link][step]["l_out_q_h2o"]
+                if q_h2o > 0.0:
+                    dict__nd_data[node][step][variable] = my_dict_variables[variable] / q_h2o
+                my_dict_variables[variable] = 0.0
 
 
 def create_simulation_files(my__network, dict__ls_models,

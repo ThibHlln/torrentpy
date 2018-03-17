@@ -16,13 +16,15 @@ class Network:
     parameter 'adding_up' allows to specify where the catchment runoff is routed to: if True runoff is routed to the
     node upstream of the link, if False runoff is routed to the node downstream of the link, Default is set as False.
     """
-    def __init__(self, catchment, outlet, input_folder, specs_folder, adding_up=False):
+    def __init__(self, catchment, outlet, input_folder, specs_folder, adding_up=False, wq=False):
         # name of the catchment
         self.name = catchment.capitalize()
         # european code of the outlet
         self.code = outlet.upper()
         # mode chosen to connect catchment and reach
         self.modeUp = adding_up
+        # boolean for water quality simulations
+        self.waterQuality = wq
         # path of the files necessary to generate the Network object
         self.networkFile = "{}{}_{}.network".format(input_folder, catchment, outlet)
         self.waterBodiesFile = "{}{}_{}.waterbodies".format(input_folder, catchment, outlet)
@@ -42,7 +44,9 @@ class Network:
         # descriptors for the links = physical descriptors characteristic of a given catchment
         self.descriptors = Network.get_catchments_descriptors(self)
         # list of the variables to be propagated through the node-link network
-        self.variables = Network.get_one_list(specs_folder, "variables")
+        self.variables_h = Network.get_one_list(specs_folder, "variables_h")
+        self.variables_q = Network.get_one_list(specs_folder, "variables_q") if wq else []
+        self.variables = self.variables_h + self.variables_q
 
     def get_network_attributes(self, adding_up):
         """
