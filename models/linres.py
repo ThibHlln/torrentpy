@@ -52,8 +52,12 @@ def run(obj_network, waterbody, dict_data_frame,
     dict_data_frame[waterbody][datetime_time_step]["r_out_q_h2o"] = r_out_q_h2o
 
 
-def infer_parameters_cmt(dict_desc, my_dict_param):
-    # LINEAR RESERVOIR
+def infer_parameters(dict_desc, my_dict_param):
+    """
+    This function infers the value of the model parameters from catchment descriptors
+    using regression relationships developed for Pathways Project by Dr. Eva Mockler
+    (using equations available in CMT Fortran code by Prof. Michael Bruen and Dr. Eva Mockler).
+    """
     # Parameter RK: River routing parameter (hours)
     l = dict_desc['stream_length']
     q = 0.7 * dict_desc['SAAR'] * (dict_desc['area'] / 1e6) * 3.171e-5
@@ -68,7 +72,11 @@ def infer_parameters_cmt(dict_desc, my_dict_param):
 
 
 def infer_parameters_thesis(dict_desc, my_dict_param):
-    # LINEAR RESERVOIR
+    """
+    This function infers the value of the model parameters from catchment descriptors
+    using regression relationships developed for Pathways Project by Dr. Eva Mockler
+    (using equations available in Eva Mockler's Ph.D. thesis).
+    """
     # Parameter RK: River routing parameter (hours)
     l = dict_desc['stream_length']
     q = 0.7 * dict_desc['SAAR'] * (dict_desc['area'] / 1e6) * 3.171e-5
@@ -79,3 +87,12 @@ def infer_parameters_thesis(dict_desc, my_dict_param):
     )
     rk /= 3600.0  # convert seconds into hours
     my_dict_param['r_p_k_h2o'] = rk
+
+
+def initialise_states(dict_desc, dict_param):
+
+    area_m2 = dict_desc['area']
+
+    return {
+        'r_s_v_h2o': (1200 * 0.45) / 1000 * area_m2 / 8766 * dict_param['r_p_k_h2o']
+    }

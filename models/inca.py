@@ -910,3 +910,13 @@ def infer_stream_parameters(my_dict_param):
     my_dict_param['r_p_att_dph'] = 0.9
     my_dict_param['r_p_att_pph'] = 1.0
     my_dict_param['r_p_att_sed'] = 1.0
+
+
+def initialise_land_states():
+
+    return {}
+
+
+def initialise_stream_states():
+
+    return {}

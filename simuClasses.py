@@ -6,7 +6,6 @@ import pandas
 from math import ceil
 
 import simuModels as sM
-import simuFunctions as sFn
 
 
 class Network:
@@ -368,7 +367,7 @@ class Model:
                             raise Exception("The {} {} {} is not available for {}.".format(
                                 component, specs_type[:-1], name, self.link))
                 except IOError:
-                    dict_for_file = sFn.infer_parameters_from_descriptors(network.descriptors[self.link], component)
+                    dict_for_file = sM.infer_parameters_from_descriptors(network.descriptors[self.link], component)
 
                 my_dict.update(dict_for_file)
                 dict_for_file["EU_CD"] = self.link
@@ -418,21 +417,38 @@ class Model:
         :return: NOTHING
         """
         if self.category == "CATCHMENT":
-            sM.catchment_model(self.identifier, waterbody, dict_nd_data,
-                               obj_network.descriptors, self.parameters, self.constants,
-                               dict_nd_meteo, dict_nd_loadings,
+            sM.run_catchment_model(self.identifier, waterbody, dict_nd_data,
+                                   obj_network.descriptors, self.parameters, self.constants,
+                                   dict_nd_meteo, dict_nd_loadings,
+                                   datetime_time_step, time_gap,
+                                   logger)
+        elif self.category == "RIVER":
+            sM.run_river_model(self.identifier, obj_network, waterbody, dict_nd_data,
+                               self.parameters, self.constants, dict_nd_meteo,
                                datetime_time_step, time_gap,
                                logger)
-        elif self.category == "RIVER":
-            sM.river_model(self.identifier, obj_network, waterbody, dict_nd_data,
-                           self.parameters, self.constants, dict_nd_meteo,
-                           datetime_time_step, time_gap,
-                           logger)
         elif self.category == "LAKE":
-            sM.lake_model(self.identifier, waterbody, dict_nd_data,
-                          obj_network.descriptors, self.parameters, dict_nd_meteo,
-                          datetime_time_step, time_gap,
-                          logger)
+            sM.run_lake_model(self.identifier, waterbody)
+
+    def initialise(self, obj_network):
+        """
+        This method returns the initial conditions for the states of the model.
+
+        :param obj_network: Network object for the simulated catchment
+        :return: dictionary containing states that have non-zero initial values
+        """
+        dict_init = dict()
+        if self.category == "CATCHMENT":
+            dict_init.update(
+                sM.initialise_catchment_model(self.identifier, obj_network.descriptors[self.link], self.parameters))
+        elif self.category == "RIVER":
+            dict_init.update(
+                sM.initialise_river_model(self.identifier, obj_network.descriptors[self.link], self.parameters))
+        elif self.category == "LAKE":
+            dict_init.update(
+                sM.initialise_lake_model(self.identifier))
+
+        return dict_init
 
 
 class TimeFrame:

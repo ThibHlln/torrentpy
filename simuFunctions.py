@@ -1,27 +1,5 @@
 import datetime
 
-import models.smart as smart
-import models.linres as linres
-import models.inca as inca
-
-
-def infer_parameters_from_descriptors(dict_desc, model):
-
-    my_dict_param = dict()
-
-    if model == "SMART":
-        smart.infer_parameters_thesis(dict_desc, my_dict_param)
-    elif model == "LINRES":
-        linres.infer_parameters_thesis(dict_desc, my_dict_param)
-    elif model == "INCAL":
-        inca.infer_land_parameters(dict_desc, my_dict_param)
-    elif model == "INCAS":
-        inca.infer_stream_parameters(my_dict_param)
-    else:
-        raise Exception('The model {} is not associated to any inferring script.'.format(model))
-
-    return my_dict_param
-
 
 def distribute_loadings_across_year(dict_annual_loads, dict_applications, nd_distributions, link,
                                     my_tf, data_slice, simu_slice):

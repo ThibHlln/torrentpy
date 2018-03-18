@@ -307,15 +307,14 @@ def run(waterbody, dict_data_frame,
     }
 
 
-def infer_parameters_cmt(dict_desc, my_dict_param):
-    # HYDROLOGICAL MODEL
+def infer_parameters(dict_desc, my_dict_param):
+    """
+    This function infers the value of the model parameters from catchment descriptors
+    using regression relationships developed for Pathways Project by Dr. Eva Mockler
+    (using equations available in CMT Fortran code by Prof. Michael Bruen and Dr. Eva Mockler).
+    """
     # Parameter T: Rainfall aerial correction coefficient
-    # my_dict['c_p_t'] = 65.622 * dict_desc['SAAPE'] ** (-0.652) * \
-    #     dict_desc['TAYSLO'] ** 0.003 * \
-    #     (dict_desc['SlopeLow'] + 1.0) ** (-0.075) * \
-    #     (dict_desc['Peat'] ** 0.5 + 1.0) ** (-0.221) * \
-    #     (dict_desc['Made'] ** 0.5 + 1.0) ** (-0.481)
-    my_dict_param['c_p_t'] = 1.0
+    my_dict_param['c_p_t'] = 1.0  # set to 1 because rainfall value assumed to be best estimate if no calibration
 
     # Parameter C: Evaporation decay parameter
     my_dict_param['c_p_c'] = log((9.04064 * dict_desc['SAAR'] ** (-0.71009) *
@@ -422,7 +421,11 @@ def infer_parameters_cmt(dict_desc, my_dict_param):
 
 
 def infer_parameters_thesis(dict_desc, my_dict_param):
-    # HYDROLOGICAL MODEL
+    """
+    This function infers the value of the model parameters from catchment descriptors
+    using regression relationships developed for Pathways Project by Dr. Eva Mockler
+    (using equations available in Eva Mockler's Ph.D. thesis).
+    """
     # Parameter T: Rainfall aerial correction coefficient
     my_dict_param['c_p_t'] = 65.622 * dict_desc['SAAPE'] ** (-0.652) * \
         dict_desc['TAYSLO'] ** 0.003 * \
@@ -527,3 +530,22 @@ def infer_parameters_thesis(dict_desc, my_dict_param):
 
     if my_dict_param['c_p_gk'] < 0.3 * my_dict_param['c_p_fk']:
         my_dict_param['c_p_gk'] = 3.0 * my_dict_param['c_p_fk']
+
+
+def initialise_states(dict_desc, dict_param):
+
+    area_m2 = dict_desc['area']
+
+    return {
+        'c_s_v_h2o_ove': (1200 * 0.45) * 0.10 / 1000 * area_m2 / 8766 * dict_param['c_p_sk'],
+        'c_s_v_h2o_int': (1200 * 0.45) * 0.15 / 1000 * area_m2 / 8766 * dict_param['c_p_fk'],
+        'c_s_v_h2o_dra': (1200 * 0.45) * 0.15 / 1000 * area_m2 / 8766 * dict_param['c_p_fk'],
+        'c_s_v_h2o_sgw': (1200 * 0.45) * 0.30 / 1000 * area_m2 / 8766 * dict_param['c_p_gk'],
+        'c_s_v_h2o_dgw': (1200 * 0.45) * 0.30 / 1000 * area_m2 / 8766 * dict_param['c_p_gk'],
+        'c_s_v_h2o_ly1': (dict_param['c_p_z'] / 12) / 1000 * area_m2,
+        'c_s_v_h2o_ly2': (dict_param['c_p_z'] / 12) / 1000 * area_m2,
+        'c_s_v_h2o_ly3': (dict_param['c_p_z'] / 12) / 1000 * area_m2,
+        'c_s_v_h2o_ly4': (dict_param['c_p_z'] / 12) / 1000 * area_m2,
+        'c_s_v_h2o_ly5': (dict_param['c_p_z'] / 12) / 1000 * area_m2,
+        'c_s_v_h2o_ly6': (dict_param['c_p_z'] / 12) / 1000 * area_m2
+    }
