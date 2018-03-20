@@ -1,6 +1,6 @@
 import logging
-from multiprocessing import Pool, log_to_stderr
-from os import path
+from multiprocessing import Pool, cpu_count, log_to_stderr
+from os import path, getcwd
 from csv import DictReader
 
 
@@ -59,13 +59,19 @@ def single_run_star(args):
 
 
 if __name__ == '__main__':
-    csf_root = path.realpath('../..')  # move to grand-parent directory of this current python file
+    # Define the root of the CSF package
+    if getcwd() == path.dirname(path.realpath(__file__)):  # execution from the directory where the script is
+        csf_root = path.realpath('../..')  # move to parent of parent directory of this current python file
+    else:  # execution not from the directory where the script is
+        csf_root = getcwd()  # keep the current working directory
+
     input_dir = ''.join([csf_root, "/in/"])
     output_dir = ''.join([csf_root, "/out/"])
 
     my_log_file = '{}/postprocessing.batch.log'.format(output_dir)
     my_batch_file = '{}/postprocessing.batch'.format(input_dir)
 
+    cores = cpu_count()
     pool = Pool(processes=1, maxtasksperchild=1)
 
     arguments = get_arguments_from_batch_file(my_batch_file, csf_root, my_log_file)
