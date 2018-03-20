@@ -1,8 +1,8 @@
-import matplotlib.pyplot as plt
 from pandas import DataFrame
 import numpy as np
-from matplotlib import dates
 import matplotlib as mpl
+from matplotlib import dates
+import matplotlib.pyplot as plt
 import logging
 import argparse
 
