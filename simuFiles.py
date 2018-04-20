@@ -53,12 +53,20 @@ def get_nd_meteo_data_from_file(catchment, link, my_tf, series_data, series_simu
                     raise Exception("{}{}_{}_{}_{}.{} contains an invalid value for {}.".format(
                         in_folder, catchment, link, my_start, my_end, meteo_type,
                         my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
+                # total = float(my_value)
                 for my_sub_step in xrange(0, -divisor, -1):
                     my_dt_simu = my_dt_data + datetime.timedelta(minutes=my_sub_step * my_tf.gap_simu)
                     if (meteo_type == 'rain') or (meteo_type == 'peva'):
                         my_dbl_dict[my_dt_simu][meteo_type] = float(my_portion)
                     else:
                         my_dbl_dict[my_dt_simu][meteo_type] = float(my_value)
+                    # if meteo_type == 'peva':
+                    #     my_dbl_dict[my_dt_simu][meteo_type] = float(my_portion)
+                    # elif meteo_type == 'rain':
+                    #     my_dbl_dict[my_dt_simu][meteo_type] = total
+                    #     total -= total
+                    # else:
+                    #     my_dbl_dict[my_dt_simu][meteo_type] = float(my_value)
 
         except IOError:
             raise Exception("{}{}_{}_{}_{}.{} does not exist.".format(

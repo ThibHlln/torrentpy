@@ -190,7 +190,7 @@ def run_on_land(waterbody, dict_data_frame,
     dict_outputs_hd = my_dict_hydro['dict_outputs_hd']
 
     # # 2.2. Collect inputs, states, parameters, and constants
-    c_in_temp = dict_meteo[waterbody][datetime_time_step]["airt"]
+    c_in_temp = dict_meteo[waterbody][datetime_time_step]["soit"]
     mass_n = \
         dict_loads[waterbody][datetime_time_step]["org_n_grassland"] * \
         dict_desc[waterbody]["grassland_ratio"] * area_m2 * 1e-4 + \
