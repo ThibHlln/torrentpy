@@ -9,7 +9,7 @@ import simuFiles as sF
 import simuFunctions as sFn
 
 
-def main(catchment, outlet, slice_length, warm_up_in_days, root, adding_up, is_single_run=False):
+def main(catchment, outlet, slice_length, warm_up_in_days, root, is_single_run=False):
     # Format catchment and outlet names
     catchment = catchment.capitalize()
     outlet = outlet.upper()
@@ -40,12 +40,12 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, adding_up, is_s
     setup_logger(catchment, outlet, 'SingleRun.main', 'simu', output_folder, is_single_run)
     logger = logging.getLogger('SingleRun.main')
 
-    logger.warning("Starting simulation for {} {} [Slice-Up: {}, Warm-Up: {}, Adding-Up: {}].".format(
-        catchment, outlet, slice_length, warm_up_in_days, adding_up))
+    logger.warning("Starting simulation for {} {} [Slice-Up: {}, Warm-Up: {}].".format(
+        catchment, outlet, slice_length, warm_up_in_days,))
 
     # Store information about arguments used to call the run
     my_df_info = pandas.DataFrame.from_dict(
-        {'SliceUp': slice_length, 'WarmUp': warm_up_in_days, 'AddUp': adding_up}, orient='index')
+        {'SliceUp': slice_length, 'WarmUp': warm_up_in_days}, orient='index')
     my_df_info.index.name = "Information"
     my_df_info.columns = ["Value"]
     my_df_info.to_csv('{}{}_{}.information'.format(output_folder, catchment, outlet), sep=',')
@@ -66,7 +66,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, adding_up, is_s
                                        int(data_time_gap_in_min), int(simu_time_gap_in_min), slice_length)
 
     # Create a Network object from network and waterBodies files
-    my__network = Network(catchment, outlet, input_folder, spec_directory, adding_up=adding_up, wq=water_quality)
+    my__network = Network(catchment, outlet, input_folder, spec_directory, wq=water_quality)
 
     # Create Models for the links
     dict__ls_models, dict__c_models, dict__r_models, dict__l_models = \
@@ -900,14 +900,9 @@ if __name__ == "__main__":
                         help="length of simulation period slice-up in time steps")
     parser.add_argument('-w', '--warm_up', type=int, default=0,
                         help="warm-up duration in days")
-    parser.add_argument('-u', '--add_up', dest='add_up', action='store_true',
-                        help="add the catchment run-off to its upstream node ")
-    parser.add_argument('-d', '--add_down', dest='add_up', action='store_false',
-                        help="add the catchment run-off to its downstream node ")
-    parser.set_defaults(add_up=True)
 
     args = parser.parse_args()
 
     # Run the main() function
     main(args.catchment, args.outlet, args.slice_up, args.warm_up, csf_root,
-         args.add_up, is_single_run=True)
+         is_single_run=True)

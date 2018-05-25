@@ -15,13 +15,11 @@ class Network:
     parameter 'adding_up' allows to specify where the catchment runoff is routed to: if True runoff is routed to the
     node upstream of the link, if False runoff is routed to the node downstream of the link, Default is set as False.
     """
-    def __init__(self, catchment, outlet, input_folder, specs_folder, adding_up=False, wq=False):
+    def __init__(self, catchment, outlet, input_folder, specs_folder, wq=False):
         # name of the catchment
         self.name = catchment.capitalize()
         # european code of the outlet
         self.code = outlet.upper()
-        # mode chosen to connect catchment and reach
-        self.modeUp = adding_up
         # boolean for water quality simulations
         self.waterQuality = wq
         # path of the files necessary to generate the Network object
@@ -29,15 +27,15 @@ class Network:
         self.waterBodiesFile = "{}{}_{}.waterbodies".format(input_folder, catchment, outlet)
         self.descriptorsFile = "{}{}_{}.descriptors".format(input_folder, catchment, outlet)
         # list of the nodes contained in the Network
-        self.nodes = Network.get_network_attributes(self, adding_up)["nodes"]
+        self.nodes = Network.get_network_attributes(self)["nodes"]
         # list of the links contained in the Network
-        self.links = Network.get_network_attributes(self, adding_up)["links"]
+        self.links = Network.get_network_attributes(self)["links"]
         # connections for links = nodes upstream and downstream of a given link
-        self.connections = Network.get_network_attributes(self, adding_up)["connections"]
+        self.connections = Network.get_network_attributes(self)["connections"]
         # adding for nodes = list of links whose catchments are pouring into the node
-        self.adding = Network.get_network_attributes(self, adding_up)["adding"]
+        self.adding = Network.get_network_attributes(self)["adding"]
         # routing for nodes = list of links whose reaches are pouring into the node
-        self.routing = Network.get_network_attributes(self, adding_up)["routing"]
+        self.routing = Network.get_network_attributes(self)["routing"]
         # categories for links = code to identify the type of catchment (river or lake, headwater or not)
         self.categories = Network.get_waterbodies_attributes(self)
         # descriptors for the links = physical descriptors characteristic of a given catchment
@@ -47,7 +45,7 @@ class Network:
         self.variables_q = Network.get_one_list(specs_folder, "variables_q") if wq else []
         self.variables = self.variables_h + self.variables_q
 
-    def get_network_attributes(self, adding_up):
+    def get_network_attributes(self):
         """
         This method reads all the information contained in the network file in order to get the list of the nodes and
         the links as well as the connections, and the links adding to the nodes and routed by the nodes.
@@ -73,10 +71,7 @@ class Network:
                     my_adding[node] = list()
                 for link in my_connections:
                     my_routing[my_connections[link][0]].append(link)
-                    if adding_up:
-                        my_adding[my_connections[link][1]].append(link)
-                    else:
-                        my_adding[my_connections[link][0]].append(link)
+                    my_adding[my_connections[link][1]].append(link)
 
         except IOError:
             logger.error("No link-node network file found for {}.".format(self.name))
