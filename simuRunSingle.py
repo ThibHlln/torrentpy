@@ -77,7 +77,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, is_single_run=F
 
     # Set the initial conditions ('blank' warm up run slice by slice) if required
     my_last_lines = dict()
-    if not warm_up_in_days == 0.0:  # Warm-up run required
+    if not warm_up_in_days == 0:  # Warm-up run required
         logger.info("Determining initial conditions.")
         # Get meteo input data
         dict__nd_meteo = get_meteo_input_from_file(my__network, my__time_frame_warm_up,
@@ -232,6 +232,7 @@ def setup_simulation(catchment, outlet, input_dir):
         datetime_start_data = datetime.datetime.strptime(question_start_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
         raise Exception("The data starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+
     try:
         question_end_data = my_answers_df.get_value('data_end_datetime', 'ANSWER')
     except KeyError:
@@ -240,6 +241,7 @@ def setup_simulation(catchment, outlet, input_dir):
         datetime_end_data = datetime.datetime.strptime(question_end_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
         raise Exception("The data ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+
     try:
         question_start_simu = my_answers_df.get_value('simu_start_datetime', 'ANSWER')
     except KeyError:
@@ -248,6 +250,7 @@ def setup_simulation(catchment, outlet, input_dir):
         datetime_start_simu = datetime.datetime.strptime(question_start_simu, '%d/%m/%Y %H:%M:%S')
     except ValueError:
         raise Exception("The simulation starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+
     try:
         question_end_simu = my_answers_df.get_value('simu_end_datetime', 'ANSWER')
     except KeyError:
@@ -256,6 +259,7 @@ def setup_simulation(catchment, outlet, input_dir):
         datetime_end_simu = datetime.datetime.strptime(question_end_simu, '%d/%m/%Y %H:%M:%S')
     except ValueError:
         raise Exception("The simulation ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+
     try:
         question_data_time_gap = my_answers_df.get_value('data_time_gap_min', 'ANSWER')
     except KeyError:
@@ -264,6 +268,7 @@ def setup_simulation(catchment, outlet, input_dir):
         data_time_gap_in_min = float(int(question_data_time_gap))
     except ValueError:
         raise Exception("The data time gap is invalid. [not an integer]")
+
     try:
         question_simu_time_gap = my_answers_df.get_value('simu_time_gap_min', 'ANSWER')
     except KeyError:
@@ -272,15 +277,15 @@ def setup_simulation(catchment, outlet, input_dir):
         simu_time_gap_in_min = float(int(question_simu_time_gap))
     except ValueError:
         raise Exception("The simulation time gap is invalid. [not an integer]")
+
     try:
         question_water_quality = my_answers_df.get_value('water_quality', 'ANSWER')
     except KeyError:
-        water_quality = False
+        question_water_quality = "off"  # default setting
+    if question_water_quality == "on" or question_water_quality == "off":
+        water_quality = True if question_water_quality == "on" else False
     else:
-        if question_water_quality == "on":
-            water_quality = True
-        else:
-            water_quality = False
+        raise Exception("The water quality choice is invalid. [not \'on\' nor \'off\']")
 
     # Check if temporal information is consistent
     if datetime_start_data > datetime_end_data:
