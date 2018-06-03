@@ -453,11 +453,10 @@ class TimeFrame:
     can be identical or nested). It also breaks down the series into slices in order to reduce the memory demand during
     the simulation.
 
-    N.B. 1: The simulation gap needs to be a multiple if the data gap and the simulation gap can be greater than
-    or equal to the data gap
+    N.B. 1: The data gap needs to be a multiple of the simulation gap.
     N.B. 2: The start and the end of the simulation are defined by the user, the class always adds one data step
-    prior to the start date in order to set the initial conditions, one or more simulation steps are added in
-    consequence depending if the simulation step in a multiple of the data step or not (i.e. equal)
+    prior to the start date defined by the user in order to set the initial conditions, which means that one or more
+    simulation steps are added as a consequence, depending on whether the simulation step < the data step or equal.
     """
     def __init__(self, datetime_start, datetime_end,
                  data_increment_in_minutes, simu_increment_in_minutes,

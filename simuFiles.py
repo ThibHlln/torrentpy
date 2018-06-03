@@ -60,13 +60,6 @@ def get_nd_meteo_data_from_file(catchment, link, my_tf, series_data, series_simu
                         my_dbl_dict[my_dt_simu][meteo_type] = float(my_portion)
                     else:
                         my_dbl_dict[my_dt_simu][meteo_type] = float(my_value)
-                    # if meteo_type == 'peva':
-                    #     my_dbl_dict[my_dt_simu][meteo_type] = float(my_portion)
-                    # elif meteo_type == 'rain':
-                    #     my_dbl_dict[my_dt_simu][meteo_type] = total
-                    #     total -= total
-                    # else:
-                    #     my_dbl_dict[my_dt_simu][meteo_type] = float(my_value)
 
         except IOError:
             raise Exception("{}{}_{}_{}_{}.{} does not exist.".format(

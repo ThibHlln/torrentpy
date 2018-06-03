@@ -300,6 +300,9 @@ def setup_simulation(catchment, outlet, input_dir):
         raise Exception("The simulation end is later than the data end.")
 
     if data_time_gap_in_min % simu_time_gap_in_min != 0.0:
+        # guarantees that both of the following statements are true:
+        # i)  data_gap >= simu_gap
+        # ii) data_gap is a multiple of simu_gap
         raise Exception("The data time gap is not a multiple of the simulation time gap.")
 
     return data_time_gap_in_min, datetime_start_data, datetime_end_data, \
