@@ -46,11 +46,6 @@ def main(catchment, outlet, gauge, root):
     logger.warning("Starting performance assessment for {} {} {}.".format(catchment, outlet, gauge))
 
     # Create a Network object from network and waterBodies files
-    my_df_info = pandas.read_csv('{}{}_{}.information'.format(output_folder, catchment, outlet), index_col=0)
-    if my_df_info.get_value('AddUp', 'Value') == 'True':
-        adding_up = True
-    else:
-        adding_up = False
     my__network = Network(catchment, outlet, input_folder, spec_directory)
 
     # Collect the observed (OBS) and modelled (MOD) discharge data
@@ -58,10 +53,7 @@ def main(catchment, outlet, gauge, root):
     df_flows_mod = pandas.read_csv('{}{}_{}.outputs'.format(output_folder, catchment, gauged_waterbody))
 
     nda_flows_obs = df_flows_obs['flow'].values
-    if my__network.modeUp:
-        nda_flows_mod = df_flows_mod['r_out_q_h2o'].values
-    else:
-        nda_flows_mod = df_flows_mod['r_out_q_h2o'].values + df_flows_mod['c_out_q_h2o'].values
+    nda_flows_mod = df_flows_mod['r_out_q_h2o'].values
 
     # Assess the performance of the model
     my_dict_results = dict()

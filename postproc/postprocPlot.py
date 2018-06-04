@@ -51,11 +51,6 @@ def main(catchment, outlet, gauge, root):
                                int(data_time_gap_in_min), int(simu_time_gap_in_min), 0)
 
     # Create a Network object from network and waterBodies files
-    my_df_info = pandas.read_csv('{}{}_{}.information'.format(output_folder, catchment, outlet), index_col=0)
-    if my_df_info.get_value('AddUp', 'Value') == 'True':
-        adding_up = True
-    else:
-        adding_up = False
     my__network = Network(catchment, outlet, input_folder, spec_directory)
 
     # Read the rainfall files
@@ -82,7 +77,7 @@ def main(catchment, outlet, gauge, root):
 
     # Read the flow files
     gauged_flow_m3s, simu_flow_m3s = \
-        read_flow_files(my__network, my__time_frame,
+        read_flow_files(my__time_frame,
                         catchment,
                         gauge, gauged_waterbody,
                         output_folder)
@@ -299,7 +294,7 @@ def read_meteo_files(my__network, my__time_frame,
     return meteo_data, catchment_area
 
 
-def read_flow_files(my__network, my__time_frame,
+def read_flow_files(my__time_frame,
                     catchment,
                     gauge, gauged_wb,
                     out_folder):
@@ -312,12 +307,7 @@ def read_flow_files(my__network, my__time_frame,
     # Get the simulated flow at the outlet of the catchment
     simu_flow_m3s = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
     my_df_node = pandas.read_csv("{}{}_{}.outputs".format(out_folder, catchment, gauged_wb), index_col=0)
-    if my__network.modeUp:  # i.e. gauged reach includes the gauged sub-catchment outflow
-        simu_flow_m3s = np.c_[simu_flow_m3s, np.asarray(my_df_node['r_out_q_h2o'].loc[my_time_st].tolist())]
-    else:  # i.e. gauged reach does not include the gauged sub-catchment outflow
-        simu_flow_m3s = np.c_[simu_flow_m3s,
-                              np.asarray(my_df_node['r_out_q_h2o'].loc[my_time_st].tolist()) +
-                              np.asarray(my_df_node['c_out_q_h2o'].loc[my_time_st].tolist())]
+    simu_flow_m3s = np.c_[simu_flow_m3s, np.asarray(my_df_node['r_out_q_h2o'].loc[my_time_st].tolist())]
 
     # Get the measured flow near the outlet of the catchment
     gauged_flow_m3s = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
