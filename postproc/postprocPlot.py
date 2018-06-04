@@ -56,7 +56,7 @@ def main(catchment, outlet, gauge, root):
         adding_up = True
     else:
         adding_up = False
-    my__network = Network(catchment, outlet, input_folder, spec_directory, adding_up=adding_up)
+    my__network = Network(catchment, outlet, input_folder, spec_directory)
 
     # Read the rainfall files
     rainfall, catchment_area = \

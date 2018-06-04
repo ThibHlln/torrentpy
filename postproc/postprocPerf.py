@@ -51,7 +51,7 @@ def main(catchment, outlet, gauge, root):
         adding_up = True
     else:
         adding_up = False
-    my__network = Network(catchment, outlet, input_folder, spec_directory, adding_up=adding_up)
+    my__network = Network(catchment, outlet, input_folder, spec_directory)
 
     # Collect the observed (OBS) and modelled (MOD) discharge data
     df_flows_obs = pandas.read_csv('{}{}_{}_{}.flow'.format(output_folder, catchment, gauged_waterbody, gauge))
