@@ -193,6 +193,8 @@ class Model:
         self.parameter_names = Model.get_list_names(self, specs_folder, "parameters")
         # list of the names for the states of the Model
         self.state_names = Model.get_list_names(self, specs_folder, "states")
+        # list of the names for the processes of the Model
+        self.process_names = Model.get_list_names(self, specs_folder, "processes")
         # list of the names for the outputs of the Model
         self.output_names = Model.get_list_names(self, specs_folder, "outputs")
         # values for the parameters of the Model

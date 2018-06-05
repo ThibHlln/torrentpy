@@ -450,7 +450,7 @@ def generate_data_structures_for_links_and_nodes(my__network, my_simu_slice, dic
         # Create NestedDicts for the links
         my_headers = list()
         for model in dict__ls_models[link]:
-            my_headers += model.input_names + model.state_names + model.output_names
+            my_headers += model.input_names + model.state_names + model.process_names + model.output_names
         my_dict_with_headers = {c: 0.0 for c in my_headers}
         dict__nd_data[link] = \
             {i: dict(my_dict_with_headers) for i in my_simu_slice}

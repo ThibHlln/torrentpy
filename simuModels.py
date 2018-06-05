@@ -5,22 +5,34 @@ def run_catchment_model(identifier, waterbody, dict_data_frame,
                         dict_desc, dict_param, dict_const, dict_meteo, dict_loads,
                         datetime_time_step, time_gap,
                         logger):
-
+    """
+    This function uses the identifier string of the Model object to run the appropriate (combination of) model(s)
+    """
     if identifier == "SMART_INCAL":
-        my_dict_hydro = smart.run(waterbody, dict_data_frame,
-                                  dict_desc, dict_param, dict_meteo,
-                                  datetime_time_step, time_gap,
-                                  logger)
-        inca.run_on_land(waterbody, dict_data_frame,
-                         dict_desc, dict_param, dict_const, dict_meteo, dict_loads,
-                         datetime_time_step, time_gap,
-                         logger,
-                         my_dict_hydro)
+        # SMART
+        smart_in = smart.get_in(waterbody, datetime_time_step, time_gap,
+                                dict_data_frame, dict_desc, dict_param, dict_meteo)
+
+        smart_out = smart.run(waterbody, datetime_time_step, logger, *smart_in)
+
+        smart.get_out(waterbody, datetime_time_step, dict_data_frame, *smart_out)
+
+        # INCA Land
+        incal_in = inca.get_in_land(waterbody, datetime_time_step, time_gap,
+                                    dict_data_frame, dict_desc, dict_param, dict_meteo, dict_loads, dict_const)
+
+        incal_out = inca.run_on_land(waterbody, datetime_time_step, logger, *incal_in)
+
+        inca.get_out_land(waterbody, datetime_time_step, dict_data_frame, *incal_out)
+
     elif identifier == "SMART":
-        smart.run(waterbody, dict_data_frame,
-                  dict_desc, dict_param, dict_meteo,
-                  datetime_time_step, time_gap,
-                  logger)
+        # SMART
+        smart_in = smart.get_in(waterbody, datetime_time_step, time_gap,
+                                dict_data_frame, dict_desc, dict_param, dict_meteo)
+
+        smart_out = smart.run(waterbody, datetime_time_step, logger, *smart_in)
+
+        smart.get_out(waterbody, datetime_time_step, dict_data_frame, *smart_out)
     else:
         raise Exception('The model {} is not associated to any run script.'.format(identifier))
 
@@ -29,33 +41,51 @@ def run_river_model(identifier, obj_network, waterbody, dict_data_frame,
                     dict_param, dict_const, dict_meteo,
                     datetime_time_step, time_gap,
                     logger):
-
+    """
+    This function uses the identifier string of the Model object to run the appropriate (combination of) model(s)
+    """
     if identifier == "LINRES_INCAS":
-        linres.run(obj_network, waterbody, dict_data_frame,
-                   dict_param,
-                   datetime_time_step, time_gap,
-                   logger)
-        inca.run_in_stream(obj_network, waterbody, dict_data_frame,
-                           dict_param, dict_const, dict_meteo,
-                           datetime_time_step, time_gap,
-                           logger)
+        # LINRES
+        linres_in = linres.get_in(obj_network, waterbody, datetime_time_step, time_gap,
+                                  dict_data_frame, dict_param)
+
+        linres_out = linres.run(waterbody, datetime_time_step, logger, *linres_in)
+
+        linres.get_out(waterbody, datetime_time_step, dict_data_frame, *linres_out)
+
+        # INCA Stream
+        incas_in = inca.get_in_stream(obj_network, waterbody, datetime_time_step, time_gap,
+                                      dict_data_frame, dict_param, dict_meteo, dict_const)
+
+        incas_out = inca.run_in_stream(waterbody, datetime_time_step, logger, *incas_in)
+
+        inca.get_out_stream(waterbody, datetime_time_step, dict_data_frame, *incas_out)
+
     elif identifier == "LINRES":
-        linres.run(obj_network, waterbody, dict_data_frame,
-                   dict_param,
-                   datetime_time_step, time_gap,
-                   logger)
+        # LINRES
+        linres_in = linres.get_in(obj_network, waterbody, datetime_time_step, time_gap,
+                                  dict_data_frame, dict_param)
+
+        linres_out = linres.run(waterbody, datetime_time_step, logger, *linres_in)
+
+        linres.get_out(waterbody, datetime_time_step, dict_data_frame, *linres_out)
     else:
         raise Exception('The model {} is not associated to any run script.'.format(identifier))
 
 
 def run_lake_model(identifier, waterbody):
+    """
+    This function uses the identifier string of the Model object to run the appropriate (combination of) model(s)
+    """
     # TO BE DEVELOPED
     raise Exception(
         'The model {} is not associated to any run script, {} cannot modelled.'.format(identifier, waterbody))
 
 
 def initialise_catchment_model(identifier, dict_desc, dict_param):
-
+    """
+    This function uses the identifier string of the Model object to initialise the appropriate (combination of) model(s)
+    """
     dict_init = dict()
 
     if identifier == "SMART_INCAL":
@@ -76,7 +106,9 @@ def initialise_catchment_model(identifier, dict_desc, dict_param):
 
 
 def initialise_river_model(identifier, dict_desc, dict_param):
-
+    """
+    This function uses the identifier string of the Model object to initialise the appropriate (combination of) model(s)
+    """
     dict_init = dict()
 
     if identifier == "LINRES_INCAS":
@@ -97,13 +129,19 @@ def initialise_river_model(identifier, dict_desc, dict_param):
 
 
 def initialise_lake_model(identifier):
+    """
+    This function uses the identifier string of the Model object to initialise the appropriate (combination of) model(s)
+    """
     # TO BE DEVELOPED
     raise Exception(
         'The model {} is not associated to any run script, cannot be initialised.'.format(identifier))
 
 
 def infer_parameters_from_descriptors(dict_desc, model_component):
-
+    """
+    This function uses the model components contained in the identifier string of the Model object to
+    infer the parameter values for the model components if required
+    """
     dict_param = dict()
 
     if model_component == "SMART":

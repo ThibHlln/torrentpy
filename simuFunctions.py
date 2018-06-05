@@ -3,7 +3,10 @@ import datetime
 
 def distribute_loadings_across_year(dict_annual_loads, dict_applications, nd_distributions, link,
                                     my_tf, data_slice, simu_slice):
-
+    """
+    This function distributes the annual nutrient loadings across the year, using an application distribution.
+    The annual amount is spread on every time step in the simulation time series.
+    """
     my_nd_data = {i: {c: 0.0 for c in dict_applications[link]} for i in simu_slice}
 
     divisor = my_tf.gap_data / my_tf.gap_simu

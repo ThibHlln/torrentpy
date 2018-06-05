@@ -2,12 +2,19 @@ from datetime import timedelta
 from math import exp, log
 
 
-def run(waterbody, dict_data_frame,
-        dict_desc, dict_param, dict_meteo,
-        datetime_time_step, time_gap,
-        logger):
+def run(waterbody, datetime_time_step, logger,
+        area_m2, time_gap_min,
+        c_in_rain, c_in_peva,
+        c_s_v_h2o_ove, c_s_v_h2o_dra, c_s_v_h2o_int, c_s_v_h2o_sgw, c_s_v_h2o_dgw,
+        c_s_v_h2o_ly1, c_s_v_h2o_ly2, c_s_v_h2o_ly3, c_s_v_h2o_ly4, c_s_v_h2o_ly5, c_s_v_h2o_ly6,
+        c_p_t, c_p_c, c_p_h, c_p_d, c_p_s, c_p_z, c_p_sk, c_p_fk, c_p_gk
+        ):
     """
-    Catchment model * c_ *
+    Catchment Constants
+    _ area_m2                   catchment area [m2]
+    _ time_gap_min              time gap between two simulation time steps [minutes]
+
+    Catchment Model * c_ *
     _ Hydrology
     ___ Inputs * in_ *
     _____ c_in_rain             precipitation as rain [mm/time step]
@@ -34,6 +41,12 @@ def run(waterbody, dict_data_frame,
     _____ c_p_sk                SK: surface routing parameter [hours]
     _____ c_p_fk                FK: inter flow routing parameter [hours]
     _____ c_p_gk                GK: groundwater routing parameter [hours]
+    ___ Processes * pr_ *
+    _____ c_pr_eff_rain_to_ove  effective rainfall converted into overland flow runoff [mm]
+    _____ c_pr_eff_rain_to_dra  effective rainfall converted into to drain flow runoff [mm]
+    _____ c_pr_eff_rain_to_int  effective rainfall converted into to interflow runoff [mm]
+    _____ c_pr_eff_rain_to_sgw  effective rainfall converted into to shallow groundwater flow runoff [mm]
+    _____ c_pr_eff_rain_to_dgw  effective rainfall converted into to deep groundwater flow runoff [mm]
     ___ Outputs * out_ *
     _____ c_out_aeva            actual evapotranspiration [m3/s]
     _____ c_out_q_h2o_ove       overland flow [m3/s]
@@ -47,45 +60,12 @@ def run(waterbody, dict_data_frame,
     # # 1. Hydrology
     # # 1.0. Define internal constants
     nb_soil_layers = 6.0  # number of layers in soil column [-]
-    area_m2 = dict_desc[waterbody]['area']  # catchment area [m2]
-    time_gap_sec = time_gap * 60.0  # [seconds]
 
-    # # 1.1. Collect inputs, states, and parameters
-    c_in_rain = dict_meteo[waterbody][datetime_time_step]["rain"]
-    c_in_peva = dict_meteo[waterbody][datetime_time_step]["peva"]
-
-    c_s_v_h2o_ove = \
-        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_ove"]
-    c_s_v_h2o_dra = \
-        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_dra"]
-    c_s_v_h2o_int = \
-        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_int"]
-    c_s_v_h2o_sgw = \
-        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_sgw"]
-    c_s_v_h2o_dgw = \
-        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_dgw"]
-    c_s_v_h2o_ly1 = \
-        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_ly1"]
-    c_s_v_h2o_ly2 = \
-        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_ly2"]
-    c_s_v_h2o_ly3 = \
-        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_ly3"]
-    c_s_v_h2o_ly4 = \
-        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_ly4"]
-    c_s_v_h2o_ly5 = \
-        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_ly5"]
-    c_s_v_h2o_ly6 = \
-        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap)]["c_s_v_h2o_ly6"]
-
-    c_p_t = dict_param["c_p_t"]
-    c_p_c = dict_param["c_p_c"]
-    c_p_h = dict_param["c_p_h"]
-    c_p_d = dict_param["c_p_d"]
-    c_p_s = dict_param["c_p_s"]
-    c_p_z = dict_param["c_p_z"]
-    c_p_sk = dict_param["c_p_sk"] * 3600.0  # convert hours in seconds
-    c_p_fk = dict_param["c_p_fk"] * 3600.0  # convert hours in seconds
-    c_p_gk = dict_param["c_p_gk"] * 3600.0  # convert hours in seconds
+    # # 1.1. Unit conversions
+    time_gap_sec = time_gap_min * 60.0  # [seconds]
+    c_p_sk *= 3600.0  # convert hours in seconds
+    c_p_fk *= 3600.0  # convert hours in seconds
+    c_p_gk *= 3600.0  # convert hours in seconds
 
     # # 1.2. Hydrological calculations
 
@@ -121,8 +101,8 @@ def run(waterbody, dict_data_frame,
         aeva += c_in_peva
         # calculate surface runoff using quick runoff parameter H and relative soil moisture content
         h_prime = c_p_h * (lvl_total_start / c_p_z)
-        overland_flow = h_prime * excess_rain  # excess rainfall contribution to quick surface runoff store
-        excess_rain -= overland_flow  # remainder that infiltrates
+        c_pr_eff_rain_to_ove = h_prime * excess_rain  # excess rainfall contribution to quick surface runoff store
+        excess_rain -= c_pr_eff_rain_to_ove  # remainder that infiltrates
         # calculate percolation through soil layers (from top layer [1] to bottom layer [6])
         for i in [1, 2, 3, 4, 5, 6]:
             space_in_lyr = dict_z_lyr[i] - dict_lvl_lyr[i]
@@ -133,36 +113,36 @@ def run(waterbody, dict_data_frame,
                 dict_lvl_lyr[i] = dict_z_lyr[i]
                 excess_rain -= space_in_lyr
         # calculate saturation excess from remaining excess rainfall after filling layers (if not 0)
-        drain_flow = c_p_d * excess_rain  # sat. excess contribution (if not 0) to quick interflow runoff store
-        inter_flow = (1.0 - c_p_d) * excess_rain  # sat. excess contribution (if not 0) to slow interflow runoff store
+        c_pr_eff_rain_to_dra = c_p_d * excess_rain  # sat. excess contr. (if not 0) to quick interflow runoff store
+        c_pr_eff_rain_to_int = (1.0 - c_p_d) * excess_rain  # sat. ex. contr. (if not 0) to slow interflow runoff store
         # calculate leak from soil layers (i.e. piston flow becoming active during rainfall events)
         s_prime = c_p_s * (lvl_total_start / c_p_z)
         # leak to interflow
         for i in [1, 2, 3, 4, 5, 6]:  # soil moisture outflow reducing exponentially downwards
             leak_interflow = dict_lvl_lyr[i] * (s_prime ** i)
             if leak_interflow < dict_lvl_lyr[i]:
-                inter_flow += leak_interflow  # soil moisture outflow contribution to slow interflow runoff store
+                c_pr_eff_rain_to_int += leak_interflow  # soil moisture outflow contrib. to slow interflow runoff store
                 dict_lvl_lyr[i] -= leak_interflow
         # leak to shallow groundwater flow
-        shallow_flow = 0.0
+        c_pr_eff_rain_to_sgw = 0.0
         for i in [1, 2, 3, 4, 5, 6]:  # soil moisture outflow reducing linearly downwards
             leak_shallow_flow = dict_lvl_lyr[i] * (s_prime / i)
             if leak_shallow_flow < dict_lvl_lyr[i]:
-                shallow_flow += leak_shallow_flow  # soil moisture outflow contribution to slow shallow GW runoff store
+                c_pr_eff_rain_to_sgw += leak_shallow_flow  # soil moisture outflow cont. to slow shallow GW runoff store
                 dict_lvl_lyr[i] -= leak_shallow_flow
         # leak to deep groundwater flow
-        deep_flow = 0.0
+        c_pr_eff_rain_to_dgw = 0.0
         for i in [6, 5, 4, 3, 2, 1]:  # soil moisture outflow reducing exponentially upwards
             leak_deep_flow = dict_lvl_lyr[i] * (s_prime ** (7 - i))
             if leak_deep_flow < dict_lvl_lyr[i]:
-                deep_flow += leak_deep_flow  # soil moisture outflow contribution to slow deep GW runoff store
+                c_pr_eff_rain_to_dgw += leak_deep_flow  # soil moisture outflow contrib. to slow deep GW runoff store
                 dict_lvl_lyr[i] -= leak_deep_flow
     else:  # no excess rainfall (i.e. potential evapotranspiration not satisfied by available rainfall)
-        overland_flow = 0.0  # no soil moisture contribution to quick overland flow runoff store
-        drain_flow = 0.0  # no soil moisture contribution to quick drain flow runoff store
-        inter_flow = 0.0  # no soil moisture contribution to quick + leak interflow runoff store
-        shallow_flow = 0.0  # no soil moisture contribution to shallow groundwater flow runoff store
-        deep_flow = 0.0  # no soil moisture contribution to deep groundwater flow runoff store
+        c_pr_eff_rain_to_ove = 0.0  # no effective rainfall contribution to quick overland flow runoff store
+        c_pr_eff_rain_to_dra = 0.0  # no effective rainfall contribution to quick drain flow runoff store
+        c_pr_eff_rain_to_int = 0.0  # no effective rainfall contribution to quick + leak interflow runoff store
+        c_pr_eff_rain_to_sgw = 0.0  # no effective rainfall contribution to shallow groundwater flow runoff store
+        c_pr_eff_rain_to_dgw = 0.0  # no effective rainfall contribution to deep groundwater flow runoff store
 
         deficit_rain = excess_rain * (-1.0)  # excess is negative => excess is actually a deficit
         aeva += rain
@@ -190,8 +170,7 @@ def run(waterbody, dict_data_frame,
 
     # route overland flow (quick surface runoff)
     c_out_q_h2o_ove = c_s_v_h2o_ove / c_p_sk  # [m3/s]
-    c_s_v_h2o_ove_old = c_s_v_h2o_ove
-    c_s_v_h2o_ove += (overland_flow / 1e3 * area_m2) - (c_out_q_h2o_ove * time_gap_sec)  # [m3] - [m3]
+    c_s_v_h2o_ove += (c_pr_eff_rain_to_ove / 1e3 * area_m2) - (c_out_q_h2o_ove * time_gap_sec)  # [m3] - [m3]
     if c_s_v_h2o_ove < 0.0:
         logger.debug(''.join([
             'SMART # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
@@ -199,8 +178,7 @@ def run(waterbody, dict_data_frame,
         c_s_v_h2o_ove = 0.0
     # route drain flow (quick interflow runoff)
     c_out_q_h2o_dra = c_s_v_h2o_dra / c_p_sk  # [m3/s]
-    c_s_v_h2o_dra_old = c_s_v_h2o_dra
-    c_s_v_h2o_dra += (drain_flow / 1e3 * area_m2) - (c_out_q_h2o_dra * time_gap_sec)  # [m3] - [m3]
+    c_s_v_h2o_dra += (c_pr_eff_rain_to_dra / 1e3 * area_m2) - (c_out_q_h2o_dra * time_gap_sec)  # [m3] - [m3]
     if c_s_v_h2o_dra < 0.0:
         logger.debug(''.join([
             'SMART # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
@@ -208,8 +186,7 @@ def run(waterbody, dict_data_frame,
         c_s_v_h2o_dra = 0.0
     # route interflow (slow interflow runoff)
     c_out_q_h2o_int = c_s_v_h2o_int / c_p_fk  # [m3/s]
-    c_s_v_h2o_int_old = c_s_v_h2o_int
-    c_s_v_h2o_int += (inter_flow / 1e3 * area_m2) - (c_out_q_h2o_int * time_gap_sec)  # [m3] - [m3]
+    c_s_v_h2o_int += (c_pr_eff_rain_to_int / 1e3 * area_m2) - (c_out_q_h2o_int * time_gap_sec)  # [m3] - [m3]
     if c_s_v_h2o_int < 0.0:
         logger.debug(''.join([
             'SMART # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
@@ -217,8 +194,7 @@ def run(waterbody, dict_data_frame,
         c_s_v_h2o_int = 0.0
     # route shallow groundwater flow (slow shallow GW runoff)
     c_out_q_h2o_sgw = c_s_v_h2o_sgw / c_p_gk  # [m3/s]
-    c_s_v_h2o_sgw_old = c_s_v_h2o_sgw
-    c_s_v_h2o_sgw += (shallow_flow / 1e3 * area_m2) - (c_out_q_h2o_sgw * time_gap_sec)  # [m3] - [m3]
+    c_s_v_h2o_sgw += (c_pr_eff_rain_to_sgw / 1e3 * area_m2) - (c_out_q_h2o_sgw * time_gap_sec)  # [m3] - [m3]
     if c_s_v_h2o_sgw < 0.0:
         logger.debug(''.join([
             'SMART # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
@@ -226,70 +202,115 @@ def run(waterbody, dict_data_frame,
         c_s_v_h2o_sgw = 0.0
     # route deep groundwater flow (slow deep GW runoff)
     c_out_q_h2o_dgw = c_s_v_h2o_dgw / c_p_gk  # [m3/s]
-    c_s_v_h2o_dgw_old = c_s_v_h2o_dgw
-    c_s_v_h2o_dgw += (deep_flow / 1e3 * area_m2) - (c_out_q_h2o_dgw * time_gap_sec)  # [m3] - [m3]
+    c_s_v_h2o_dgw += (c_pr_eff_rain_to_dgw / 1e3 * area_m2) - (c_out_q_h2o_dgw * time_gap_sec)  # [m3] - [m3]
     if c_s_v_h2o_dgw < 0.0:
         logger.debug(''.join([
             'SMART # ', waterbody, ': ', datetime_time_step.strftime("%d/%m/%Y %H:%M:%S"),
             ' - Volume in DGW Store has gone negative, volume reset to zero.']))
         c_s_v_h2o_dgw = 0.0
-    # calculate total outflow (total runoff)
-    c_out_q_h2o = c_out_q_h2o_ove + c_out_q_h2o_dra + c_out_q_h2o_int + c_out_q_h2o_sgw + c_out_q_h2o_dgw  # [m3/s]
 
-    # store states and outputs in dictionaries for use in water quality calculations
-    dict_lvl_soil = {
-        'start': lvl_total_start,
-        'end': lvl_total_end
-    }  # levels in soil at beginning and end of time step [mm]
+    # # 1.3. Returns outputs, states, and internal fluxes
+    return \
+        c_out_aeva, c_out_q_h2o_ove, c_out_q_h2o_dra, c_out_q_h2o_int, c_out_q_h2o_sgw, c_out_q_h2o_dgw, \
+        c_s_v_h2o_ove, c_s_v_h2o_dra, c_s_v_h2o_int, c_s_v_h2o_sgw, c_s_v_h2o_dgw, \
+        dict_lvl_lyr[1] / 1e3 * area_m2, dict_lvl_lyr[2] / 1e3 * area_m2, dict_lvl_lyr[3] / 1e3 * area_m2, \
+        dict_lvl_lyr[4] / 1e3 * area_m2, dict_lvl_lyr[5] / 1e3 * area_m2, dict_lvl_lyr[6] / 1e3 * area_m2, \
+        c_pr_eff_rain_to_ove, c_pr_eff_rain_to_dra, c_pr_eff_rain_to_int, c_pr_eff_rain_to_sgw, c_pr_eff_rain_to_dgw
 
-    dict_states_old_hd = {
-        'ove': c_s_v_h2o_ove_old,
-        'dra': c_s_v_h2o_dra_old,
-        'int': c_s_v_h2o_int_old,
-        'sgw': c_s_v_h2o_sgw_old,
-        'dgw': c_s_v_h2o_dgw_old
-    }  # volumes in stores at beginning of time step [m3]
 
-    dict_flows_mm_hd = {
-        'ove': overland_flow,
-        'dra': drain_flow,
-        'int': inter_flow,
-        'sgw': shallow_flow,
-        'dgw': deep_flow
-    }  # flows leaking from soil layers to the different stores during time step [mm]
+def get_in(waterbody, datetime_time_step, time_gap_min,
+           dict_data_frame, dict_desc, dict_param, dict_meteo):
+    """
+    This function is the interface between the data structures of the simulator and the model.
+    It provides the inputs, parameters, processes, and states to the model.
+    It also saves the inputs into the data frame.
+    It can only return a tuple of scalar variables.
+    """
+    # bring in model constants
+    area_m2 = dict_desc[waterbody]['area']
 
-    dict_states_hd = {
-        'ove': c_s_v_h2o_ove,
-        'dra': c_s_v_h2o_dra,
-        'int': c_s_v_h2o_int,
-        'sgw': c_s_v_h2o_sgw,
-        'dgw': c_s_v_h2o_dgw
-    }  # volumes in stores at end of time step [m3]
-
-    dict_outputs_hd = {
-        'ove': c_out_q_h2o_ove,
-        'dra': c_out_q_h2o_dra,
-        'int': c_out_q_h2o_int,
-        'sgw': c_out_q_h2o_sgw,
-        'dgw': c_out_q_h2o_dgw
-    }  # flows leaving the different stores during time step [m3/s]
-
-    # # 1.3. Save inputs, states, and outputs
+    # bring in model inputs
+    c_in_rain = dict_meteo[waterbody][datetime_time_step]["rain"]
+    c_in_peva = dict_meteo[waterbody][datetime_time_step]["peva"]
+    # store input in data frame
     dict_data_frame[waterbody][datetime_time_step]["c_in_rain"] = c_in_rain
     dict_data_frame[waterbody][datetime_time_step]["c_in_peva"] = c_in_peva
 
+    # bring in model states
+    c_s_v_h2o_ove = \
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["c_s_v_h2o_ove"]
+    c_s_v_h2o_dra = \
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["c_s_v_h2o_dra"]
+    c_s_v_h2o_int = \
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["c_s_v_h2o_int"]
+    c_s_v_h2o_sgw = \
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["c_s_v_h2o_sgw"]
+    c_s_v_h2o_dgw = \
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["c_s_v_h2o_dgw"]
+    c_s_v_h2o_ly1 = \
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["c_s_v_h2o_ly1"]
+    c_s_v_h2o_ly2 = \
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["c_s_v_h2o_ly2"]
+    c_s_v_h2o_ly3 = \
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["c_s_v_h2o_ly3"]
+    c_s_v_h2o_ly4 = \
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["c_s_v_h2o_ly4"]
+    c_s_v_h2o_ly5 = \
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["c_s_v_h2o_ly5"]
+    c_s_v_h2o_ly6 = \
+        dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["c_s_v_h2o_ly6"]
+
+    # bring in model parameter values
+    c_p_t = dict_param["c_p_t"]
+    c_p_c = dict_param["c_p_c"]
+    c_p_h = dict_param["c_p_h"]
+    c_p_d = dict_param["c_p_d"]
+    c_p_s = dict_param["c_p_s"]
+    c_p_z = dict_param["c_p_z"]
+    c_p_sk = dict_param["c_p_sk"]
+    c_p_fk = dict_param["c_p_fk"]
+    c_p_gk = dict_param["c_p_gk"]
+
+    # return model constants, model inputs, model parameter values, and model states
+    return \
+        area_m2, time_gap_min, \
+        c_in_rain, c_in_peva, \
+        c_s_v_h2o_ove, c_s_v_h2o_dra, c_s_v_h2o_int, c_s_v_h2o_sgw, c_s_v_h2o_dgw, \
+        c_s_v_h2o_ly1, c_s_v_h2o_ly2, c_s_v_h2o_ly3, c_s_v_h2o_ly4, c_s_v_h2o_ly5, c_s_v_h2o_ly6, \
+        c_p_t, c_p_c, c_p_h, c_p_d, c_p_s, c_p_z, c_p_sk, c_p_fk, c_p_gk
+
+
+def get_out(waterbody, datetime_time_step, dict_data_frame,
+            c_out_aeva, c_out_q_h2o_ove, c_out_q_h2o_dra, c_out_q_h2o_int, c_out_q_h2o_sgw, c_out_q_h2o_dgw,
+            c_s_v_h2o_ove, c_s_v_h2o_dra, c_s_v_h2o_int, c_s_v_h2o_sgw, c_s_v_h2o_dgw,
+            c_s_v_h2o_ly1, c_s_v_h2o_ly2, c_s_v_h2o_ly3, c_s_v_h2o_ly4, c_s_v_h2o_ly5, c_s_v_h2o_ly6,
+            c_pr_eff_rain_to_ove, c_pr_eff_rain_to_dra, c_pr_eff_rain_to_int,
+            c_pr_eff_rain_to_sgw, c_pr_eff_rain_to_dgw):
+    """
+    This function is the interface between the model and the data structures of the simulator.
+    It stores the processes, states, and outputs in the data frame.
+    """
+    # calculate total outflow (total runoff)
+    c_out_q_h2o = c_out_q_h2o_ove + c_out_q_h2o_dra + c_out_q_h2o_int + c_out_q_h2o_sgw + c_out_q_h2o_dgw  # [m3/s]
+    # store process variables in data frame
+    dict_data_frame[waterbody][datetime_time_step]["c_pr_eff_rain_to_ove"] = c_pr_eff_rain_to_ove
+    dict_data_frame[waterbody][datetime_time_step]["c_pr_eff_rain_to_dra"] = c_pr_eff_rain_to_dra
+    dict_data_frame[waterbody][datetime_time_step]["c_pr_eff_rain_to_int"] = c_pr_eff_rain_to_int
+    dict_data_frame[waterbody][datetime_time_step]["c_pr_eff_rain_to_sgw"] = c_pr_eff_rain_to_sgw
+    dict_data_frame[waterbody][datetime_time_step]["c_pr_eff_rain_to_dgw"] = c_pr_eff_rain_to_dgw
+    # store states in data frame
     dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ove"] = c_s_v_h2o_ove
     dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_dra"] = c_s_v_h2o_dra
     dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_int"] = c_s_v_h2o_int
     dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_sgw"] = c_s_v_h2o_sgw
     dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_dgw"] = c_s_v_h2o_dgw
-    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly1"] = dict_lvl_lyr[1] / 1e3 * area_m2
-    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly2"] = dict_lvl_lyr[2] / 1e3 * area_m2
-    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly3"] = dict_lvl_lyr[3] / 1e3 * area_m2
-    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly4"] = dict_lvl_lyr[4] / 1e3 * area_m2
-    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly5"] = dict_lvl_lyr[5] / 1e3 * area_m2
-    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly6"] = dict_lvl_lyr[6] / 1e3 * area_m2
-
+    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly1"] = c_s_v_h2o_ly1
+    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly2"] = c_s_v_h2o_ly2
+    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly3"] = c_s_v_h2o_ly3
+    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly4"] = c_s_v_h2o_ly4
+    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly5"] = c_s_v_h2o_ly5
+    dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly6"] = c_s_v_h2o_ly6
+    # store outputs in data frame
     dict_data_frame[waterbody][datetime_time_step]["c_out_aeva"] = c_out_aeva
     dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o_ove"] = c_out_q_h2o_ove
     dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o_dra"] = c_out_q_h2o_dra
@@ -298,19 +319,11 @@ def run(waterbody, dict_data_frame,
     dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o_dgw"] = c_out_q_h2o_dgw
     dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o"] = c_out_q_h2o
 
-    return {
-        'dict_lvl_soil': dict_lvl_soil,
-        'dict_states_old_hd': dict_states_old_hd,
-        'dict_flows_mm_hd': dict_flows_mm_hd,
-        'dict_states_hd': dict_states_hd,
-        'dict_outputs_hd': dict_outputs_hd
-    }
-
 
 def infer_parameters(dict_desc, my_dict_param):
     """
     This function infers the value of the model parameters from catchment descriptors
-    using regression relationships developed for Pathways Project by Dr. Eva Mockler
+    using regression relationships developed for EPA Pathways Project by Dr. Eva Mockler
     (using equations available in CMT Fortran code by Prof. Michael Bruen and Dr. Eva Mockler).
     """
     # Parameter T: Rainfall aerial correction coefficient
@@ -423,7 +436,7 @@ def infer_parameters(dict_desc, my_dict_param):
 def infer_parameters_thesis(dict_desc, my_dict_param):
     """
     This function infers the value of the model parameters from catchment descriptors
-    using regression relationships developed for Pathways Project by Dr. Eva Mockler
+    using regression relationships developed for EPA Pathways Project by Dr. Eva Mockler
     (using equations available in Eva Mockler's Ph.D. thesis).
     """
     # Parameter T: Rainfall aerial correction coefficient
@@ -533,9 +546,17 @@ def infer_parameters_thesis(dict_desc, my_dict_param):
 
 
 def initialise_states(dict_desc, dict_param):
-
+    """
+    This function initialises the model states before starting the simulations.
+    If a warm-up run is used, this initialisation happens before the start of the warm-up run.
+    If no warm-up is used, this initialisation happens before the start of the actual simulation run.
+    """
     area_m2 = dict_desc['area']
-
+    # Assumptions are:
+    # # 1200mm/yr of rainfall as a uniform average across the Republic of Ireland
+    # # 45 % of the rainfall becomes runoff (i.e. effective rainfall / runoff coefficient)
+    # # a split of runoff: 10% overland, 30% through soil matrix (50/50% dra/int), 60% as groundwater (50/50% sgw/dgw)
+    # # soil layers half full (i.e. in worst case scenario, it is wrong by, at most, half the capacity of the layer)
     return {
         'c_s_v_h2o_ove': (1200 * 0.45) * 0.10 / 1000 * area_m2 / 8766 * dict_param['c_p_sk'],
         'c_s_v_h2o_int': (1200 * 0.45) * 0.15 / 1000 * area_m2 / 8766 * dict_param['c_p_fk'],
