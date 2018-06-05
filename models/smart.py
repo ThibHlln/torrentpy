@@ -5,10 +5,9 @@ from math import exp, log
 def run(waterbody, datetime_time_step, logger,
         area_m2, time_gap_min,
         c_in_rain, c_in_peva,
+        c_p_t, c_p_c, c_p_h, c_p_d, c_p_s, c_p_z, c_p_sk, c_p_fk, c_p_gk,
         c_s_v_h2o_ove, c_s_v_h2o_dra, c_s_v_h2o_int, c_s_v_h2o_sgw, c_s_v_h2o_dgw,
-        c_s_v_h2o_ly1, c_s_v_h2o_ly2, c_s_v_h2o_ly3, c_s_v_h2o_ly4, c_s_v_h2o_ly5, c_s_v_h2o_ly6,
-        c_p_t, c_p_c, c_p_h, c_p_d, c_p_s, c_p_z, c_p_sk, c_p_fk, c_p_gk
-        ):
+        c_s_v_h2o_ly1, c_s_v_h2o_ly2, c_s_v_h2o_ly3, c_s_v_h2o_ly4, c_s_v_h2o_ly5, c_s_v_h2o_ly6):
     """
     Catchment Constants
     _ area_m2                   catchment area [m2]
@@ -19,6 +18,16 @@ def run(waterbody, datetime_time_step, logger,
     ___ Inputs * in_ *
     _____ c_in_rain             precipitation as rain [mm/time step]
     _____ c_in_peva             potential evapotranspiration [mm/time step]
+    ___ Parameters * p_ *
+    _____ c_p_t                 T: rainfall aerial correction coefficient
+    _____ c_p_c                 C: evaporation decay parameter
+    _____ c_p_h                 H: quick runoff coefficient
+    _____ c_p_d                 D: drain flow parameter - fraction of saturation excess diverted to drain flow
+    _____ c_p_s                 S: soil outflow coefficient
+    _____ c_p_z                 Z: effective soil depth [mm]
+    _____ c_p_sk                SK: surface routing parameter [hours]
+    _____ c_p_fk                FK: inter flow routing parameter [hours]
+    _____ c_p_gk                GK: groundwater routing parameter [hours]
     ___ States * s_ *
     _____ c_s_v_h2o_ove         volume of water in overland store [m3]
     _____ c_s_v_h2o_dra         volume of water in drain store [m3]
@@ -31,16 +40,7 @@ def run(waterbody, datetime_time_step, logger,
     _____ c_s_v_h2o_ly4         volume of water in fourth soil layer store [m3]
     _____ c_s_v_h2o_ly5         volume of water in fifth soil layer store [m3]
     _____ c_s_v_h2o_ly6         volume of water in sixth soil layer store [m3]
-    ___ Parameters * p_ *
-    _____ c_p_t                 T: rainfall aerial correction coefficient
-    _____ c_p_c                 C: evaporation decay parameter
-    _____ c_p_h                 H: quick runoff coefficient
-    _____ c_p_d                 D: drain flow parameter - fraction of saturation excess diverted to drain flow
-    _____ c_p_s                 S: soil outflow coefficient
-    _____ c_p_z                 Z: effective soil depth [mm]
-    _____ c_p_sk                SK: surface routing parameter [hours]
-    _____ c_p_fk                FK: inter flow routing parameter [hours]
-    _____ c_p_gk                GK: groundwater routing parameter [hours]
+
     ___ Processes * pr_ *
     _____ c_pr_eff_rain_to_ove  effective rainfall converted into overland flow runoff [mm]
     _____ c_pr_eff_rain_to_dra  effective rainfall converted into to drain flow runoff [mm]
@@ -209,7 +209,7 @@ def run(waterbody, datetime_time_step, logger,
             ' - Volume in DGW Store has gone negative, volume reset to zero.']))
         c_s_v_h2o_dgw = 0.0
 
-    # # 1.3. Returns outputs, states, and internal fluxes
+    # # 1.3. Returns outputs, updated states, and internal process variables
     return \
         c_out_aeva, c_out_q_h2o_ove, c_out_q_h2o_dra, c_out_q_h2o_int, c_out_q_h2o_sgw, c_out_q_h2o_dgw, \
         c_s_v_h2o_ove, c_s_v_h2o_dra, c_s_v_h2o_int, c_s_v_h2o_sgw, c_s_v_h2o_dgw, \
@@ -236,6 +236,17 @@ def get_in(waterbody, datetime_time_step, time_gap_min,
     dict_data_frame[waterbody][datetime_time_step]["c_in_rain"] = c_in_rain
     dict_data_frame[waterbody][datetime_time_step]["c_in_peva"] = c_in_peva
 
+    # bring in model parameter values
+    c_p_t = dict_param["c_p_t"]
+    c_p_c = dict_param["c_p_c"]
+    c_p_h = dict_param["c_p_h"]
+    c_p_d = dict_param["c_p_d"]
+    c_p_s = dict_param["c_p_s"]
+    c_p_z = dict_param["c_p_z"]
+    c_p_sk = dict_param["c_p_sk"]
+    c_p_fk = dict_param["c_p_fk"]
+    c_p_gk = dict_param["c_p_gk"]
+
     # bring in model states
     c_s_v_h2o_ove = \
         dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["c_s_v_h2o_ove"]
@@ -260,24 +271,13 @@ def get_in(waterbody, datetime_time_step, time_gap_min,
     c_s_v_h2o_ly6 = \
         dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["c_s_v_h2o_ly6"]
 
-    # bring in model parameter values
-    c_p_t = dict_param["c_p_t"]
-    c_p_c = dict_param["c_p_c"]
-    c_p_h = dict_param["c_p_h"]
-    c_p_d = dict_param["c_p_d"]
-    c_p_s = dict_param["c_p_s"]
-    c_p_z = dict_param["c_p_z"]
-    c_p_sk = dict_param["c_p_sk"]
-    c_p_fk = dict_param["c_p_fk"]
-    c_p_gk = dict_param["c_p_gk"]
-
-    # return model constants, model inputs, model parameter values, and model states
+    # return constants, model inputs, model parameter values, and model states
     return \
         area_m2, time_gap_min, \
         c_in_rain, c_in_peva, \
+        c_p_t, c_p_c, c_p_h, c_p_d, c_p_s, c_p_z, c_p_sk, c_p_fk, c_p_gk, \
         c_s_v_h2o_ove, c_s_v_h2o_dra, c_s_v_h2o_int, c_s_v_h2o_sgw, c_s_v_h2o_dgw, \
-        c_s_v_h2o_ly1, c_s_v_h2o_ly2, c_s_v_h2o_ly3, c_s_v_h2o_ly4, c_s_v_h2o_ly5, c_s_v_h2o_ly6, \
-        c_p_t, c_p_c, c_p_h, c_p_d, c_p_s, c_p_z, c_p_sk, c_p_fk, c_p_gk
+        c_s_v_h2o_ly1, c_s_v_h2o_ly2, c_s_v_h2o_ly3, c_s_v_h2o_ly4, c_s_v_h2o_ly5, c_s_v_h2o_ly6
 
 
 def get_out(waterbody, datetime_time_step, dict_data_frame,
@@ -288,16 +288,19 @@ def get_out(waterbody, datetime_time_step, dict_data_frame,
             c_pr_eff_rain_to_sgw, c_pr_eff_rain_to_dgw):
     """
     This function is the interface between the model and the data structures of the simulator.
-    It stores the processes, states, and outputs in the data frame.
+    It stores the outputs, updated states, and processed in the data frame.
     """
     # calculate total outflow (total runoff)
     c_out_q_h2o = c_out_q_h2o_ove + c_out_q_h2o_dra + c_out_q_h2o_int + c_out_q_h2o_sgw + c_out_q_h2o_dgw  # [m3/s]
-    # store process variables in data frame
-    dict_data_frame[waterbody][datetime_time_step]["c_pr_eff_rain_to_ove"] = c_pr_eff_rain_to_ove
-    dict_data_frame[waterbody][datetime_time_step]["c_pr_eff_rain_to_dra"] = c_pr_eff_rain_to_dra
-    dict_data_frame[waterbody][datetime_time_step]["c_pr_eff_rain_to_int"] = c_pr_eff_rain_to_int
-    dict_data_frame[waterbody][datetime_time_step]["c_pr_eff_rain_to_sgw"] = c_pr_eff_rain_to_sgw
-    dict_data_frame[waterbody][datetime_time_step]["c_pr_eff_rain_to_dgw"] = c_pr_eff_rain_to_dgw
+    # store outputs in data frame
+    dict_data_frame[waterbody][datetime_time_step]["c_out_aeva"] = c_out_aeva
+    dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o_ove"] = c_out_q_h2o_ove
+    dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o_dra"] = c_out_q_h2o_dra
+    dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o_int"] = c_out_q_h2o_int
+    dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o_sgw"] = c_out_q_h2o_sgw
+    dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o_dgw"] = c_out_q_h2o_dgw
+    dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o"] = c_out_q_h2o
+
     # store states in data frame
     dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ove"] = c_s_v_h2o_ove
     dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_dra"] = c_s_v_h2o_dra
@@ -310,14 +313,13 @@ def get_out(waterbody, datetime_time_step, dict_data_frame,
     dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly4"] = c_s_v_h2o_ly4
     dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly5"] = c_s_v_h2o_ly5
     dict_data_frame[waterbody][datetime_time_step]["c_s_v_h2o_ly6"] = c_s_v_h2o_ly6
-    # store outputs in data frame
-    dict_data_frame[waterbody][datetime_time_step]["c_out_aeva"] = c_out_aeva
-    dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o_ove"] = c_out_q_h2o_ove
-    dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o_dra"] = c_out_q_h2o_dra
-    dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o_int"] = c_out_q_h2o_int
-    dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o_sgw"] = c_out_q_h2o_sgw
-    dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o_dgw"] = c_out_q_h2o_dgw
-    dict_data_frame[waterbody][datetime_time_step]["c_out_q_h2o"] = c_out_q_h2o
+
+    # store process variables in data frame
+    dict_data_frame[waterbody][datetime_time_step]["c_pr_eff_rain_to_ove"] = c_pr_eff_rain_to_ove
+    dict_data_frame[waterbody][datetime_time_step]["c_pr_eff_rain_to_dra"] = c_pr_eff_rain_to_dra
+    dict_data_frame[waterbody][datetime_time_step]["c_pr_eff_rain_to_int"] = c_pr_eff_rain_to_int
+    dict_data_frame[waterbody][datetime_time_step]["c_pr_eff_rain_to_sgw"] = c_pr_eff_rain_to_sgw
+    dict_data_frame[waterbody][datetime_time_step]["c_pr_eff_rain_to_dgw"] = c_pr_eff_rain_to_dgw
 
 
 def infer_parameters(dict_desc, my_dict_param):

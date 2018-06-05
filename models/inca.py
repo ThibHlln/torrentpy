@@ -6,13 +6,6 @@ from calendar import isleap
 def run_on_land(waterbody, datetime_time_step, logger,
                 area_m2, time_gap_min,
                 c_in_temp, c_in_m_no3, c_in_m_nh4, c_in_m_p_ino, c_in_m_p_org,
-                c_s_c_no3_ove, c_s_c_nh4_ove, c_s_c_dph_ove, c_s_c_pph_ove, c_s_c_sed_ove,
-                c_s_c_no3_dra, c_s_c_nh4_dra, c_s_c_dph_dra, c_s_c_pph_dra, c_s_c_sed_dra,
-                c_s_c_no3_int, c_s_c_nh4_int, c_s_c_dph_int, c_s_c_pph_int, c_s_c_sed_int,
-                c_s_c_no3_sgw, c_s_c_nh4_sgw, c_s_c_dph_sgw, c_s_c_pph_sgw, c_s_c_sed_sgw,
-                c_s_c_no3_dgw, c_s_c_nh4_dgw, c_s_c_dph_dgw, c_s_c_pph_dgw, c_s_c_sed_dgw,
-                c_s_c_no3_soil, c_s_c_nh4_soil, c_s_c_p_org_ra_soil, c_s_c_p_ino_ra_soil,
-                c_s_m_p_org_fb_soil, c_s_m_p_ino_fb_soil, c_s_m_sed_soil,
                 c_p_att_no3_ove, c_p_att_nh4_ove, c_p_att_dph_ove, c_p_att_pph_ove, c_p_att_sed_ove,
                 c_p_att_no3_dra, c_p_att_nh4_dra, c_p_att_dph_dra, c_p_att_pph_dra, c_p_att_sed_dra,
                 c_p_att_no3_int, c_p_att_nh4_int, c_p_att_dph_int, c_p_att_pph_int, c_p_att_sed_int,
@@ -20,6 +13,13 @@ def run_on_land(waterbody, datetime_time_step, logger,
                 c_p_att_no3_dgw, c_p_att_nh4_dgw, c_p_att_dph_dgw, c_p_att_pph_dgw, c_p_att_sed_dgw,
                 c_p_att_no3_soil, c_p_att_nh4_soil, c_p_att_p_org_ra_soil, c_p_att_p_ino_ra_soil,
                 c_p_att_p_org_fb_soil, c_p_att_p_ino_fb_soil, c_p_att_sed_soil,
+                c_s_c_no3_ove, c_s_c_nh4_ove, c_s_c_dph_ove, c_s_c_pph_ove, c_s_c_sed_ove,
+                c_s_c_no3_dra, c_s_c_nh4_dra, c_s_c_dph_dra, c_s_c_pph_dra, c_s_c_sed_dra,
+                c_s_c_no3_int, c_s_c_nh4_int, c_s_c_dph_int, c_s_c_pph_int, c_s_c_sed_int,
+                c_s_c_no3_sgw, c_s_c_nh4_sgw, c_s_c_dph_sgw, c_s_c_pph_sgw, c_s_c_sed_sgw,
+                c_s_c_no3_dgw, c_s_c_nh4_dgw, c_s_c_dph_dgw, c_s_c_pph_dgw, c_s_c_sed_dgw,
+                c_s_c_no3_soil, c_s_c_nh4_soil, c_s_c_p_org_ra_soil, c_s_c_p_ino_ra_soil,
+                c_s_m_p_org_fb_soil, c_s_m_p_ino_fb_soil, c_s_m_sed_soil,
                 c_cst_mob_no3_ove, c_cst_mob_nh4_ove, c_cst_mob_dph_ove, c_cst_mob_pph_ove, c_cst_mob_sed_ove,
                 c_cst_mob_no3_dra, c_cst_mob_nh4_dra, c_cst_mob_dph_dra, c_cst_mob_pph_dra, c_cst_mob_sed_dra,
                 c_cst_mob_no3_int, c_cst_mob_nh4_int, c_cst_mob_dph_int, c_cst_mob_pph_int, c_cst_mob_sed_int,
@@ -50,39 +50,6 @@ def run_on_land(waterbody, datetime_time_step, logger,
     _____ c_in_m_nh4            ammonia loading on land [kg/time step]
     _____ c_in_m_p_ino          inorganic phosphorus loading on land [kg/time step]
     _____ c_in_m_p_org          organic phosphorus loading on land [kg/time step]
-    ___ States * s_ *
-    _____ c_s_c_no3_ove         concentration of nitrate in overland store [kg/m3]
-    _____ c_s_c_nh4_ove         concentration of ammonia in overland store [kg/m3]
-    _____ c_s_c_dph_ove         concentration of dissolved phosphorus in overland store [kg/m3]
-    _____ c_s_c_pph_ove         concentration of particulate phosphorus in overland store [kg/m3]
-    _____ c_s_c_sed_ove         concentration of sediment in overland store [kg/m3]
-    _____ c_s_c_no3_dra         concentration of nitrate in drain store [kg/m3]
-    _____ c_s_c_nh4_dra         concentration of ammonia in drain store [kg/m3]
-    _____ c_s_c_dph_dra         concentration of dissolved phosphorus in drain store [kg/m3]
-    _____ c_s_c_pph_dra         concentration of particulate phosphorus in drain store [kg/m3]
-    _____ c_s_c_sed_dra         concentration of sediment in drain store [kg/m3]
-    _____ c_s_c_no3_int         concentration of nitrate in inter store [kg/m3]
-    _____ c_s_c_nh4_int         concentration of ammonia in inter store [kg/m3]
-    _____ c_s_c_dph_int         concentration of dissolved phosphorus in inter store [kg/m3]
-    _____ c_s_c_pph_int         concentration of particulate phosphorus in inter store [kg/m3]
-    _____ c_s_c_sed_int         concentration of sediment in inter store [kg/m3]
-    _____ c_s_c_no3_sgw         concentration of nitrate in shallow groundwater store [kg/m3]
-    _____ c_s_c_nh4_sgw         concentration of ammonia in shallow groundwater store [kg/m3]
-    _____ c_s_c_dph_sgw         concentration of dissolved phosphorus in shallow groundwater store [kg/m3]
-    _____ c_s_c_pph_sgw         concentration of particulate phosphorus in shallow groundwater store [kg/m3]
-    _____ c_s_c_sed_sgw         concentration of sediment in shallow groundwater store [kg/m3]
-    _____ c_s_c_no3_dgw         concentration of nitrate in deep groundwater store [kg/m3]
-    _____ c_s_c_nh4_dgw         concentration of ammonia in deep groundwater store [kg/m3]
-    _____ c_s_c_dph_dgw         concentration of dissolved phosphorus in deep groundwater store [kg/m3]
-    _____ c_s_c_pph_dgw         concentration of particulate phosphorus in deep groundwater store [kg/m3]
-    _____ c_s_c_sed_dgw         concentration of sediment in deep groundwater store [kg/m3]
-    _____ c_s_c_no3_soil        concentration of nitrate in soil column [kg/m3]
-    _____ c_s_c_nh4_soil        concentration of ammonia in soil column [kg/m3]
-    _____ c_s_c_p_org_ra_soil   concentration of readily available organic phosphorus in soil column [kg/m3]
-    _____ c_s_c_p_ino_ra_soil   concentration of readily available inorganic phosphorus in soil column [kg/m3]
-    _____ c_s_m_p_org_fb_soil   mass of firmly bound organic phosphorus in soil column [kg]
-    _____ c_s_m_p_ino_fb_soil   mass of firmly bound inorganic phosphorus in soil column [kg]
-    _____ c_s_m_sed_soil        mass of sediment in soil column [kg]
     ___ Parameters * p_ *
     _____ c_p_att_no3_ove       daily attenuation factor for nitrate in overland flow [-]
     _____ c_p_att_nh4_ove       daily attenuation factor for ammonia in overland flow [-]
@@ -116,6 +83,40 @@ def run_on_land(waterbody, datetime_time_step, logger,
     _____ c_p_att_p_org_fb_soil daily attenuation factor for firmly bound organic phosphorus in soil column [-]
     _____ c_p_att_p_ino_fb_soil daily attenuation factor for firmly bound inorganic phosphorus in soil column [-]
     _____ c_p_att_sed_soil      daily attenuation factor for sediment in soil column [-]
+    ___ States * s_ *
+    _____ c_s_c_no3_ove         concentration of nitrate in overland store [kg/m3]
+    _____ c_s_c_nh4_ove         concentration of ammonia in overland store [kg/m3]
+    _____ c_s_c_dph_ove         concentration of dissolved phosphorus in overland store [kg/m3]
+    _____ c_s_c_pph_ove         concentration of particulate phosphorus in overland store [kg/m3]
+    _____ c_s_c_sed_ove         concentration of sediment in overland store [kg/m3]
+    _____ c_s_c_no3_dra         concentration of nitrate in drain store [kg/m3]
+    _____ c_s_c_nh4_dra         concentration of ammonia in drain store [kg/m3]
+    _____ c_s_c_dph_dra         concentration of dissolved phosphorus in drain store [kg/m3]
+    _____ c_s_c_pph_dra         concentration of particulate phosphorus in drain store [kg/m3]
+    _____ c_s_c_sed_dra         concentration of sediment in drain store [kg/m3]
+    _____ c_s_c_no3_int         concentration of nitrate in inter store [kg/m3]
+    _____ c_s_c_nh4_int         concentration of ammonia in inter store [kg/m3]
+    _____ c_s_c_dph_int         concentration of dissolved phosphorus in inter store [kg/m3]
+    _____ c_s_c_pph_int         concentration of particulate phosphorus in inter store [kg/m3]
+    _____ c_s_c_sed_int         concentration of sediment in inter store [kg/m3]
+    _____ c_s_c_no3_sgw         concentration of nitrate in shallow groundwater store [kg/m3]
+    _____ c_s_c_nh4_sgw         concentration of ammonia in shallow groundwater store [kg/m3]
+    _____ c_s_c_dph_sgw         concentration of dissolved phosphorus in shallow groundwater store [kg/m3]
+    _____ c_s_c_pph_sgw         concentration of particulate phosphorus in shallow groundwater store [kg/m3]
+    _____ c_s_c_sed_sgw         concentration of sediment in shallow groundwater store [kg/m3]
+    _____ c_s_c_no3_dgw         concentration of nitrate in deep groundwater store [kg/m3]
+    _____ c_s_c_nh4_dgw         concentration of ammonia in deep groundwater store [kg/m3]
+    _____ c_s_c_dph_dgw         concentration of dissolved phosphorus in deep groundwater store [kg/m3]
+    _____ c_s_c_pph_dgw         concentration of particulate phosphorus in deep groundwater store [kg/m3]
+    _____ c_s_c_sed_dgw         concentration of sediment in deep groundwater store [kg/m3]
+    _____ c_s_c_no3_soil        concentration of nitrate in soil column [kg/m3]
+    _____ c_s_c_nh4_soil        concentration of ammonia in soil column [kg/m3]
+    _____ c_s_c_p_org_ra_soil   concentration of readily available organic phosphorus in soil column [kg/m3]
+    _____ c_s_c_p_ino_ra_soil   concentration of readily available inorganic phosphorus in soil column [kg/m3]
+    _____ c_s_m_p_org_fb_soil   mass of firmly bound organic phosphorus in soil column [kg]
+    _____ c_s_m_p_ino_fb_soil   mass of firmly bound inorganic phosphorus in soil column [kg]
+    _____ c_s_m_sed_soil        mass of sediment in soil column [kg]
+
     ___ Constants * cst_ *
     _____ c_cst_mob_no3_ove     mobilisation factor for nitrate to overland flow [-]
     _____ c_cst_mob_nh4_ove     mobilisation factor for ammonia to overland flow [-]
@@ -672,7 +673,7 @@ def run_on_land(waterbody, datetime_time_step, logger,
 
     # sediment: no calculation, unlimited availability assumed
 
-    # # 2.4. Return water quality states and outputs
+    # # 2.4. Return water quality outputs and updated states
     dict_c_outflow['all'] = dict()
     for contaminant in stores_contaminants:
         m_outflow = 0.0
@@ -756,13 +757,46 @@ def get_in_land(waterbody, datetime_time_step, time_gap_min,
                     dict_loads[waterbody][datetime_time_step]["org_p_arable"] *
                     dict_desc[waterbody]["arable_ratio"] * area_m2 * 1e-4 +
                     dict_loads[waterbody][datetime_time_step]["p_septic_tanks"])
-
     # store water quality model input in data frame
     dict_data_frame[waterbody][datetime_time_step]["c_in_temp"] = c_in_temp
     dict_data_frame[waterbody][datetime_time_step]["c_in_m_no3"] = c_in_m_no3
     dict_data_frame[waterbody][datetime_time_step]["c_in_m_nh4"] = c_in_m_nh4
     dict_data_frame[waterbody][datetime_time_step]["c_in_m_p_ino"] = c_in_m_p_ino
     dict_data_frame[waterbody][datetime_time_step]["c_in_m_p_org"] = c_in_m_p_org
+
+    # bring in water quality model parameters
+    c_p_att_no3_ove = dict_param["c_p_att_no3_ove"]
+    c_p_att_nh4_ove = dict_param["c_p_att_nh4_ove"]
+    c_p_att_dph_ove = dict_param["c_p_att_dph_ove"]
+    c_p_att_pph_ove = dict_param["c_p_att_pph_ove"]
+    c_p_att_sed_ove = dict_param["c_p_att_sed_ove"]
+    c_p_att_no3_dra = dict_param["c_p_att_no3_dra"]
+    c_p_att_nh4_dra = dict_param["c_p_att_nh4_dra"]
+    c_p_att_dph_dra = dict_param["c_p_att_dph_dra"]
+    c_p_att_pph_dra = dict_param["c_p_att_pph_dra"]
+    c_p_att_sed_dra = dict_param["c_p_att_sed_dra"]
+    c_p_att_no3_int = dict_param["c_p_att_no3_int"]
+    c_p_att_nh4_int = dict_param["c_p_att_nh4_int"]
+    c_p_att_dph_int = dict_param["c_p_att_dph_int"]
+    c_p_att_pph_int = dict_param["c_p_att_pph_int"]
+    c_p_att_sed_int = dict_param["c_p_att_sed_int"]
+    c_p_att_no3_sgw = dict_param["c_p_att_no3_sgw"]
+    c_p_att_nh4_sgw = dict_param["c_p_att_nh4_sgw"]
+    c_p_att_dph_sgw = dict_param["c_p_att_dph_sgw"]
+    c_p_att_pph_sgw = dict_param["c_p_att_pph_sgw"]
+    c_p_att_sed_sgw = dict_param["c_p_att_sed_sgw"]
+    c_p_att_no3_dgw = dict_param["c_p_att_no3_dgw"]
+    c_p_att_nh4_dgw = dict_param["c_p_att_nh4_dgw"]
+    c_p_att_dph_dgw = dict_param["c_p_att_dph_dgw"]
+    c_p_att_pph_dgw = dict_param["c_p_att_pph_dgw"]
+    c_p_att_sed_dgw = dict_param["c_p_att_sed_dgw"]
+    c_p_att_no3_soil = dict_param["c_p_att_no3_soil"]
+    c_p_att_nh4_soil = dict_param["c_p_att_nh4_soil"]
+    c_p_att_p_org_ra_soil = dict_param["c_p_att_p_org_ra_soil"]
+    c_p_att_p_ino_ra_soil = dict_param["c_p_att_p_ino_ra_soil"]
+    c_p_att_p_org_fb_soil = dict_param["c_p_att_p_org_fb_soil"]
+    c_p_att_p_ino_fb_soil = dict_param["c_p_att_p_ino_fb_soil"]
+    c_p_att_sed_soil = dict_param["c_p_att_sed_soil"]
 
     # bring in water quality model states
     c_s_c_no3_ove = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["c_s_c_no3_ove"]
@@ -801,40 +835,6 @@ def get_in_land(waterbody, datetime_time_step, time_gap_min,
     c_s_m_p_ino_fb_soil = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)][
         "c_s_m_p_ino_fb_soil"]
     c_s_m_sed_soil = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["c_s_m_sed_soil"]
-
-    # bring in water quality model parameters
-    c_p_att_no3_ove = dict_param["c_p_att_no3_ove"]
-    c_p_att_nh4_ove = dict_param["c_p_att_nh4_ove"]
-    c_p_att_dph_ove = dict_param["c_p_att_dph_ove"]
-    c_p_att_pph_ove = dict_param["c_p_att_pph_ove"]
-    c_p_att_sed_ove = dict_param["c_p_att_sed_ove"]
-    c_p_att_no3_dra = dict_param["c_p_att_no3_dra"]
-    c_p_att_nh4_dra = dict_param["c_p_att_nh4_dra"]
-    c_p_att_dph_dra = dict_param["c_p_att_dph_dra"]
-    c_p_att_pph_dra = dict_param["c_p_att_pph_dra"]
-    c_p_att_sed_dra = dict_param["c_p_att_sed_dra"]
-    c_p_att_no3_int = dict_param["c_p_att_no3_int"]
-    c_p_att_nh4_int = dict_param["c_p_att_nh4_int"]
-    c_p_att_dph_int = dict_param["c_p_att_dph_int"]
-    c_p_att_pph_int = dict_param["c_p_att_pph_int"]
-    c_p_att_sed_int = dict_param["c_p_att_sed_int"]
-    c_p_att_no3_sgw = dict_param["c_p_att_no3_sgw"]
-    c_p_att_nh4_sgw = dict_param["c_p_att_nh4_sgw"]
-    c_p_att_dph_sgw = dict_param["c_p_att_dph_sgw"]
-    c_p_att_pph_sgw = dict_param["c_p_att_pph_sgw"]
-    c_p_att_sed_sgw = dict_param["c_p_att_sed_sgw"]
-    c_p_att_no3_dgw = dict_param["c_p_att_no3_dgw"]
-    c_p_att_nh4_dgw = dict_param["c_p_att_nh4_dgw"]
-    c_p_att_dph_dgw = dict_param["c_p_att_dph_dgw"]
-    c_p_att_pph_dgw = dict_param["c_p_att_pph_dgw"]
-    c_p_att_sed_dgw = dict_param["c_p_att_sed_dgw"]
-    c_p_att_no3_soil = dict_param["c_p_att_no3_soil"]
-    c_p_att_nh4_soil = dict_param["c_p_att_nh4_soil"]
-    c_p_att_p_org_ra_soil = dict_param["c_p_att_p_org_ra_soil"]
-    c_p_att_p_ino_ra_soil = dict_param["c_p_att_p_ino_ra_soil"]
-    c_p_att_p_org_fb_soil = dict_param["c_p_att_p_org_fb_soil"]
-    c_p_att_p_ino_fb_soil = dict_param["c_p_att_p_ino_fb_soil"]
-    c_p_att_sed_soil = dict_param["c_p_att_sed_soil"]
 
     # bring in water quality model constants
     c_cst_mob_no3_ove = dict_const["c_cst_mob_no3_ove"]
@@ -948,17 +948,10 @@ def get_in_land(waterbody, datetime_time_step, time_gap_min,
     c_pr_eff_rain_to_sgw = dict_data_frame[waterbody][datetime_time_step]["c_pr_eff_rain_to_sgw"]
     c_pr_eff_rain_to_dgw = dict_data_frame[waterbody][datetime_time_step]["c_pr_eff_rain_to_dgw"]
 
-    # return model constants, model inputs, model parameter values, and model states
+    # return constants, model inputs, model parameter values, model states, and model constants + hydrology inheritance
     return \
         area_m2, time_gap_min, \
         c_in_temp, c_in_m_no3, c_in_m_nh4, c_in_m_p_ino, c_in_m_p_org, \
-        c_s_c_no3_ove, c_s_c_nh4_ove, c_s_c_dph_ove, c_s_c_pph_ove, c_s_c_sed_ove, \
-        c_s_c_no3_dra, c_s_c_nh4_dra, c_s_c_dph_dra, c_s_c_pph_dra, c_s_c_sed_dra, \
-        c_s_c_no3_int, c_s_c_nh4_int, c_s_c_dph_int, c_s_c_pph_int, c_s_c_sed_int, \
-        c_s_c_no3_sgw, c_s_c_nh4_sgw, c_s_c_dph_sgw, c_s_c_pph_sgw, c_s_c_sed_sgw, \
-        c_s_c_no3_dgw, c_s_c_nh4_dgw, c_s_c_dph_dgw, c_s_c_pph_dgw, c_s_c_sed_dgw, \
-        c_s_c_no3_soil, c_s_c_nh4_soil, c_s_c_p_org_ra_soil, c_s_c_p_ino_ra_soil, \
-        c_s_m_p_org_fb_soil, c_s_m_p_ino_fb_soil, c_s_m_sed_soil, \
         c_p_att_no3_ove, c_p_att_nh4_ove, c_p_att_dph_ove, c_p_att_pph_ove, c_p_att_sed_ove, \
         c_p_att_no3_dra, c_p_att_nh4_dra, c_p_att_dph_dra, c_p_att_pph_dra, c_p_att_sed_dra, \
         c_p_att_no3_int, c_p_att_nh4_int, c_p_att_dph_int, c_p_att_pph_int, c_p_att_sed_int, \
@@ -966,6 +959,13 @@ def get_in_land(waterbody, datetime_time_step, time_gap_min,
         c_p_att_no3_dgw, c_p_att_nh4_dgw, c_p_att_dph_dgw, c_p_att_pph_dgw, c_p_att_sed_dgw, \
         c_p_att_no3_soil, c_p_att_nh4_soil, c_p_att_p_org_ra_soil, c_p_att_p_ino_ra_soil, \
         c_p_att_p_org_fb_soil, c_p_att_p_ino_fb_soil, c_p_att_sed_soil, \
+        c_s_c_no3_ove, c_s_c_nh4_ove, c_s_c_dph_ove, c_s_c_pph_ove, c_s_c_sed_ove, \
+        c_s_c_no3_dra, c_s_c_nh4_dra, c_s_c_dph_dra, c_s_c_pph_dra, c_s_c_sed_dra, \
+        c_s_c_no3_int, c_s_c_nh4_int, c_s_c_dph_int, c_s_c_pph_int, c_s_c_sed_int, \
+        c_s_c_no3_sgw, c_s_c_nh4_sgw, c_s_c_dph_sgw, c_s_c_pph_sgw, c_s_c_sed_sgw, \
+        c_s_c_no3_dgw, c_s_c_nh4_dgw, c_s_c_dph_dgw, c_s_c_pph_dgw, c_s_c_sed_dgw, \
+        c_s_c_no3_soil, c_s_c_nh4_soil, c_s_c_p_org_ra_soil, c_s_c_p_ino_ra_soil, \
+        c_s_m_p_org_fb_soil, c_s_m_p_ino_fb_soil, c_s_m_sed_soil, \
         c_cst_mob_no3_ove, c_cst_mob_nh4_ove, c_cst_mob_dph_ove, c_cst_mob_pph_ove, c_cst_mob_sed_ove, \
         c_cst_mob_no3_dra, c_cst_mob_nh4_dra, c_cst_mob_dph_dra, c_cst_mob_pph_dra, c_cst_mob_sed_dra, \
         c_cst_mob_no3_int, c_cst_mob_nh4_int, c_cst_mob_dph_int, c_cst_mob_pph_int, c_cst_mob_sed_int, \
@@ -999,8 +999,45 @@ def get_out_land(waterbody, datetime_time_step, dict_data_frame,
                  c_s_m_p_org_fb_soil, c_s_m_p_ino_fb_soil, c_s_m_sed_soil):
     """
     This function is the interface between the model and the data structures of the simulator.
-    It stores the processes, states, and outputs in the data frame.
+    It stores the outputs, and updated states in the data frame.
     """
+    # store water quality outputs in data frame
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_no3_ove'] = c_out_c_no3_ove
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_nh4_ove'] = c_out_c_nh4_ove
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_dph_ove'] = c_out_c_dph_ove
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_pph_ove'] = c_out_c_pph_ove
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_sed_ove'] = c_out_c_sed_ove
+
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_no3_dra'] = c_out_c_no3_dra
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_nh4_dra'] = c_out_c_nh4_dra
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_dph_dra'] = c_out_c_dph_dra
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_pph_dra'] = c_out_c_pph_dra
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_sed_dra'] = c_out_c_sed_dra
+
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_no3_int'] = c_out_c_no3_int
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_nh4_int'] = c_out_c_nh4_int
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_dph_int'] = c_out_c_dph_int
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_pph_int'] = c_out_c_pph_int
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_sed_int'] = c_out_c_sed_int
+
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_no3_sgw'] = c_out_c_no3_sgw
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_nh4_sgw'] = c_out_c_nh4_sgw
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_dph_sgw'] = c_out_c_dph_sgw
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_pph_sgw'] = c_out_c_pph_sgw
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_sed_sgw'] = c_out_c_sed_sgw
+
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_no3_dgw'] = c_out_c_no3_dgw
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_nh4_dgw'] = c_out_c_nh4_dgw
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_dph_dgw'] = c_out_c_dph_dgw
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_pph_dgw'] = c_out_c_pph_dgw
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_sed_dgw'] = c_out_c_sed_dgw
+
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_no3'] = c_out_c_no3
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_nh4'] = c_out_c_nh4
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_dph'] = c_out_c_dph
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_pph'] = c_out_c_pph
+    dict_data_frame[waterbody][datetime_time_step]['c_out_c_sed'] = c_out_c_sed
+
     # store water quality states in data frame
     dict_data_frame[waterbody][datetime_time_step]['c_s_c_no3_ove'] = c_s_c_no3_ove
     dict_data_frame[waterbody][datetime_time_step]['c_s_c_nh4_ove'] = c_s_c_nh4_ove
@@ -1040,50 +1077,13 @@ def get_out_land(waterbody, datetime_time_step, dict_data_frame,
     dict_data_frame[waterbody][datetime_time_step]['c_s_m_p_ino_fb_soil'] = c_s_m_p_ino_fb_soil
     dict_data_frame[waterbody][datetime_time_step]['c_s_m_sed_soil'] = c_s_m_sed_soil
 
-    # store water quality outputs in data frame
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_no3_ove'] = c_out_c_no3_ove
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_nh4_ove'] = c_out_c_nh4_ove
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_dph_ove'] = c_out_c_dph_ove
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_pph_ove'] = c_out_c_pph_ove
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_sed_ove'] = c_out_c_sed_ove
-
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_no3_dra'] = c_out_c_no3_dra
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_nh4_dra'] = c_out_c_nh4_dra
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_dph_dra'] = c_out_c_dph_dra
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_pph_dra'] = c_out_c_pph_dra
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_sed_dra'] = c_out_c_sed_dra
-
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_no3_int'] = c_out_c_no3_int
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_nh4_int'] = c_out_c_nh4_int
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_dph_int'] = c_out_c_dph_int
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_pph_int'] = c_out_c_pph_int
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_sed_int'] = c_out_c_sed_int
-
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_no3_sgw'] = c_out_c_no3_sgw
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_nh4_sgw'] = c_out_c_nh4_sgw
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_dph_sgw'] = c_out_c_dph_sgw
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_pph_sgw'] = c_out_c_pph_sgw
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_sed_sgw'] = c_out_c_sed_sgw
-
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_no3_dgw'] = c_out_c_no3_dgw
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_nh4_dgw'] = c_out_c_nh4_dgw
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_dph_dgw'] = c_out_c_dph_dgw
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_pph_dgw'] = c_out_c_pph_dgw
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_sed_dgw'] = c_out_c_sed_dgw
-
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_no3'] = c_out_c_no3
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_nh4'] = c_out_c_nh4
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_dph'] = c_out_c_dph
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_pph'] = c_out_c_pph
-    dict_data_frame[waterbody][datetime_time_step]['c_out_c_sed'] = c_out_c_sed
-
 
 def run_in_stream(waterbody, datetime_time_step, logger,
                   time_gap_min,
                   r_in_temp,
                   r_in_c_no3, r_in_c_nh4, r_in_c_dph, r_in_c_pph, r_in_c_sed,
-                  r_s_m_no3, r_s_m_nh4, r_s_m_dph, r_s_m_pph, r_s_m_sed,
                   r_p_att_no3, r_p_att_nh4, r_p_att_dph, r_p_att_pph, r_p_att_sed,
+                  r_s_m_no3, r_s_m_nh4, r_s_m_dph, r_s_m_pph, r_s_m_sed,
                   r_cst_c_dn, r_cst_c_ni, r_cst_flow_tolerance, r_cst_vol_tolerance,
                   # inheritance from the hydrological model
                   r_in_q_h2o, r_s_v_h2o_old, r_s_v_h2o, r_out_q_h2o):
@@ -1100,18 +1100,18 @@ def run_in_stream(waterbody, datetime_time_step, logger,
     _____ r_in_c_dph      dissolved phosphorus concentration at inlet [kg/m3]
     _____ r_in_c_pph      particulate phosphorus concentration at inlet [kg/m3]
     _____ r_in_c_sed      sediment concentration at inlet [kg/m3]
-    ___ States * s_ *
-    _____ r_s_m_no3       quantity of nitrate in store [kg]
-    _____ r_s_m_nh4       quantity of ammonia in store [kg]
-    _____ r_s_m_dph       quantity of dissolved phosphorus in store [kg]
-    _____ r_s_m_pph       quantity of particulate phosphorus in store [kg]
-    _____ r_s_m_sed       quantity of sediment in store [kg]
     ___ Parameters * p_ *
     _____ r_p_att_no3     daily attenuation factor for nitrate [-]
     _____ r_p_att_nh4     daily attenuation factor for ammonia [-]
     _____ r_p_att_dph     daily attenuation factor for dissolved phosphorus [-]
     _____ r_p_att_pph     daily attenuation factor for particulate phosphorus [-]
     _____ r_p_att_sed     daily attenuation factor for sediment [-]
+    ___ States * s_ *
+    _____ r_s_m_no3       quantity of nitrate in store [kg]
+    _____ r_s_m_nh4       quantity of ammonia in store [kg]
+    _____ r_s_m_dph       quantity of dissolved phosphorus in store [kg]
+    _____ r_s_m_pph       quantity of particulate phosphorus in store [kg]
+    _____ r_s_m_sed       quantity of sediment in store [kg]
     ___ Constants * cst_ *
     _____ r_cst_c_dn      denitrification rate constant [-]
     _____ r_cst_c_ni      nitrification rate constant [-]
@@ -1264,7 +1264,7 @@ def run_in_stream(waterbody, datetime_time_step, logger,
                                   " - Volume/Flow in River Store too low, outflow SED concentration set to zero."]))
             r_out_c_sed = 0.0
 
-    # # 2.3. Return states and outputs
+    # # 2.3. Return outputs and updated states
     return \
         r_out_c_no3, r_out_c_nh4, r_out_c_dph, r_out_c_pph, r_out_c_sed, \
         r_s_m_no3, r_s_m_nh4, r_s_m_dph, r_s_m_pph, r_s_m_sed
@@ -1296,19 +1296,19 @@ def get_in_stream(network, waterbody, datetime_time_step, time_gap_min,
     dict_data_frame[waterbody][datetime_time_step]["r_in_c_pph"] = r_in_c_pph
     dict_data_frame[waterbody][datetime_time_step]["r_in_c_sed"] = r_in_c_sed
 
-    # bring in water quality river model states
-    r_s_m_no3 = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["r_s_m_no3"]
-    r_s_m_nh4 = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["r_s_m_nh4"]
-    r_s_m_dph = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["r_s_m_dph"]
-    r_s_m_pph = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["r_s_m_pph"]
-    r_s_m_sed = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["r_s_m_sed"]
-
     # bring in water quality river model parameters
     r_p_att_no3 = dict_param["r_p_att_no3"]
     r_p_att_nh4 = dict_param["r_p_att_nh4"]
     r_p_att_dph = dict_param["r_p_att_dph"]
     r_p_att_pph = dict_param["r_p_att_pph"]
     r_p_att_sed = dict_param["r_p_att_sed"]
+
+    # bring in water quality river model states
+    r_s_m_no3 = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["r_s_m_no3"]
+    r_s_m_nh4 = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["r_s_m_nh4"]
+    r_s_m_dph = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["r_s_m_dph"]
+    r_s_m_pph = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["r_s_m_pph"]
+    r_s_m_sed = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["r_s_m_sed"]
 
     # bring in water quality river model constants
     r_cst_c_dn = dict_const['r_cst_c_dn']
@@ -1322,12 +1322,13 @@ def get_in_stream(network, waterbody, datetime_time_step, time_gap_min,
     r_s_v_h2o = dict_data_frame[waterbody][datetime_time_step]["r_s_v_h2o"]
     r_out_q_h2o = dict_data_frame[waterbody][datetime_time_step]["r_out_q_h2o"]
 
+    # return constants, model inputs, model parameter values, model states, and model constants + hydrology inheritance
     return \
         time_gap_min, \
         r_in_temp, \
         r_in_c_no3, r_in_c_nh4, r_in_c_dph, r_in_c_pph, r_in_c_sed, \
-        r_s_m_no3, r_s_m_nh4, r_s_m_dph, r_s_m_pph, r_s_m_sed, \
         r_p_att_no3, r_p_att_nh4, r_p_att_dph, r_p_att_pph, r_p_att_sed, \
+        r_s_m_no3, r_s_m_nh4, r_s_m_dph, r_s_m_pph, r_s_m_sed, \
         r_cst_c_dn, r_cst_c_ni, r_cst_flow_tolerance, r_cst_vol_tolerance, \
         r_in_q_h2o, r_s_v_h2o_old, r_s_v_h2o, r_out_q_h2o
 
@@ -1338,21 +1339,21 @@ def get_out_stream(waterbody, datetime_time_step, dict_data_frame,
                    ):
     """
     This function is the interface between the model and the data structures of the simulator.
-    It stores the processes, states, and outputs in the data frame.
+    It stores the outputs, and updated states in the data frame.
     """
-    # store water quality river model states in data frame
-    dict_data_frame[waterbody][datetime_time_step]["r_s_m_no3"] = r_s_m_no3
-    dict_data_frame[waterbody][datetime_time_step]["r_s_m_nh4"] = r_s_m_nh4
-    dict_data_frame[waterbody][datetime_time_step]["r_s_m_dph"] = r_s_m_dph
-    dict_data_frame[waterbody][datetime_time_step]["r_s_m_pph"] = r_s_m_pph
-    dict_data_frame[waterbody][datetime_time_step]["r_s_m_sed"] = r_s_m_sed
-
     # store water quality river model outputs in data frame
     dict_data_frame[waterbody][datetime_time_step]["r_out_c_no3"] = r_out_c_no3
     dict_data_frame[waterbody][datetime_time_step]["r_out_c_nh4"] = r_out_c_nh4
     dict_data_frame[waterbody][datetime_time_step]["r_out_c_dph"] = r_out_c_dph
     dict_data_frame[waterbody][datetime_time_step]["r_out_c_pph"] = r_out_c_pph
     dict_data_frame[waterbody][datetime_time_step]["r_out_c_sed"] = r_out_c_sed
+
+    # store water quality river model states in data frame
+    dict_data_frame[waterbody][datetime_time_step]["r_s_m_no3"] = r_s_m_no3
+    dict_data_frame[waterbody][datetime_time_step]["r_s_m_nh4"] = r_s_m_nh4
+    dict_data_frame[waterbody][datetime_time_step]["r_s_m_dph"] = r_s_m_dph
+    dict_data_frame[waterbody][datetime_time_step]["r_s_m_pph"] = r_s_m_pph
+    dict_data_frame[waterbody][datetime_time_step]["r_s_m_sed"] = r_s_m_sed
 
 
 def infer_land_parameters(dict_desc, my_dict_param):

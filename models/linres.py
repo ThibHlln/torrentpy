@@ -3,7 +3,7 @@ from datetime import timedelta
 
 def run(waterbody, datetime_time_step, logger,
         time_gap_min,
-        r_in_q_h2o, r_s_v_h2o, r_p_k_h2o):
+        r_in_q_h2o, r_p_k_h2o, r_s_v_h2o):
     """
     River Constants
     _ time_gap_min        time gap between two simulation time steps [minutes]
@@ -12,10 +12,10 @@ def run(waterbody, datetime_time_step, logger,
     _ Hydrology
     ___ Inputs * in_ *
     _____ r_in_q_h2o      flow at inlet [m3/s]
-    ___ States * s_ *
-    _____ r_s_v_h2o       volume of water in store [m3]
     ___ Parameters * p_ *
     _____ r_p_k_h2o       linear factor k for water where Storage = k.Flow [hours]
+    ___ States * s_ *
+    _____ r_s_v_h2o       volume of water in store [m3]
     ___ Outputs * out_ *
     _____ r_out_q_h2o     flow at outlet [m3/s]
     """
@@ -44,7 +44,7 @@ def run(waterbody, datetime_time_step, logger,
     else:
         r_s_v_h2o = r_s_v_h2o_temp  # temporary storage becomes final storage
 
-    # # 1.3. Return states and outputs
+    # # 1.3. Return outputs and updated states
     return \
         r_out_q_h2o, r_s_v_h2o
 
@@ -65,28 +65,28 @@ def get_in(network, waterbody, datetime_time_step, time_gap_min,
     # store input in data frame
     dict_data_frame[waterbody][datetime_time_step]["r_in_q_h2o"] = r_in_q_h2o
 
-    # bring in model states
-    r_s_v_h2o = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["r_s_v_h2o"]
-
     # bring in model parameter values
     r_p_k_h2o = dict_param["r_p_k_h2o"]
 
-    # return model constants, model inputs, model parameter values, and model states
+    # bring in model states
+    r_s_v_h2o = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]["r_s_v_h2o"]
+
+    # return constants, model inputs, model parameter values, and model states
     return \
         time_gap_min, \
-        r_in_q_h2o, r_s_v_h2o, r_p_k_h2o
+        r_in_q_h2o, r_p_k_h2o, r_s_v_h2o
 
 
 def get_out(waterbody, datetime_time_step, dict_data_frame,
             r_out_q_h2o, r_s_v_h2o):
     """
     This function is the interface between the model and the data structures of the simulator.
-    It stores the processes, states, and outputs in the data frame.
+    It stores the outputs, and updated states in the data frame.
     """
-    # store states in data frame
-    dict_data_frame[waterbody][datetime_time_step]["r_s_v_h2o"] = r_s_v_h2o
     # store outputs in data frame
     dict_data_frame[waterbody][datetime_time_step]["r_out_q_h2o"] = r_out_q_h2o
+    # store states in data frame
+    dict_data_frame[waterbody][datetime_time_step]["r_s_v_h2o"] = r_s_v_h2o
 
 
 def infer_parameters(dict_desc, my_dict_param):
