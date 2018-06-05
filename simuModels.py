@@ -1,4 +1,10 @@
 from models import smart, linres, inca
+try:
+    import SMARTc
+    smart_in_c = True
+except ImportError:
+    SMARTc = None
+    smart_in_c = False
 
 
 def run_catchment_model(identifier, waterbody, dict_data_frame,
@@ -13,7 +19,10 @@ def run_catchment_model(identifier, waterbody, dict_data_frame,
         smart_in = smart.get_in(waterbody, datetime_time_step, time_gap,
                                 dict_data_frame, dict_desc, dict_param, dict_meteo)
 
-        smart_out = smart.run(waterbody, datetime_time_step, logger, *smart_in)
+        if smart_in_c:
+            smart_out = SMARTc.onestep_c(*smart_in)
+        else:
+            smart_out = smart.run(waterbody, datetime_time_step, logger, *smart_in)
 
         smart.get_out(waterbody, datetime_time_step, dict_data_frame, *smart_out)
 
@@ -30,7 +39,10 @@ def run_catchment_model(identifier, waterbody, dict_data_frame,
         smart_in = smart.get_in(waterbody, datetime_time_step, time_gap,
                                 dict_data_frame, dict_desc, dict_param, dict_meteo)
 
-        smart_out = smart.run(waterbody, datetime_time_step, logger, *smart_in)
+        if smart_in_c:
+            smart_out = SMARTc.onestep_c(*smart_in)
+        else:
+            smart_out = smart.run(waterbody, datetime_time_step, logger, *smart_in)
 
         smart.get_out(waterbody, datetime_time_step, dict_data_frame, *smart_out)
     else:
@@ -49,7 +61,10 @@ def run_river_model(identifier, obj_network, waterbody, dict_data_frame,
         linres_in = linres.get_in(obj_network, waterbody, datetime_time_step, time_gap,
                                   dict_data_frame, dict_param)
 
-        linres_out = linres.run(waterbody, datetime_time_step, logger, *linres_in)
+        if smart_in_c:
+            linres_out = SMARTc.onestep_r(*linres_in)
+        else:
+            linres_out = linres.run(waterbody, datetime_time_step, logger, *linres_in)
 
         linres.get_out(waterbody, datetime_time_step, dict_data_frame, *linres_out)
 
@@ -66,7 +81,10 @@ def run_river_model(identifier, obj_network, waterbody, dict_data_frame,
         linres_in = linres.get_in(obj_network, waterbody, datetime_time_step, time_gap,
                                   dict_data_frame, dict_param)
 
-        linres_out = linres.run(waterbody, datetime_time_step, logger, *linres_in)
+        if smart_in_c:
+            linres_out = SMARTc.onestep_r(*linres_in)
+        else:
+            linres_out = linres.run(waterbody, datetime_time_step, logger, *linres_in)
 
         linres.get_out(waterbody, datetime_time_step, dict_data_frame, *linres_out)
     else:
