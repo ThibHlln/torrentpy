@@ -2,11 +2,11 @@ from datetime import timedelta
 
 
 def run(waterbody, datetime_time_step, logger,
-        time_gap_min,
+        time_gap_sec,
         r_in_q_h2o, r_p_k_h2o, r_s_v_h2o):
     """
     River Constants
-    _ time_gap_min        time gap between two simulation time steps [minutes]
+    _ time_gap_sec        time gap between two simulation time steps [seconds]
 
     River Model * r_ *
     _ Hydrology
@@ -22,7 +22,6 @@ def run(waterbody, datetime_time_step, logger,
     # # 1. Hydrology
 
     # # 1.1. Unit conversions
-    time_gap_sec = time_gap_min * 60.0  # [seconds]
     r_p_k_h2o *= 3600.0  # convert hours into seconds
 
     # # 1.2. Hydrological calculations
@@ -60,6 +59,9 @@ def get_in(network, waterbody, datetime_time_step, time_gap_min,
     # find the node that is the input for the waterbody
     node_up = network.connections[waterbody][1]
 
+    # convert constants
+    time_gap_sec = time_gap_min * 60.0
+
     # bring in model inputs
     r_in_q_h2o = dict_data_frame[node_up][datetime_time_step + timedelta(minutes=-time_gap_min)]["q_h2o"]
     # store input in data frame
@@ -73,7 +75,7 @@ def get_in(network, waterbody, datetime_time_step, time_gap_min,
 
     # return constants, model inputs, model parameter values, and model states
     return \
-        time_gap_min, \
+        time_gap_sec, \
         r_in_q_h2o, r_p_k_h2o, r_s_v_h2o
 
 

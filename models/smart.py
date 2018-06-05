@@ -3,7 +3,7 @@ from math import exp, log
 
 
 def run(waterbody, datetime_time_step, logger,
-        area_m2, time_gap_min,
+        area_m2, time_gap_sec,
         c_in_rain, c_in_peva,
         c_p_t, c_p_c, c_p_h, c_p_d, c_p_s, c_p_z, c_p_sk, c_p_fk, c_p_gk,
         c_s_v_h2o_ove, c_s_v_h2o_dra, c_s_v_h2o_int, c_s_v_h2o_sgw, c_s_v_h2o_dgw,
@@ -11,7 +11,7 @@ def run(waterbody, datetime_time_step, logger,
     """
     Catchment Constants
     _ area_m2                   catchment area [m2]
-    _ time_gap_min              time gap between two simulation time steps [minutes]
+    _ time_gap_sec              time gap between two simulation time steps [seconds]
 
     Catchment Model * c_ *
     _ Hydrology
@@ -62,7 +62,6 @@ def run(waterbody, datetime_time_step, logger,
     nb_soil_layers = 6.0  # number of layers in soil column [-]
 
     # # 1.1. Unit conversions
-    time_gap_sec = time_gap_min * 60.0  # [seconds]
     c_p_sk *= 3600.0  # convert hours in seconds
     c_p_fk *= 3600.0  # convert hours in seconds
     c_p_gk *= 3600.0  # convert hours in seconds
@@ -228,6 +227,7 @@ def get_in(waterbody, datetime_time_step, time_gap_min,
     """
     # bring in model constants
     area_m2 = dict_desc[waterbody]['area']
+    time_gap_sec = time_gap_min * 60.0
 
     # bring in model inputs
     c_in_rain = dict_meteo[waterbody][datetime_time_step]["rain"]
@@ -273,7 +273,7 @@ def get_in(waterbody, datetime_time_step, time_gap_min,
 
     # return constants, model inputs, model parameter values, and model states
     return \
-        area_m2, time_gap_min, \
+        area_m2, time_gap_sec, \
         c_in_rain, c_in_peva, \
         c_p_t, c_p_c, c_p_h, c_p_d, c_p_s, c_p_z, c_p_sk, c_p_fk, c_p_gk, \
         c_s_v_h2o_ove, c_s_v_h2o_dra, c_s_v_h2o_int, c_s_v_h2o_sgw, c_s_v_h2o_dgw, \

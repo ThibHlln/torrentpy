@@ -4,7 +4,7 @@ from calendar import isleap
 
 
 def run_on_land(waterbody, datetime_time_step, logger,
-                area_m2, time_gap_min,
+                area_m2, time_gap_sec,
                 c_in_temp, c_in_m_no3, c_in_m_nh4, c_in_m_p_ino, c_in_m_p_org,
                 c_p_att_no3_ove, c_p_att_nh4_ove, c_p_att_dph_ove, c_p_att_pph_ove, c_p_att_sed_ove,
                 c_p_att_no3_dra, c_p_att_nh4_dra, c_p_att_dph_dra, c_p_att_pph_dra, c_p_att_sed_dra,
@@ -40,7 +40,7 @@ def run_on_land(waterbody, datetime_time_step, logger,
     """
     Catchment Constants
     _ area_m2                   catchment area [m2]
-    _ time_gap_min              time gap between two simulation time steps [minutes]
+    _ time_gap_sec              time gap between two simulation time steps [seconds]
 
     Catchment Model * c_ *
     _ Water Quality
@@ -201,8 +201,6 @@ def run_on_land(waterbody, datetime_time_step, logger,
 
     # # 2. Water Quality
     # # 2.0. Convert units and store internal constants
-    time_gap_sec = time_gap_min * 60.0  # [seconds]
-
     time_factor = time_gap_sec / 86400.0
     if time_factor < 0.005:
         time_factor = 0.005
@@ -724,6 +722,7 @@ def get_in_land(waterbody, datetime_time_step, time_gap_min,
     """
     # bring in catchment constants
     area_m2 = dict_desc[waterbody]['area']
+    time_gap_sec = time_gap_min * 60.0
 
     # bring in water quality model inputs
     c_in_temp = dict_meteo[waterbody][datetime_time_step]["soit"]
@@ -950,7 +949,7 @@ def get_in_land(waterbody, datetime_time_step, time_gap_min,
 
     # return constants, model inputs, model parameter values, model states, and model constants + hydrology inheritance
     return \
-        area_m2, time_gap_min, \
+        area_m2, time_gap_sec, \
         c_in_temp, c_in_m_no3, c_in_m_nh4, c_in_m_p_ino, c_in_m_p_org, \
         c_p_att_no3_ove, c_p_att_nh4_ove, c_p_att_dph_ove, c_p_att_pph_ove, c_p_att_sed_ove, \
         c_p_att_no3_dra, c_p_att_nh4_dra, c_p_att_dph_dra, c_p_att_pph_dra, c_p_att_sed_dra, \
@@ -1079,7 +1078,7 @@ def get_out_land(waterbody, datetime_time_step, dict_data_frame,
 
 
 def run_in_stream(waterbody, datetime_time_step, logger,
-                  time_gap_min,
+                  time_gap_sec,
                   r_in_temp,
                   r_in_c_no3, r_in_c_nh4, r_in_c_dph, r_in_c_pph, r_in_c_sed,
                   r_p_att_no3, r_p_att_nh4, r_p_att_dph, r_p_att_pph, r_p_att_sed,
@@ -1089,7 +1088,7 @@ def run_in_stream(waterbody, datetime_time_step, logger,
                   r_in_q_h2o, r_s_v_h2o_old, r_s_v_h2o, r_out_q_h2o):
     """
     River Constants
-    _ time_gap_min        time gap between two simulation time steps [minutes]
+    _ time_gap_sec        time gap between two simulation time steps [seconds]
 
     River Model * r_ *
     _ Water Quality
@@ -1127,10 +1126,7 @@ def run_in_stream(waterbody, datetime_time_step, logger,
 
     # # 2. Water quality
 
-    # # 2.1. Unit conversions
-    time_gap_sec = time_gap_min * 60.0  # [seconds]
-
-    # # 2.2. Water quality calculations
+    # # 2.1. Water quality calculations
 
     # check if inflow negligible, if so set all concentrations to zero
     if r_in_q_h2o < r_cst_flow_tolerance:
@@ -1158,7 +1154,7 @@ def run_in_stream(waterbody, datetime_time_step, logger,
         r_out_c_pph = 0.0
         r_out_c_sed = 0.0
     else:
-        # # 2.2.1. Nitrate NO3
+        # # 2.1.1. Nitrate NO3
         r_s_m_no3_old = r_s_m_no3
         # calculate concentration in store at beginning of time step
         concentration_no3 = r_s_m_no3_old / r_s_v_h2o_old
@@ -1193,7 +1189,7 @@ def run_in_stream(waterbody, datetime_time_step, logger,
                                   " - Volume/Flow in River Store too low, outflow NO3 concentration set to zero."]))
             r_out_c_no3 = 0.0
 
-        # # 2.2.2. Ammonia NH4
+        # # 2.1.2. Ammonia NH4
         r_s_m_nh4_old = r_s_m_nh4
         # calculate concentration in store at beginning of time step
         concentration_nh4 = r_s_m_nh4_old / r_s_v_h2o_old
@@ -1210,7 +1206,7 @@ def run_in_stream(waterbody, datetime_time_step, logger,
                                   " - Volume/Flow in River Store too low, outflow NH4 concentration set to zero."]))
             r_out_c_nh4 = 0.0
 
-        # # 2.2.3. Dissolved phosphorus DPH
+        # # 2.1.3. Dissolved phosphorus DPH
         r_s_m_dph_old = r_s_m_dph
         # calculate concentration in store at beginning of time step
         concentration_dph = r_s_m_dph_old / r_s_v_h2o_old
@@ -1228,7 +1224,7 @@ def run_in_stream(waterbody, datetime_time_step, logger,
                                   " - Volume/Flow in River Store too low, outflow DPH concentration set to zero."]))
             r_out_c_dph = 0.0
 
-        # # 2.2.4. Particulate phosphorus PPH
+        # # 2.1.4. Particulate phosphorus PPH
         r_s_m_pph_old = r_s_m_pph
         # calculate concentration in store at beginning of time step
         concentration_pph = r_s_m_pph_old / r_s_v_h2o_old
@@ -1246,7 +1242,7 @@ def run_in_stream(waterbody, datetime_time_step, logger,
                                   " - Volume/Flow in River Store too low, outflow PPH concentration set to zero."]))
             r_out_c_pph = 0.0
 
-        # # 2.2.5. Sediments SED
+        # # 2.1.5. Sediments SED
         r_s_m_sed_old = r_s_m_sed
         # calculate concentration in store at beginning of time step
         concentration_sed = r_s_m_sed_old / r_s_v_h2o_old
@@ -1264,7 +1260,7 @@ def run_in_stream(waterbody, datetime_time_step, logger,
                                   " - Volume/Flow in River Store too low, outflow SED concentration set to zero."]))
             r_out_c_sed = 0.0
 
-    # # 2.3. Return outputs and updated states
+    # # 2.2. Return outputs and updated states
     return \
         r_out_c_no3, r_out_c_nh4, r_out_c_dph, r_out_c_pph, r_out_c_sed, \
         r_s_m_no3, r_s_m_nh4, r_s_m_dph, r_s_m_pph, r_s_m_sed
@@ -1280,6 +1276,9 @@ def get_in_stream(network, waterbody, datetime_time_step, time_gap_min,
     """
     # find the node that is the input for the waterbody
     node_up = network.connections[waterbody][1]
+
+    # convert constants
+    time_gap_sec = time_gap_min * 60.0
 
     # bring in water quality river model inputs
     r_in_temp = dict_meteo[waterbody][datetime_time_step]["airt"]
@@ -1324,7 +1323,7 @@ def get_in_stream(network, waterbody, datetime_time_step, time_gap_min,
 
     # return constants, model inputs, model parameter values, model states, and model constants + hydrology inheritance
     return \
-        time_gap_min, \
+        time_gap_sec, \
         r_in_temp, \
         r_in_c_no3, r_in_c_nh4, r_in_c_dph, r_in_c_pph, r_in_c_sed, \
         r_p_att_no3, r_p_att_nh4, r_p_att_dph, r_p_att_pph, r_p_att_sed, \
