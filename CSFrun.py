@@ -5,9 +5,9 @@ from itertools import izip
 import argparse
 from glob import glob
 
-from simuClasses import *
-import simuFiles as sF
-import simuFunctions as sFn
+from CSFclasses import *
+import CSFinout as csfC
+import CSFfunctions as csfF
 
 
 def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", out_fmt="csv", is_single_run=False):
@@ -71,21 +71,21 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
 
     # Create Models for the links
     dict__ls_models, dict__c_models, dict__r_models, dict__l_models = \
-        sFn.generate_models_for_links(my__network, spec_directory, input_folder, output_folder)
+        csfF.generate_models_for_links(my__network, spec_directory, input_folder, output_folder)
 
     # Create files to store simulation results
-    sF.create_simulation_files(my__network, dict__ls_models, catchment, out_fmt, output_folder)
+    csfC.create_simulation_files(my__network, dict__ls_models, catchment, out_fmt, output_folder)
 
     # Set the initial conditions ('blank' warm up run slice by slice) if required
     my_last_lines = dict()
     if not warm_up_in_days == 0:  # Warm-up run required
         logger.info("Determining initial conditions.")
         # Get meteo input data
-        dict__nd_meteo = sFn.get_meteo_input_for_links(my__network, my__time_frame_warm_up,
-                                                       my__time_frame_warm_up.series_data,
-                                                       my__time_frame_warm_up.series_simu,
-                                                       data_datetime_start, data_datetime_end,
-                                                       in_fmt, input_folder)
+        dict__nd_meteo = csfF.get_meteo_input_for_links(my__network, my__time_frame_warm_up,
+                                                        my__time_frame_warm_up.series_data,
+                                                        my__time_frame_warm_up.series_simu,
+                                                        data_datetime_start, data_datetime_end,
+                                                        in_fmt, input_folder)
         # Initialise dicts needed to link time slices together (use last time step of one as first for the other)
         for link in my__network.links:
             # For links, get a dict of the models states initial conditions from "educated guesses"
@@ -101,9 +101,9 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
             logger.info("Running Warm-Up Period {} - {}.".format(my_simu_slice[1].strftime('%d/%m/%Y %H:%M:%S'),
                                                                  my_simu_slice[-1].strftime('%d/%m/%Y %H:%M:%S')))
             # Initialise data structures
-            dict__nd_data = sFn.generate_data_structures_for_links_and_nodes(my__network,
-                                                                             my_simu_slice,
-                                                                             dict__ls_models)
+            dict__nd_data = csfF.generate_data_structures_for_links_and_nodes(my__network,
+                                                                              my_simu_slice,
+                                                                              dict__ls_models)
 
             # Get history of previous time slice last time step for initial conditions of current time slice
             for link in my__network.links:
@@ -113,9 +113,9 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
 
             # Get other input data
             dict__nd_loadings = \
-                sFn.get_contaminant_input_for_links(my__network, my__time_frame_warm_up,
-                                                    my_data_slice, my_simu_slice,
-                                                    input_folder, spec_directory) if water_quality else {}
+                csfF.get_contaminant_input_for_links(my__network, my__time_frame_warm_up,
+                                                     my_data_slice, my_simu_slice,
+                                                     input_folder, spec_directory) if water_quality else {}
 
             # Simulate
             simulate(my__network, my__time_frame_warm_up, my_simu_slice,
@@ -146,19 +146,19 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
     # Simulate (run slice by slice)
     logger.info("Starting the simulation.")
     # Get meteo input data
-    dict__nd_meteo = sFn.get_meteo_input_for_links(my__network, my__time_frame,
-                                                   my__time_frame.series_data, my__time_frame.series_simu,
-                                                   data_datetime_start, data_datetime_end,
-                                                   in_fmt, input_folder)
+    dict__nd_meteo = csfF.get_meteo_input_for_links(my__network, my__time_frame,
+                                                    my__time_frame.series_data, my__time_frame.series_simu,
+                                                    data_datetime_start, data_datetime_end,
+                                                    in_fmt, input_folder)
     for my_simu_slice, my_data_slice in izip(my__time_frame.slices_simu,
                                              my__time_frame.slices_data):
 
         logger.info("Running Period {} - {}.".format(my_simu_slice[1].strftime('%d/%m/%Y %H:%M:%S'),
                                                      my_simu_slice[-1].strftime('%d/%m/%Y %H:%M:%S')))
         # Initialise data structures
-        dict__nd_data = sFn.generate_data_structures_for_links_and_nodes(my__network,
-                                                                         my_simu_slice,
-                                                                         dict__ls_models)
+        dict__nd_data = csfF.generate_data_structures_for_links_and_nodes(my__network,
+                                                                          my_simu_slice,
+                                                                          dict__ls_models)
 
         # Get history of previous time step for initial conditions of current time step
         for link in my__network.links:
@@ -167,9 +167,9 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
             dict__nd_data[node][my_simu_slice[0]].update(my_last_lines[node])
 
         # Get other input data
-        dict__nd_loadings = sFn.get_contaminant_input_for_links(my__network, my__time_frame,
-                                                                my_data_slice, my_simu_slice,
-                                                                input_folder, spec_directory) if water_quality else {}
+        dict__nd_loadings = csfF.get_contaminant_input_for_links(my__network, my__time_frame,
+                                                                 my_data_slice, my_simu_slice,
+                                                                 input_folder, spec_directory) if water_quality else {}
 
         # Simulate
         simulate(my__network, my__time_frame, my_simu_slice,
@@ -178,9 +178,9 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
                  )
 
         # Write results in files
-        sF.update_simulation_files(my__network, my__time_frame, my_data_slice, my_simu_slice,
-                                   dict__nd_data, dict__ls_models,
-                                   catchment, out_fmt, output_folder, report='data_gap', method='summary')
+        csfC.update_simulation_files(my__network, my__time_frame, my_data_slice, my_simu_slice,
+                                     dict__nd_data, dict__ls_models,
+                                     catchment, out_fmt, output_folder, report='data_gap', method='summary')
 
         # Save history (last time step) for next slice
         for link in my__network.links:
@@ -251,7 +251,8 @@ def setup_simulation(catchment, outlet, input_dir):
     try:
         datetime_start_simu = datetime.datetime.strptime(question_start_simu, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        raise Exception("The simulation starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        raise Exception(
+            "The simulation starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
         question_end_simu = my_answers_df.get_value('simu_end_datetime', 'ANSWER')
@@ -260,7 +261,8 @@ def setup_simulation(catchment, outlet, input_dir):
     try:
         datetime_end_simu = datetime.datetime.strptime(question_end_simu, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        raise Exception("The simulation ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        raise Exception(
+            "The simulation ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
         question_data_time_gap = my_answers_df.get_value('data_time_gap_min', 'ANSWER')
@@ -428,14 +430,17 @@ def simulate(my__network, my__time_frame, my_simu_slice,
                 for variable in ["c_no3", "c_nh4", "c_dph", "c_pph", "c_sed"]:
                     for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
                         if my__network.categories[link] == "11":  # headwater river
-                            my_dict_variables[variable] += dict__nd_data[link][step - delta]["".join(["r_out_", variable])] * \
-                                                           dict__nd_data[link][step - delta]["r_out_q_h2o"]
+                            my_dict_variables[variable] += \
+                                dict__nd_data[link][step - delta]["".join(["r_out_", variable])] * \
+                                dict__nd_data[link][step - delta]["r_out_q_h2o"]
                         elif my__network.categories[link] == "10":  # river
-                            my_dict_variables[variable] += dict__nd_data[link][step - delta]["".join(["r_out_", variable])] * \
-                                                           dict__nd_data[link][step - delta]["r_out_q_h2o"]
+                            my_dict_variables[variable] += \
+                                dict__nd_data[link][step - delta]["".join(["r_out_", variable])] * \
+                                dict__nd_data[link][step - delta]["r_out_q_h2o"]
                         elif my__network.categories[link] == "20":  # lake
-                            my_dict_variables[variable] += dict__nd_data[link][step - delta]["".join(["l_out_", variable])] * \
-                                                           dict__nd_data[link][step - delta]["l_out_q_h2o"]
+                            my_dict_variables[variable] += \
+                                dict__nd_data[link][step - delta]["".join(["l_out_", variable])] * \
+                                dict__nd_data[link][step - delta]["l_out_q_h2o"]
                     for link in my__network.adding.get(node):  # for the catchment of the link downstream of this node
                         if my__network.categories[link] == "11":  # headwater river
                             my_dict_variables[variable] += dict__nd_data[link][step]["".join(["c_out_", variable])] * \

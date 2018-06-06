@@ -4,8 +4,8 @@ from os import path, getcwd
 from csv import DictReader
 
 
-import postprocPerf as ppPf
-import postprocPlot as ppPl
+import popCSFeval as popE
+import popCSFplot as popP
 
 
 def get_arguments_from_batch_file(batch_file, root, log_file):
@@ -39,8 +39,8 @@ def single_run(catchment, outlet, gauge, root, log_file):
     logger = logging.getLogger("MultiPostProc")
     logger.addHandler(handler)
     try:
-        ppPl.main(catchment, outlet, gauge, root)
-        ppPf.main(catchment, outlet, gauge, root)
+        popP.main(catchment, outlet, gauge, root)
+        popE.main(catchment, outlet, gauge, root)
     except Exception as e:
         mp_logger.error('Exception for arguments ({}, {}, {})'.format(catchment, outlet, gauge))
         logger.error('Exception for arguments ({}, {}, {})'.format(catchment, outlet, gauge))

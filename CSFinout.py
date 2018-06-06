@@ -708,4 +708,3 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
 
     else:
         raise Exception("Unknown method for updating simulations files.")
-

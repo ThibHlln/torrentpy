@@ -4,10 +4,10 @@ import logging
 from itertools import izip
 import argparse
 
-from scripts.simuClasses import *
-import postprocPlot as ppP
-import scripts.simuRunSingle as sRS
-import scripts.simuFiles as sF
+from scripts.CSFclasses import *
+import popCSFplot as popP
+import scripts.CSFrun as csfR
+import scripts.CSFinout as csfIO
 
 
 def main(catchment, outlet, gauge, root):
@@ -28,7 +28,7 @@ def main(catchment, outlet, gauge, root):
     data_datetime_start, data_datetime_end, data_time_step_in_min, \
         simu_datetime_start, simu_datetime_end, simu_time_step_in_min, \
         plot_datetime_start, plot_datetime_end = \
-        ppP.set_up_plotting(catchment, outlet, input_directory)
+        popP.set_up_plotting(catchment, outlet, input_directory)
 
     # Precise the specific folders to use in the directories
     input_folder = "{}{}_{}/".format(input_directory, catchment, outlet)
@@ -37,10 +37,10 @@ def main(catchment, outlet, gauge, root):
                                             simu_datetime_end.strftime("%Y%m%d"))
 
     # Determine gauged waterbody associated to the hydrometric gauge
-    gauged_waterbody, gauged_area = ppP.find_waterbody_from_gauge(input_folder, catchment, outlet, gauge)
+    gauged_waterbody, gauged_area = popP.find_waterbody_from_gauge(input_folder, catchment, outlet, gauge)
 
     # Create a logger
-    sRS.setup_logger(
+    csfR.setup_logger(
         catchment, gauged_waterbody, 'SinglePerformance.main', 'performance', output_folder, is_single_run=True)
     logger = logging.getLogger('SinglePerformance.main')
     logger.warning("Starting performance assessment for {} {} {}.".format(catchment, outlet, gauge))
@@ -92,13 +92,13 @@ def main(catchment, outlet, gauge, root):
     )
 
     logger.info("Plotting Flow Duration Curve.")
-    ppP.plot_flow_duration_curve(flows_obs_ord, flows_freq_obs,
-                                 flows_mod_ord, flows_freq_mod,
-                                 output_folder, catchment, gauged_waterbody, gauge)
+    popP.plot_flow_duration_curve(flows_obs_ord, flows_freq_obs,
+                                  flows_mod_ord, flows_freq_mod,
+                                  output_folder, catchment, gauged_waterbody, gauge)
     logger.info("Plotting Logarithmic Flow Duration Curve.")
-    ppP.plot_flow_duration_curve_log(flows_obs_ord, flows_freq_obs,
-                                     flows_mod_ord, flows_freq_mod,
-                                     output_folder, catchment, gauged_waterbody, gauge)
+    popP.plot_flow_duration_curve_log(flows_obs_ord, flows_freq_obs,
+                                      flows_mod_ord, flows_freq_mod,
+                                      output_folder, catchment, gauged_waterbody, gauge)
 
     logger.warning("Ending performance assessment for {} {} {}.".format(catchment, outlet, gauge))
 
@@ -118,9 +118,9 @@ def calculate_missing(flows, criterion=-99.0):
 
 def calculate_drainage_area(my__network, in_folder, catchment, outlet, gauged_wb):
     # Find all the waterbodies upstream of the gauge, including the gauged waterbody
-    all_wb = ppP.determine_gauging_zone(my__network, in_folder, catchment, outlet, gauged_wb)
+    all_wb = popP.determine_gauging_zone(my__network, in_folder, catchment, outlet, gauged_wb)
     # Collect the catchment descriptors
-    my_dict_desc = sF.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
+    my_dict_desc = csfIO.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
     # Calculate the total upstream drainage area using the descriptor files
     drainage_area = 0.0
     for waterbody in all_wb:

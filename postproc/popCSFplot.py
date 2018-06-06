@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 import logging
 import argparse
 
-from scripts.simuClasses import *
-import postprocFiles as ppF
-import scripts.simuFiles as sF
-import scripts.simuRunSingle as sRS
+from scripts.CSFclasses import *
+import popCSFinout as popIO
+import scripts.CSFinout as csfIO
+import scripts.CSFrun as csfR
 
 
 def main(catchment, outlet, gauge, root):
@@ -42,7 +42,7 @@ def main(catchment, outlet, gauge, root):
     gauged_waterbody, gauged_area = find_waterbody_from_gauge(input_folder, catchment, outlet, gauge)
 
     # Create a logger
-    sRS.setup_logger(catchment, gauged_waterbody, 'SinglePlot.main', 'plot', output_folder, is_single_run=True)
+    csfR.setup_logger(catchment, gauged_waterbody, 'SinglePlot.main', 'plot', output_folder, is_single_run=True)
     logger = logging.getLogger('SinglePlot.main')
     logger.warning("Starting plotting for {} {} {}.".format(catchment, outlet, gauge))
 
@@ -71,9 +71,9 @@ def main(catchment, outlet, gauge, root):
                      input_folder, output_folder)
 
     # Create a subset of the input discharge file
-    ppF.create_subset_flow_file(catchment, outlet, catchment_area, gauge, gauged_area,
-                                my__time_frame, plot_datetime_start, plot_datetime_end,
-                                input_folder, output_folder, logger)
+    popIO.create_subset_flow_file(catchment, outlet, catchment_area, gauge, gauged_area,
+                                  my__time_frame, plot_datetime_start, plot_datetime_end,
+                                  input_folder, output_folder, logger)
 
     # Read the flow files
     gauged_flow_m3s, simu_flow_m3s = \
@@ -263,7 +263,7 @@ def read_meteo_files(my__network, my__time_frame,
 
     my_data_mm = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
     my_area_m2 = np.empty(shape=(0, 1), dtype=np.float64)
-    my_dict_desc = sF.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
+    my_dict_desc = csfIO.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
 
     for link in links_in_zone:
         try:

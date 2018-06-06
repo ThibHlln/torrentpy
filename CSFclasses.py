@@ -5,7 +5,7 @@ import datetime
 import pandas
 from math import ceil
 
-import simuModels as sM
+import CSFmodels as csfM
 
 
 class Network:
@@ -364,7 +364,7 @@ class Model:
                             raise Exception("The {} {} {} is not available for {}.".format(
                                 component, specs_type[:-1], name, self.link))
                 except IOError:
-                    dict_for_file = sM.infer_parameters_from_descriptors(network.descriptors[self.link], component)
+                    dict_for_file = csfM.infer_parameters_from_descriptors(network.descriptors[self.link], component)
 
                 my_dict.update(dict_for_file)
                 dict_for_file["EU_CD"] = self.link
@@ -414,18 +414,18 @@ class Model:
         :return: NOTHING
         """
         if self.category == "CATCHMENT":
-            sM.run_catchment_model(self.identifier, waterbody, dict_nd_data,
-                                   obj_network.descriptors, self.parameters, self.constants,
-                                   dict_nd_meteo, dict_nd_loadings,
-                                   datetime_time_step, time_gap,
-                                   logger)
+            csfM.run_catchment_model(self.identifier, waterbody, dict_nd_data,
+                                     obj_network.descriptors, self.parameters, self.constants,
+                                     dict_nd_meteo, dict_nd_loadings,
+                                     datetime_time_step, time_gap,
+                                     logger)
         elif self.category == "RIVER":
-            sM.run_river_model(self.identifier, obj_network, waterbody, dict_nd_data,
-                               self.parameters, self.constants, dict_nd_meteo,
-                               datetime_time_step, time_gap,
-                               logger)
+            csfM.run_river_model(self.identifier, obj_network, waterbody, dict_nd_data,
+                                 self.parameters, self.constants, dict_nd_meteo,
+                                 datetime_time_step, time_gap,
+                                 logger)
         elif self.category == "LAKE":
-            sM.run_lake_model(self.identifier, waterbody)
+            csfM.run_lake_model(self.identifier, waterbody)
 
     def initialise(self, obj_network):
         """
@@ -437,13 +437,13 @@ class Model:
         dict_init = dict()
         if self.category == "CATCHMENT":
             dict_init.update(
-                sM.initialise_catchment_model(self.identifier, obj_network.descriptors[self.link], self.parameters))
+                csfM.initialise_catchment_model(self.identifier, obj_network.descriptors[self.link], self.parameters))
         elif self.category == "RIVER":
             dict_init.update(
-                sM.initialise_river_model(self.identifier, obj_network.descriptors[self.link], self.parameters))
+                csfM.initialise_river_model(self.identifier, obj_network.descriptors[self.link], self.parameters))
         elif self.category == "LAKE":
             dict_init.update(
-                sM.initialise_lake_model(self.identifier))
+                csfM.initialise_lake_model(self.identifier))
 
         return dict_init
 
