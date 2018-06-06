@@ -12,7 +12,7 @@ import simuFiles as sF
 import simuFunctions as sFn
 
 
-def main(catchment, outlet, slice_length, warm_up_in_days, root, out_fmt="csv", is_single_run=False):
+def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", out_fmt="csv", is_single_run=False):
     # Format catchment and outlet names
     catchment = catchment.capitalize()
     outlet = outlet.upper()
@@ -90,7 +90,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, out_fmt="csv", 
                                                    my__time_frame_warm_up.series_data,
                                                    my__time_frame_warm_up.series_simu,
                                                    data_datetime_start, data_datetime_end,
-                                                   input_folder)
+                                                   in_fmt, input_folder)
         # Initialise dicts needed to link time slices together (use last time step of one as first for the other)
         for link in my__network.links:
             # For links, get a dict of the models states initial conditions from "educated guesses"
@@ -153,7 +153,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, out_fmt="csv", 
     dict__nd_meteo = get_meteo_input_for_links(my__network, my__time_frame,
                                                my__time_frame.series_data, my__time_frame.series_simu,
                                                data_datetime_start, data_datetime_end,
-                                               input_folder)
+                                               in_fmt, input_folder)
     for my_simu_slice, my_data_slice in izip(my__time_frame.slices_simu,
                                              my__time_frame.slices_data):
 
@@ -471,7 +471,7 @@ def generate_data_structures_for_links_and_nodes(my__network, my_simu_slice, dic
 
 def get_meteo_input_for_links(my__network, my__time_frame, my_data_slice, my_simu_slice,
                               datetime_start_data, datetime_end_data,
-                              input_folder):
+                              input_format, input_folder):
     """
     This function generates a nested dictionary for each link and stores them in a single dictionary that is returned.
     Each nested dictionary has the dimension of the simulation time slice times the number of meteorological variables.
@@ -498,10 +498,16 @@ def get_meteo_input_for_links(my__network, my__time_frame, my_data_slice, my_sim
     # Read the meteorological input files
     logger.info("> Reading meteorological files.")
     dict__nd_meteo = dict()  # key: waterbody, value: data frame (x: time step, y: meteo data type)
+
+    if input_format == "netcdf":
+        get_meteo = sF.get_nd_meteo_data_from_netcdf_file
+    else:
+        get_meteo = sF.get_nd_meteo_data_from_csv_file
+
     for link in my__network.links:
-        dict__nd_meteo[link] = sF.get_nd_meteo_data_from_file(my__network.name, link, my__time_frame,
-                                                              my_data_slice, my_simu_slice,
-                                                              datetime_start_data, datetime_end_data, input_folder)
+        dict__nd_meteo[link] = get_meteo(my__network.name, link, my__time_frame,
+                                         my_data_slice, my_simu_slice,
+                                         datetime_start_data, datetime_end_data, input_folder)
 
     return dict__nd_meteo
 
@@ -1203,6 +1209,8 @@ if __name__ == "__main__":
                         help="length of simulation period slice-up in time steps")
     parser.add_argument('-w', '--warm_up', type=int, default=0,
                         help="warm-up duration in days")
+    parser.add_argument('-i', '--in_format', type=valid_file_format, default='csv',
+                        help="format of input data files [csv or netcdf]")
     parser.add_argument('-o', '--out_format', type=valid_file_format, default='csv',
                         help="format of output data files [csv or netcdf]")
 
@@ -1210,4 +1218,4 @@ if __name__ == "__main__":
 
     # Run the main() function
     main(args.catchment, args.outlet, args.slice_up, args.warm_up, csf_root,
-         out_fmt=args.out_format, is_single_run=True)
+         in_fmt=args.in_format, out_fmt=args.out_format, is_single_run=True)
