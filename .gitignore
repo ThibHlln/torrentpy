@@ -20,6 +20,9 @@ $RECYCLE.BIN/
 # Thibault
 *.pyc
 *.bat
+*.xml
+.idea
+_mac
 
 
 # =========================
