@@ -4,6 +4,7 @@ from pandas import DataFrame
 from itertools import izip
 import argparse
 from glob import glob
+from os import path, getcwd
 
 from CSFclasses import *
 import CSFinout as csfIO
@@ -519,8 +520,11 @@ def valid_file_format(fmt):
 
 
 if __name__ == "__main__":
-    # Define the root of the CSF
-    csf_root = os.path.realpath('..')  # move to parent directory of this current python file
+    # Define the root of the CSF package
+    if getcwd() == path.dirname(path.realpath(__file__)):  # execution from the directory where the script is
+        csf_root = path.realpath('..')  # move to parent of parent directory of this current python file
+    else:  # execution not from the directory where the script is
+        csf_root = getcwd()  # keep the current working directory
 
     # Collect the arguments of the program call
     parser = argparse.ArgumentParser(description="simulate hydrology and water quality "
