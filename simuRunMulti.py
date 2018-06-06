@@ -59,7 +59,7 @@ def single_run(catchment, outlet, slice_up, warm_up, root, log_file):
     logger = logging.getLogger("MultiRun.single_run")
     logger.addHandler(handler)
     try:
-        sRS.main(catchment, outlet, slice_up, warm_up, root, adding_up=True)
+        sRS.main(catchment, outlet, slice_up, warm_up, root)
     except Exception as e:
         mp_logger.error('Exception for arguments ({}, {}, {}, {})'.format(catchment, outlet, slice_up, warm_up))
         logger.error('Exception for arguments ({}, {}, {}, {})'.format(catchment, outlet, slice_up, warm_up))
