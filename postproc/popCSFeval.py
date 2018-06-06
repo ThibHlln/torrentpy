@@ -7,7 +7,7 @@ import argparse
 from scripts.CSFclasses import *
 import popCSFplot as popP
 import scripts.CSFrun as csfR
-import scripts.CSFinout as csfIO
+import scripts.preproc.prpCSFinout as prpIO
 
 
 def main(catchment, outlet, gauge, root):
@@ -120,7 +120,7 @@ def calculate_drainage_area(my__network, in_folder, catchment, outlet, gauged_wb
     # Find all the waterbodies upstream of the gauge, including the gauged waterbody
     all_wb = popP.determine_gauging_zone(my__network, in_folder, catchment, outlet, gauged_wb)
     # Collect the catchment descriptors
-    my_dict_desc = csfIO.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
+    my_dict_desc = prpIO.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
     # Calculate the total upstream drainage area using the descriptor files
     drainage_area = 0.0
     for waterbody in all_wb:

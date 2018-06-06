@@ -6,8 +6,9 @@ import argparse
 from glob import glob
 
 from CSFclasses import *
-import CSFinout as csfC
+import CSFinout as csfIO
 import CSFfunctions as csfF
+import preproc.prpCSFfunctions as prpF
 
 
 def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", out_fmt="csv", is_single_run=False):
@@ -74,14 +75,14 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
         csfF.generate_models_for_links(my__network, spec_directory, input_folder, output_folder)
 
     # Create files to store simulation results
-    csfC.create_simulation_files(my__network, dict__ls_models, catchment, out_fmt, output_folder)
+    csfIO.create_simulation_files(my__network, dict__ls_models, catchment, out_fmt, output_folder)
 
     # Set the initial conditions ('blank' warm up run slice by slice) if required
     my_last_lines = dict()
     if not warm_up_in_days == 0:  # Warm-up run required
         logger.info("Determining initial conditions.")
         # Get meteo input data
-        dict__nd_meteo = csfF.get_meteo_input_for_links(my__network, my__time_frame_warm_up,
+        dict__nd_meteo = prpF.get_meteo_input_for_links(my__network, my__time_frame_warm_up,
                                                         my__time_frame_warm_up.series_data,
                                                         my__time_frame_warm_up.series_simu,
                                                         data_datetime_start, data_datetime_end,
@@ -113,7 +114,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
 
             # Get other input data
             dict__nd_loadings = \
-                csfF.get_contaminant_input_for_links(my__network, my__time_frame_warm_up,
+                prpF.get_contaminant_input_for_links(my__network, my__time_frame_warm_up,
                                                      my_data_slice, my_simu_slice,
                                                      input_folder, spec_directory) if water_quality else {}
 
@@ -146,7 +147,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
     # Simulate (run slice by slice)
     logger.info("Starting the simulation.")
     # Get meteo input data
-    dict__nd_meteo = csfF.get_meteo_input_for_links(my__network, my__time_frame,
+    dict__nd_meteo = prpF.get_meteo_input_for_links(my__network, my__time_frame,
                                                     my__time_frame.series_data, my__time_frame.series_simu,
                                                     data_datetime_start, data_datetime_end,
                                                     in_fmt, input_folder)
@@ -167,7 +168,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
             dict__nd_data[node][my_simu_slice[0]].update(my_last_lines[node])
 
         # Get other input data
-        dict__nd_loadings = csfF.get_contaminant_input_for_links(my__network, my__time_frame,
+        dict__nd_loadings = prpF.get_contaminant_input_for_links(my__network, my__time_frame,
                                                                  my_data_slice, my_simu_slice,
                                                                  input_folder, spec_directory) if water_quality else {}
 
@@ -178,9 +179,9 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
                  )
 
         # Write results in files
-        csfC.update_simulation_files(my__network, my__time_frame, my_data_slice, my_simu_slice,
-                                     dict__nd_data, dict__ls_models,
-                                     catchment, out_fmt, output_folder, report='data_gap', method='summary')
+        csfIO.update_simulation_files(my__network, my__time_frame, my_data_slice, my_simu_slice,
+                                      dict__nd_data, dict__ls_models,
+                                      catchment, out_fmt, output_folder, report='data_gap', method='summary')
 
         # Save history (last time step) for next slice
         for link in my__network.links:

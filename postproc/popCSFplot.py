@@ -8,7 +8,7 @@ import argparse
 
 from scripts.CSFclasses import *
 import popCSFinout as popIO
-import scripts.CSFinout as csfIO
+import scripts.preproc.prpCSFinout as prpIO
 import scripts.CSFrun as csfR
 
 
@@ -129,7 +129,8 @@ def set_up_plotting(catchment, outlet, input_dir):
     try:
         datetime_start_simu = datetime.datetime.strptime(question_start_simu, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        raise Exception("The simulation starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        raise Exception(
+            "The simulation starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
         question_end_simu = my_answers_df.get_value('simu_end_datetime', 'ANSWER')
     except KeyError:
@@ -137,7 +138,8 @@ def set_up_plotting(catchment, outlet, input_dir):
     try:
         datetime_end_simu = datetime.datetime.strptime(question_end_simu, '%d/%m/%Y %H:%M:%S')
     except ValueError:
-        raise Exception("The simulation ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+        raise Exception(
+            "The simulation ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
     try:
         question_simu_time_gap = my_answers_df.get_value('simu_time_gap_min', 'ANSWER')
     except KeyError:
@@ -263,7 +265,7 @@ def read_meteo_files(my__network, my__time_frame,
 
     my_data_mm = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
     my_area_m2 = np.empty(shape=(0, 1), dtype=np.float64)
-    my_dict_desc = csfIO.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
+    my_dict_desc = prpIO.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
 
     for link in links_in_zone:
         try:
@@ -280,7 +282,7 @@ def read_meteo_files(my__network, my__time_frame,
         my_data_mm = \
             np.c_[my_data_mm, np.asarray(my_df_inputs['{}'.format(meteo_type.upper())].loc[my_time_st].tolist())]
         my_area_m2 = \
-            np.r_[my_area_m2, np.array([[my_dict_desc[link]['area']]])]
+            np.r_[my_area_m2, np.asarray([[my_dict_desc[link]['area']]])]
     my_data_m = my_data_mm / 1e3  # convert mm to m of meteo data
     catchment_area = np.sum(my_area_m2)  # get the total area of the catchment
     meteo_data = my_data_m.dot(my_area_m2)  # get a list of catchment meteo data in m3
