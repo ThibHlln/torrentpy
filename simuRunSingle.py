@@ -4,8 +4,6 @@ from pandas import DataFrame
 from itertools import izip
 import argparse
 from glob import glob
-from netCDF4 import Dataset
-import numpy as np
 
 from simuClasses import *
 import simuFiles as sF
@@ -73,24 +71,21 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
 
     # Create Models for the links
     dict__ls_models, dict__c_models, dict__r_models, dict__l_models = \
-        generate_models_for_links(my__network, spec_directory, input_folder, output_folder)
+        sFn.generate_models_for_links(my__network, spec_directory, input_folder, output_folder)
 
     # Create files to store simulation results
-    if out_fmt == "netcdf":
-        create_simulation_files_netcdf(my__network, dict__ls_models, catchment, output_folder)
-    else:
-        create_simulation_files_csv(my__network, dict__ls_models, catchment, output_folder)
+    sF.create_simulation_files(my__network, dict__ls_models, catchment, out_fmt, output_folder)
 
     # Set the initial conditions ('blank' warm up run slice by slice) if required
     my_last_lines = dict()
     if not warm_up_in_days == 0:  # Warm-up run required
         logger.info("Determining initial conditions.")
         # Get meteo input data
-        dict__nd_meteo = get_meteo_input_for_links(my__network, my__time_frame_warm_up,
-                                                   my__time_frame_warm_up.series_data,
-                                                   my__time_frame_warm_up.series_simu,
-                                                   data_datetime_start, data_datetime_end,
-                                                   in_fmt, input_folder)
+        dict__nd_meteo = sFn.get_meteo_input_for_links(my__network, my__time_frame_warm_up,
+                                                       my__time_frame_warm_up.series_data,
+                                                       my__time_frame_warm_up.series_simu,
+                                                       data_datetime_start, data_datetime_end,
+                                                       in_fmt, input_folder)
         # Initialise dicts needed to link time slices together (use last time step of one as first for the other)
         for link in my__network.links:
             # For links, get a dict of the models states initial conditions from "educated guesses"
@@ -106,9 +101,9 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
             logger.info("Running Warm-Up Period {} - {}.".format(my_simu_slice[1].strftime('%d/%m/%Y %H:%M:%S'),
                                                                  my_simu_slice[-1].strftime('%d/%m/%Y %H:%M:%S')))
             # Initialise data structures
-            dict__nd_data = generate_data_structures_for_links_and_nodes(my__network,
-                                                                         my_simu_slice,
-                                                                         dict__ls_models)
+            dict__nd_data = sFn.generate_data_structures_for_links_and_nodes(my__network,
+                                                                             my_simu_slice,
+                                                                             dict__ls_models)
 
             # Get history of previous time slice last time step for initial conditions of current time slice
             for link in my__network.links:
@@ -117,9 +112,10 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
                 dict__nd_data[node][my_simu_slice[0]].update(my_last_lines[node])
 
             # Get other input data
-            dict__nd_loadings = get_contaminant_input_for_links(my__network, my__time_frame_warm_up,
-                                                                my_data_slice, my_simu_slice,
-                                                                input_folder, spec_directory) if water_quality else {}
+            dict__nd_loadings = \
+                sFn.get_contaminant_input_for_links(my__network, my__time_frame_warm_up,
+                                                    my_data_slice, my_simu_slice,
+                                                    input_folder, spec_directory) if water_quality else {}
 
             # Simulate
             simulate(my__network, my__time_frame_warm_up, my_simu_slice,
@@ -150,19 +146,19 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
     # Simulate (run slice by slice)
     logger.info("Starting the simulation.")
     # Get meteo input data
-    dict__nd_meteo = get_meteo_input_for_links(my__network, my__time_frame,
-                                               my__time_frame.series_data, my__time_frame.series_simu,
-                                               data_datetime_start, data_datetime_end,
-                                               in_fmt, input_folder)
+    dict__nd_meteo = sFn.get_meteo_input_for_links(my__network, my__time_frame,
+                                                   my__time_frame.series_data, my__time_frame.series_simu,
+                                                   data_datetime_start, data_datetime_end,
+                                                   in_fmt, input_folder)
     for my_simu_slice, my_data_slice in izip(my__time_frame.slices_simu,
                                              my__time_frame.slices_data):
 
         logger.info("Running Period {} - {}.".format(my_simu_slice[1].strftime('%d/%m/%Y %H:%M:%S'),
                                                      my_simu_slice[-1].strftime('%d/%m/%Y %H:%M:%S')))
         # Initialise data structures
-        dict__nd_data = generate_data_structures_for_links_and_nodes(my__network,
-                                                                     my_simu_slice,
-                                                                     dict__ls_models)
+        dict__nd_data = sFn.generate_data_structures_for_links_and_nodes(my__network,
+                                                                         my_simu_slice,
+                                                                         dict__ls_models)
 
         # Get history of previous time step for initial conditions of current time step
         for link in my__network.links:
@@ -171,9 +167,9 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
             dict__nd_data[node][my_simu_slice[0]].update(my_last_lines[node])
 
         # Get other input data
-        dict__nd_loadings = get_contaminant_input_for_links(my__network, my__time_frame,
-                                                            my_data_slice, my_simu_slice,
-                                                            input_folder, spec_directory) if water_quality else {}
+        dict__nd_loadings = sFn.get_contaminant_input_for_links(my__network, my__time_frame,
+                                                                my_data_slice, my_simu_slice,
+                                                                input_folder, spec_directory) if water_quality else {}
 
         # Simulate
         simulate(my__network, my__time_frame, my_simu_slice,
@@ -182,14 +178,9 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
                  )
 
         # Write results in files
-        if out_fmt == "netcdf":
-            update_simulation_files_netcdf(my__network, my__time_frame, my_data_slice, my_simu_slice,
-                                           dict__nd_data, dict__ls_models,
-                                           catchment, output_folder, report='data_gap', method='summary')
-        else:
-            update_simulation_files_csv(my__network, my__time_frame, my_data_slice, my_simu_slice,
-                                        dict__nd_data, dict__ls_models,
-                                        catchment, output_folder, report='data_gap', method='summary')
+        sF.update_simulation_files(my__network, my__time_frame, my_data_slice, my_simu_slice,
+                                   dict__nd_data, dict__ls_models,
+                                   catchment, out_fmt, output_folder, report='data_gap', method='summary')
 
         # Save history (last time step) for next slice
         for link in my__network.links:
@@ -360,195 +351,6 @@ def setup_logger(catchment, outlet, name, prefix, output_folder, is_single_run):
     logger.addHandler(s_handler)
 
 
-def generate_models_for_links(my__network, specifications_folder, input_folder, output_folder):
-    """
-    This function creates the Model objects for all the links in the network. Each link can have several models
-    (e.g. a catchment model and a reach model).
-
-    :param my__network: Network object for the simulated catchment
-    :type my__network: Network
-    :param specifications_folder:
-    :param input_folder: path to the output folder where to save the simulation files
-    :param output_folder: path to the output folder where to save the simulation files
-    :type output_folder: str()
-    :return: dictionary containing all the Model objects generated
-        {key: link, value: list of Model objects}
-    :rtype: dict
-    """
-    dict__c_models = dict()  # key: waterbody, value: catchment model object
-    dict__r_models = dict()  # key: waterbody, value: river model object
-    dict__l_models = dict()  # key: waterbody, value: lake model object
-    dict__ls_models = dict()   # key: waterbody, value: list of river model objects
-    if my__network.waterQuality:
-        for link in my__network.links:
-            # Declare Model objects
-            if my__network.categories[link] == "11":  # river headwater
-                dict__c_models[link] = Model("CATCHMENT", "SMART_INCAL", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
-                dict__r_models[link] = Model("RIVER", "LINRES_INCAS", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
-                dict__ls_models[link] = [dict__c_models[link], dict__r_models[link]]
-            elif my__network.categories[link] == "10":  # river
-                dict__c_models[link] = Model("CATCHMENT", "SMART_INCAL", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
-                dict__r_models[link] = Model("RIVER", "LINRES_INCAS", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
-                dict__ls_models[link] = [dict__c_models[link], dict__r_models[link]]
-            elif my__network.categories[link] == "20":  # lake
-                dict__l_models[link] = Model("LAKE", "BATHTUB", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
-                dict__ls_models[link] = [dict__l_models[link]]
-                # For now, no direct rainfall on open water in model
-                # need to be changed, but to do so, need remove lake polygon from sub-basin polygon)
-            else:  # unknown (e.g. 21 would be a lake headwater)
-                raise Exception("Waterbody {}: {} is not a registered type of waterbody.".format(
-                    link, my__network.categories[link]))
-    else:
-        for link in my__network.links:
-            # Declare Model objects
-            if my__network.categories[link] == "11":  # river headwater
-                dict__c_models[link] = Model("CATCHMENT", "SMART", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
-                dict__r_models[link] = Model("RIVER", "LINRES", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
-                dict__ls_models[link] = [dict__c_models[link], dict__r_models[link]]
-            elif my__network.categories[link] == "10":  # river
-                dict__c_models[link] = Model("CATCHMENT", "SMART", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
-                dict__r_models[link] = Model("RIVER", "LINRES", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
-                dict__ls_models[link] = [dict__c_models[link], dict__r_models[link]]
-            elif my__network.categories[link] == "20":  # lake
-                dict__l_models[link] = Model("LAKE", "BATHTUB", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
-                dict__ls_models[link] = [dict__l_models[link]]
-                # For now, no direct rainfall on open water in model
-                # need to be changed, but to do so, need remove lake polygon from sub-basin polygon)
-            else:  # unknown (e.g. 21 would be a lake headwater)
-                raise Exception("Waterbody {}: {} is not a registered type of waterbody.".format(
-                    link, my__network.categories[link]))
-
-    return dict__ls_models, dict__c_models, dict__r_models, dict__l_models
-
-
-def generate_data_structures_for_links_and_nodes(my__network, my_simu_slice, dict__ls_models):
-    """
-    This function generates a nested dictionary for each node and for each link and stores them in a single dictionary
-    that is returned. Each nested dictionary has the dimension of the simulation time slice times the number of
-    variables (inputs, states, and outputs) for all the models of the link.
-
-    :param my__network: Network object for the simulated catchment
-    :type my__network: Network
-    :param my_simu_slice: list of DateTime to be simulated
-    :type my_simu_slice: list
-    :param dict__ls_models: dictionary containing the list of models for each link
-        { key = link: value = list of Model objects }
-    :type dict__ls_models: dict
-    :return: dictionary containing the nested dictionaries
-        { key = link: value = nested_dictionary(index=datetime,column=model_variables) }
-    :rtype: dict
-    """
-    logger = logging.getLogger('SingleRun.main')
-    logger.info("> Generating data structures.")
-    dict__nd_data = dict()  # key: waterbody, value: data frame (x: time step, y: data type)
-    # Create NestedDicts for the nodes
-    for node in my__network.nodes:
-        my_dict_with_variables = {c: 0.0 for c in my__network.variables}
-        dict__nd_data[node] = \
-            {i: dict(my_dict_with_variables) for i in my_simu_slice}
-    # Create NestedDicts for the links
-    for link in my__network.links:
-        # Create NestedDicts for the links
-        my_headers = list()
-        for model in dict__ls_models[link]:
-            my_headers += model.input_names + model.state_names + model.process_names + model.output_names
-        my_dict_with_headers = {c: 0.0 for c in my_headers}
-        dict__nd_data[link] = \
-            {i: dict(my_dict_with_headers) for i in my_simu_slice}
-
-    return dict__nd_data
-
-
-def get_meteo_input_for_links(my__network, my__time_frame, my_data_slice, my_simu_slice,
-                              datetime_start_data, datetime_end_data,
-                              input_format, input_folder):
-    """
-    This function generates a nested dictionary for each link and stores them in a single dictionary that is returned.
-    Each nested dictionary has the dimension of the simulation time slice times the number of meteorological variables.
-
-    :param my__network: Network object for the simulated catchment
-    :type my__network: Network
-    :param my__time_frame: TimeFrame object for the simulation period
-    :type my__time_frame: TimeFrame
-    :param my_data_slice: list of DateTime corresponding to the simulation slice (separated by the data time gap)
-    :type my_data_slice: list()
-    :param my_simu_slice: list of DateTime to be simulated (separated by the simulation time gap)
-    :type my_simu_slice: list()
-    :param datetime_start_data: datetime of the first data in the meteorological files (used in file name)
-    :type datetime_start_data: Datetime.Datetime
-    :param datetime_end_data: datetime of the last data in the meteorological files (used in file name)
-    :type datetime_end_data: Datetime.Datetime
-    :param input_folder: path to the input folder where to find the meteorological files
-    :type input_folder: str()
-    :return: dictionary containing the nested dictionaries
-        { key = link: value = nested_dictionary(index=datetime,column=meteo_variables) }
-    :rtype: dict
-    """
-    logger = logging.getLogger('SingleRun.main')
-    # Read the meteorological input files
-    logger.info("> Reading meteorological files.")
-    dict__nd_meteo = dict()  # key: waterbody, value: data frame (x: time step, y: meteo data type)
-
-    if input_format == "netcdf":
-        get_meteo = sF.get_nd_meteo_data_from_netcdf_file
-    else:
-        get_meteo = sF.get_nd_meteo_data_from_csv_file
-
-    for link in my__network.links:
-        dict__nd_meteo[link] = get_meteo(my__network.name, link, my__time_frame,
-                                         my_data_slice, my_simu_slice,
-                                         datetime_start_data, datetime_end_data, input_folder)
-
-    return dict__nd_meteo
-
-
-def get_contaminant_input_for_links(my__network, my__time_frame, my_data_slice, my_simu_slice,
-                                    input_folder, specifications_folder):
-    """
-    This function generates a nested dictionary for each link and stores them in a single dictionary that is returned.
-    Each nested dictionary has the dimension of the simulation time slice times the number of contaminant inputs.
-
-    :param my__network: Network object for the simulated catchment
-    :type my__network: Network
-    :param my__time_frame: TimeFrame object for the simulation period
-    :type my__time_frame: TimeFrame
-    :param my_data_slice: list of DateTime corresponding to the simulation slice (separated by the data time gap)
-    :type my_data_slice: list()
-    :param my_simu_slice: list of DateTime to be simulated (separated by the simulation time gap)
-    :type my_simu_slice: list()
-    :param input_folder: path to the input folder where to find the loadings file and the applications file
-    :type input_folder: str()
-    :param specifications_folder: path to the specification folder where to find the distributions file
-    :type specifications_folder: str()
-    :return: dictionary containing the nested dictionaries
-        { key = link: value = nested_dictionary(index=datetime,column=contaminant_inputs) }
-    :rtype: dict
-    """
-    logger = logging.getLogger('SingleRun.main')
-    # Read the annual loadings file and the application files to distribute the loadings for each time step
-    logger.info("> Reading loadings files.")
-    dict__nd_loadings = dict()
-    dict_annual_loads = sF.get_nd_from_file(my__network, input_folder, extension='loadings', var_type=float)
-    dict_applications = sF.get_nd_from_file(my__network, input_folder, extension='applications', var_type=str)
-    nd_distributions = sF.get_nd_distributions_from_file(specifications_folder)
-    for link in my__network.links:
-        dict__nd_loadings[link] = sFn.distribute_loadings_across_year(dict_annual_loads, dict_applications,
-                                                                      nd_distributions, link,
-                                                                      my__time_frame, my_data_slice, my_simu_slice)
-
-    return dict__nd_loadings
-
-
 def simulate(my__network, my__time_frame, my_simu_slice,
              dict__nd_data, dict__nd_meteo, dict__nd_loadings,
              dict__c_models, dict__r_models, dict__l_models):
@@ -691,490 +493,6 @@ def simulate(my__network, my__time_frame, my_simu_slice,
                 if q_h2o > 0.0:
                     dict__nd_data[node][step][variable] = my_dict_variables[variable] / q_h2o
                 my_dict_variables[variable] = 0.0
-
-
-def create_simulation_files_csv(my__network, dict__ls_models,
-                                catchment, output_folder):
-    """
-    This function creates a CSV file for each node and for each link and it adds the relevant headers for the
-    inputs, the states, and the outputs.
-
-    :param my__network: Network object for the simulated catchment
-    :type my__network: Network
-    :param dict__ls_models: dictionary containing the list of models for each link
-        { key = link: value = list of Model objects }
-    :type dict__ls_models: dict()
-    :param catchment: name of the catchment needed to name the simulation files
-    :type catchment: str()
-    :param output_folder: path to the output folder where to save the simulation files
-    :type output_folder: str()
-    :return: NOTHING, only creates the files in the output folder
-    """
-    logger = logging.getLogger('SingleRun.main')
-    logger.info("Creating files for results.")
-    # Create the CSV files with headers for the nodes (separating inputs, states, and outputs)
-    for link in my__network.links:
-        my_inputs = list()
-        my_states = list()
-        my_outputs = list()
-
-        for model in dict__ls_models[link]:
-            my_inputs += model.input_names
-            my_states += model.state_names
-            my_outputs += model.output_names
-
-        with open('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link), 'wb') as my_file:
-            my_writer = csv.writer(my_file, delimiter=',')
-            my_writer.writerow(['DateTime'] + my_inputs)
-
-        with open('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link), 'wb') as my_file:
-            my_writer = csv.writer(my_file, delimiter=',')
-            my_writer.writerow(['DateTime'] + my_states)
-
-        with open('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link), 'wb') as my_file:
-            my_writer = csv.writer(my_file, delimiter=',')
-            my_writer.writerow(['DateTime'] + my_outputs)
-
-    # Create the CSV files with headers for the nodes
-    for node in my__network.nodes:
-        with open('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node), 'wb') as my_file:
-            my_writer = csv.writer(my_file, delimiter=',')
-            my_writer.writerow(['DateTime'] + my__network.variables)
-
-
-def update_simulation_files_csv(my__network, my__tf, my_data_slice, my_simu_slice,
-                                dict__nd_data, dict__ls_models,
-                                catchment, output_folder, report='data_gap', method='raw'):
-    """
-    This function saves the simulation variables into the CSV files for the nodes and the links.
-    It features two arguments:
-     - "report" allows to choose which time gap to use to report the simulation variables ('data_gap' or 'simu_gap');
-     - "method" allows to choose how to deal with the report of results at a coarser time scale than the simulated
-      time gap:
-        -> If 'summary' is chosen
-         --> the inputs are summed up across all the simulation time steps included in the reporting gap
-             (e.g. previous 24 hourly time steps summed up for each day when daily data simulated hourly)
-         --> the states/outputs/nodes are averaged across all the simulation time steps included in the reporting gap
-             (e.g. previous 24 hourly time steps averaged for each day when daily data simulated hourly)
-        -> If 'raw' is chosen
-         --> the inputs/states/outputs/nodes for the exact time steps corresponding to the data time gap end are
-             reported (e.g. when daily data simulated hourly, only the value for the last hourly time step is
-             reported for each day, the other 23 hourly time steps are not explicitly used)
-
-    N.B. (report = 'simu_gap', method = 'raw') and (report = 'simu_gap', method = 'average') yield identical output
-    files because the average is applied to only one data value.
-
-    :param my__network: Network object for the simulated catchment
-    :type my__network: Network
-    :param my__tf: TimeFrame object for the simulation period
-    :type my__tf: TimeFrame
-    :param my_data_slice: list of datetime for the period simulated (separated by data time gap)
-    :type my_data_slice: list()
-    :param my_simu_slice: list of datetime for the period simulated (separated by simulated time gap)
-    :type my_simu_slice: list()
-    :param dict__nd_data: dictionary containing the nested dictionaries for the nodes and the links for variables
-        { key = link/node: value = nested_dictionary(index=datetime,column=variable) }
-    :type dict__nd_data: dict()
-    :param dict__ls_models: dictionary containing the list of models for each link
-        { key = link: value = list of Model objects }
-    :type dict__ls_models: dict()
-    :param catchment: name of the catchment needed to name the simulation files
-    :type catchment: str()
-    :param output_folder: path to the output folder where to save the simulation files
-    :type output_folder: str()
-    :param report: choice on the time gap to report simulation variables :
-     'simu_gap' = at the simulation gap / 'data_gap' = only at the data gap
-    :type report: str()
-    :param method: choice on the technique to process simulation variables when reporting time gap > simu time gap :
-     'summary' = sums for inputs and averages for the rest / 'raw' = last values only for all
-    :type method: str()
-    :return: NOTHING, only updates the files in the output folder
-    """
-    logger = logging.getLogger('SingleRun.main')
-
-    logger.info("> Updating results in files.")
-
-    # Select the relevant list of DateTime given the argument used during function call
-    if report == 'data_gap':
-        my_list_datetime = my_data_slice  # list of reporting time steps
-        simu_steps_per_reporting_step = my__tf.gap_data / my__tf.gap_simu
-    elif report == 'simu_gap':
-        my_list_datetime = my_simu_slice  # list of reporting time steps
-        simu_steps_per_reporting_step = 1
-    else:
-        raise Exception('Unknown reporting time gap for updating simulations files.')
-
-    if method == 'summary':
-        # Save the Nested Dicts for the links (separating inputs, states, and outputs)
-        for link in my__network.links:
-            my_inputs = list()
-            my_states = list()
-            my_outputs = list()
-
-            for model in dict__ls_models[link]:
-                my_inputs += model.input_names
-                my_states += model.state_names
-                my_outputs += model.output_names
-
-            with open('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
-                my_writer = csv.writer(my_file, delimiter=',')
-                for step in my_list_datetime[1:]:
-                    my_list = list()
-                    for my_input in my_inputs:
-                        my_values = list()
-                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
-                            my_values.append(
-                                dict__nd_data[link][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_input])
-                        my_list.append('%e' % sum(my_values))
-                    my_writer.writerow([step] + my_list)
-
-            with open('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
-                my_writer = csv.writer(my_file, delimiter=',')
-                for step in my_list_datetime[1:]:
-                    my_list = list()
-                    for my_state in my_states:
-                        my_values = list()
-                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
-                            my_values.append(
-                                dict__nd_data[link][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_state])
-                        my_list.append('%e' % (sum(my_values) / len(my_values)))
-                    my_writer.writerow([step] + my_list)
-
-            with open('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
-                my_writer = csv.writer(my_file, delimiter=',')
-                for step in my_list_datetime[1:]:
-                    my_list = list()
-                    for my_output in my_outputs:
-                        my_values = list()
-                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
-                            my_values.append(
-                                dict__nd_data[link][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_output])
-                        my_list.append('%e' % (sum(my_values) / len(my_values)))
-                    my_writer.writerow([step] + my_list)
-
-        # Save the Nested Dicts for the nodes
-        for node in my__network.nodes:
-            with open('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node), 'ab') as my_file:
-                my_writer = csv.writer(my_file, delimiter=',')
-                for step in my_list_datetime[1:]:
-                    my_list = list()
-                    for my_variable in my__network.variables:
-                        my_values = list()
-                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
-                            my_values.append(
-                                dict__nd_data[node][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_variable])
-                        my_list.append('%e' % (sum(my_values) / len(my_values)))
-                    my_writer.writerow([step] + my_list)
-
-    elif method == 'raw':
-        # Save the Nested Dicts for the links (separating inputs, states, and outputs)
-        for link in my__network.links:
-            my_inputs = list()
-            my_states = list()
-            my_outputs = list()
-
-            for model in dict__ls_models[link]:
-                my_inputs += model.input_names
-                my_states += model.state_names
-                my_outputs += model.output_names
-
-            with open('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
-                my_writer = csv.writer(my_file, delimiter=',')
-                for step in my_list_datetime[1:]:
-                    my_writer.writerow([step] + ['%e' % dict__nd_data[link][step][my_input]
-                                                 for my_input in my_inputs])
-            with open('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
-                my_writer = csv.writer(my_file, delimiter=',')
-                for step in my_list_datetime[1:]:
-                    my_writer.writerow([step] + ['%e' % dict__nd_data[link][step][my_state]
-                                                 for my_state in my_states])
-            with open('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
-                my_writer = csv.writer(my_file, delimiter=',')
-                for step in my_list_datetime[1:]:
-                    my_writer.writerow([step] + ['%e' % dict__nd_data[link][step][my_output]
-                                                 for my_output in my_outputs])
-
-        # Save the Nested Dicts for the nodes
-        for node in my__network.nodes:
-            with open('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node), 'ab') as my_file:
-                my_writer = csv.writer(my_file, delimiter=',')
-                for step in my_list_datetime[1:]:
-                    my_writer.writerow([step] + ['%e' % dict__nd_data[node][step][my_variable]
-                                                 for my_variable in my__network.variables])
-
-    else:
-        raise Exception("Unknown method for updating simulations files.")
-
-
-def create_simulation_files_netcdf(my__network, dict__ls_models,
-                                   catchment, output_folder):
-    """
-    This function creates a NetCDF4 file for each node and for each link and it adds the relevant headers for the
-    inputs, the states, and the outputs.
-
-    :param my__network: Network object for the simulated catchment
-    :type my__network: Network
-    :param dict__ls_models: dictionary containing the list of models for each link
-        { key = link: value = list of Model objects }
-    :type dict__ls_models: dict()
-    :param catchment: name of the catchment needed to name the simulation files
-    :type catchment: str()
-    :param output_folder: path to the output folder where to save the simulation files
-    :type output_folder: str()
-    :return: NOTHING, only creates the files in the output folder
-    """
-    logger = logging.getLogger('SingleRun.main')
-    logger.info("Creating files for results.")
-    # Create the NetCDF4 files with headers for the nodes (separating inputs, states, and outputs)
-    for link in my__network.links:
-        my_inputs = list()
-        my_states = list()
-        my_outputs = list()
-
-        for model in dict__ls_models[link]:
-            my_inputs += model.input_names
-            my_states += model.state_names
-            my_outputs += model.output_names
-
-        with Dataset('{}{}_{}.inputs.nc'.format(output_folder, catchment.capitalize(), link), 'w') as my_file:
-            my_file.createDimension("DateTime", None)
-            t = my_file.createVariable("DateTime", np.float64, ("DateTime",), zlib=True)
-            t.units = 'seconds since 1970-01-01 00:00:00.0'
-            for my_input in my_inputs:
-                my_file.createVariable(my_input, np.float64, ("DateTime",), zlib=True, complevel=1)
-
-        with Dataset('{}{}_{}.states.nc'.format(output_folder, catchment.capitalize(), link), 'w') as my_file:
-            my_file.createDimension("DateTime", None)
-            t = my_file.createVariable("DateTime", np.float64, ("DateTime",), zlib=True)
-            t.units = 'seconds since 1970-01-01 00:00:00.0'
-            for my_state in my_states:
-                my_file.createVariable(my_state, np.float64, ("DateTime",), zlib=True, complevel=1)
-
-        with Dataset('{}{}_{}.outputs.nc'.format(output_folder, catchment.capitalize(), link), 'w') as my_file:
-            my_file.createDimension("DateTime", None)
-            t = my_file.createVariable("DateTime", np.float64, ("DateTime",), zlib=True)
-            t.units = 'seconds since 1970-01-01 00:00:00.0'
-            for my_output in my_outputs:
-                my_file.createVariable(my_output, np.float64, ("DateTime",), zlib=True, complevel=1)
-
-    # Create the NetCDF4 files with headers for the nodes
-    for node in my__network.nodes:
-        with Dataset('{}{}_{}.node.nc'.format(output_folder, catchment.capitalize(), node), 'w') as my_file:
-            my_file.createDimension("DateTime", None)
-            t = my_file.createVariable("DateTime", np.float64, ("DateTime",), zlib=True)
-            t.units = 'seconds since 1970-01-01 00:00:00.0'
-            for my_variable in my__network.variables:
-                my_file.createVariable(my_variable, np.float64, ("DateTime",), zlib=True, complevel=1)
-
-
-def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_slice,
-                                   dict__nd_data, dict__ls_models,
-                                   catchment, output_folder, report='data_gap', method='raw'):
-    """
-    This function saves the simulation variables into the CSV files for the nodes and the links.
-    It features two arguments:
-     - "report" allows to choose which time gap to use to report the simulation variables ('data_gap' or 'simu_gap');
-     - "method" allows to choose how to deal with the report of results at a coarser time scale than the simulated
-      time gap:
-        -> If 'summary' is chosen
-         --> the inputs are summed up across all the simulation time steps included in the reporting gap
-             (e.g. previous 24 hourly time steps summed up for each day when daily data simulated hourly)
-         --> the states/outputs/nodes are averaged across all the simulation time steps included in the reporting gap
-             (e.g. previous 24 hourly time steps averaged for each day when daily data simulated hourly)
-        -> If 'raw' is chosen
-         --> the inputs/states/outputs/nodes for the exact time steps corresponding to the data time gap end are
-             reported (e.g. when daily data simulated hourly, only the value for the last hourly time step is
-             reported for each day, the other 23 hourly time steps are not explicitly used)
-
-    N.B. (report = 'simu_gap', method = 'raw') and (report = 'simu_gap', method = 'average') yield identical output
-    files because the average is applied to only one data value.
-
-    :param my__network: Network object for the simulated catchment
-    :type my__network: Network
-    :param my__tf: TimeFrame object for the simulation period
-    :type my__tf: TimeFrame
-    :param my_data_slice: list of datetime for the period simulated (separated by data time gap)
-    :type my_data_slice: list()
-    :param my_simu_slice: list of datetime for the period simulated (separated by simulated time gap)
-    :type my_simu_slice: list()
-    :param dict__nd_data: dictionary containing the nested dictionaries for the nodes and the links for variables
-        { key = link/node: value = nested_dictionary(index=datetime,column=variable) }
-    :type dict__nd_data: dict()
-    :param dict__ls_models: dictionary containing the list of models for each link
-        { key = link: value = list of Model objects }
-    :type dict__ls_models: dict()
-    :param catchment: name of the catchment needed to name the simulation files
-    :type catchment: str()
-    :param output_folder: path to the output folder where to save the simulation files
-    :type output_folder: str()
-    :param report: choice on the time gap to report simulation variables :
-     'simu_gap' = at the simulation gap / 'data_gap' = only at the data gap
-    :type report: str()
-    :param method: choice on the technique to process simulation variables when reporting time gap > simu time gap :
-     'summary' = sums for inputs and averages for the rest / 'raw' = last values only for all
-    :type method: str()
-    :return: NOTHING, only updates the files in the output folder
-    """
-    logger = logging.getLogger('SingleRun.main')
-
-    logger.info("> Updating results in files.")
-
-    # Select the relevant list of DateTime given the argument used during function call
-    if report == 'data_gap':
-        my_list_datetime = my_data_slice  # list of reporting time steps
-        simu_steps_per_reporting_step = my__tf.gap_data / my__tf.gap_simu
-    elif report == 'simu_gap':
-        my_list_datetime = my_simu_slice  # list of reporting time steps
-        simu_steps_per_reporting_step = 1
-    else:
-        raise Exception('Unknown reporting time gap for updating simulations files.')
-
-    my_stamps = \
-        (np.asarray(my_list_datetime[1:], dtype='datetime64[us]') - np.datetime64('1970-01-01T00:00:00Z')) / \
-        np.timedelta64(1, 's')
-
-    if method == 'summary':
-        # Save the Nested Dicts for the links (separating inputs, states, and outputs)
-        for link in my__network.links:
-            my_inputs = list()
-            my_states = list()
-            my_outputs = list()
-
-            for model in dict__ls_models[link]:
-                my_inputs += model.input_names
-                my_states += model.state_names
-                my_outputs += model.output_names
-
-            with Dataset('{}{}_{}.inputs.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
-                my_values = {my_input: list() for my_input in my_inputs}
-                for step in my_list_datetime[1:]:
-                    for my_input in my_inputs:
-                        my_sum = 0.0
-                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
-                            my_sum += \
-                                dict__nd_data[link][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_input]
-                        my_values[my_input].append(my_sum)
-                start_idx, end_idx = \
-                    len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
-                my_file.variables['DateTime'][start_idx:end_idx] = my_stamps
-                for my_input in my_inputs:
-                    my_file.variables[my_input][start_idx:end_idx] = my_values[my_input]
-
-            with Dataset('{}{}_{}.states.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
-                my_values = {my_state: list() for my_state in my_states}
-                for step in my_list_datetime[1:]:
-                    for my_state in my_states:
-                        my_sum = 0.0
-                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
-                            my_sum += \
-                                dict__nd_data[link][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_state]
-                        my_values[my_state].append(my_sum)
-                start_idx, end_idx = \
-                    len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
-                my_file.variables['DateTime'][start_idx:end_idx] = my_stamps
-                for my_state in my_states:
-                    my_file.variables[my_state][start_idx:end_idx] = my_values[my_state]
-
-            with Dataset('{}{}_{}.outputs.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
-                my_values = {my_output: list() for my_output in my_outputs}
-                for step in my_list_datetime[1:]:
-                    for my_output in my_outputs:
-                        my_sum = 0.0
-                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
-                            my_sum += \
-                                dict__nd_data[link][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_output]
-                        my_values[my_output].append(my_sum)
-                start_idx, end_idx = \
-                    len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
-                my_file.variables['DateTime'][start_idx:end_idx] = my_stamps
-                for my_output in my_outputs:
-                    my_file.variables[my_output][start_idx:end_idx] = my_values[my_output]
-
-        # Save the Nested Dicts for the nodes
-        for node in my__network.nodes:
-            with Dataset('{}{}_{}.node.nc'.format(output_folder, catchment.capitalize(), node), 'a') as my_file:
-                my_values = {my_variable: list() for my_variable in my__network.variables}
-                for step in my_list_datetime[1:]:
-                    for my_variable in my__network.variables:
-                        my_sum = 0.0
-                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
-                            my_sum += \
-                                dict__nd_data[node][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_variable]
-                        my_values[my_variable].append(my_sum)
-                start_idx, end_idx = \
-                    len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
-                my_file.variables['DateTime'][start_idx:end_idx] = my_stamps
-                for my_variable in my__network.variables:
-                    my_file.variables[my_variable][start_idx:end_idx] = my_values[my_variable]
-
-    elif method == 'raw':
-        # Save the Nested Dicts for the links (separating inputs, states, and outputs)
-        for link in my__network.links:
-            my_inputs = list()
-            my_states = list()
-            my_outputs = list()
-
-            for model in dict__ls_models[link]:
-                my_inputs += model.input_names
-                my_states += model.state_names
-                my_outputs += model.output_names
-
-            with Dataset('{}{}_{}.inputs.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
-                my_values = {my_input: list() for my_input in my_inputs}
-                for step in my_list_datetime[1:]:
-                    for my_input in my_inputs:
-                        my_values[my_input].append(dict__nd_data[link][step][my_input])
-                start_idx, end_idx = \
-                    len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
-                my_file.variables['DateTime'][start_idx:end_idx] = my_stamps
-                for my_input in my_inputs:
-                    my_file.variables[my_input][start_idx:end_idx] = my_values[my_input]
-
-            with Dataset('{}{}_{}.states.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
-                my_values = {my_state: list() for my_state in my_states}
-                for step in my_list_datetime[1:]:
-                    for my_state in my_states:
-                        my_values[my_state].append(dict__nd_data[link][step][my_state])
-                start_idx, end_idx = \
-                    len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
-                my_file.variables['DateTime'][start_idx:end_idx] = my_stamps
-                for my_state in my_states:
-                    my_file.variables[my_state][start_idx:end_idx] = my_values[my_state]
-
-            with Dataset('{}{}_{}.outputs.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
-                my_values = {my_output: list() for my_output in my_outputs}
-                for step in my_list_datetime[1:]:
-                    for my_output in my_outputs:
-                        my_values[my_output].append(dict__nd_data[link][step][my_output])
-                start_idx, end_idx = \
-                    len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
-                my_file.variables['DateTime'][start_idx:end_idx] = my_stamps
-                for my_output in my_outputs:
-                    my_file.variables[my_output][start_idx:end_idx] = my_values[my_output]
-
-        # Save the Nested Dicts for the nodes
-        for node in my__network.nodes:
-            with Dataset('{}{}_{}.node.nc'.format(output_folder, catchment.capitalize(), node), 'a') as my_file:
-                my_values = {my_variable: list() for my_variable in my__network.variables}
-                for step in my_list_datetime[1:]:
-                    for my_variable in my__network.variables:
-                        my_values[my_variable].append(dict__nd_data[node][step][my_variable])
-                start_idx, end_idx = \
-                    len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
-                my_file.variables['DateTime'][start_idx:end_idx] = my_stamps
-                for my_variable in my__network.variables:
-                    my_file.variables[my_variable][start_idx:end_idx] = my_values[my_variable]
-
-    else:
-        raise Exception("Unknown method for updating simulations files.")
 
 
 def valid_file_format(fmt):
