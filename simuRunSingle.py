@@ -1057,7 +1057,7 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
                     len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
                 my_file.variables['DateTime'][start_idx:end_idx] = my_stamps
                 for my_input in my_inputs:
-                    my_file.variables['DateTime'][start_idx:end_idx] = my_values[my_input]
+                    my_file.variables[my_input][start_idx:end_idx] = my_values[my_input]
 
             with Dataset('{}{}_{}.states.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
                 my_values = {my_state: list() for my_state in my_states}
@@ -1073,7 +1073,7 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
                     len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
                 my_file.variables['DateTime'][start_idx:end_idx] = my_stamps
                 for my_state in my_states:
-                    my_file.variables['DateTime'][start_idx:end_idx] = my_values[my_state]
+                    my_file.variables[my_state][start_idx:end_idx] = my_values[my_state]
 
             with Dataset('{}{}_{}.outputs.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
                 my_values = {my_output: list() for my_output in my_outputs}
@@ -1089,7 +1089,7 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
                     len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
                 my_file.variables['DateTime'][start_idx:end_idx] = my_stamps
                 for my_output in my_outputs:
-                    my_file.variables['DateTime'][start_idx:end_idx] = my_values[my_output]
+                    my_file.variables[my_output][start_idx:end_idx] = my_values[my_output]
 
         # Save the Nested Dicts for the nodes
         for node in my__network.nodes:
@@ -1107,8 +1107,8 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
                     len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
                 my_file.variables['DateTime'][start_idx:end_idx] = my_stamps
                 for my_variable in my__network.variables:
-                    my_file.variables['DateTime'][start_idx:end_idx] = my_values[my_variable]
-                    
+                    my_file.variables[my_variable][start_idx:end_idx] = my_values[my_variable]
+
     elif method == 'raw':
         # Save the Nested Dicts for the links (separating inputs, states, and outputs)
         for link in my__network.links:
@@ -1130,8 +1130,8 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
                     len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
                 my_file.variables['DateTime'][start_idx:end_idx] = my_stamps
                 for my_input in my_inputs:
-                    my_file.variables['DateTime'][start_idx:end_idx] = my_values[my_input]
-                    
+                    my_file.variables[my_input][start_idx:end_idx] = my_values[my_input]
+
             with Dataset('{}{}_{}.states.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
                 my_values = {my_state: list() for my_state in my_states}
                 for step in my_list_datetime[1:]:
@@ -1141,8 +1141,8 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
                     len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
                 my_file.variables['DateTime'][start_idx:end_idx] = my_stamps
                 for my_state in my_states:
-                    my_file.variables['DateTime'][start_idx:end_idx] = my_values[my_state]
-                    
+                    my_file.variables[my_state][start_idx:end_idx] = my_values[my_state]
+
             with Dataset('{}{}_{}.outputs.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
                 my_values = {my_output: list() for my_output in my_outputs}
                 for step in my_list_datetime[1:]:
@@ -1152,8 +1152,8 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
                     len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
                 my_file.variables['DateTime'][start_idx:end_idx] = my_stamps
                 for my_output in my_outputs:
-                    my_file.variables['DateTime'][start_idx:end_idx] = my_values[my_output]
-        
+                    my_file.variables[my_output][start_idx:end_idx] = my_values[my_output]
+
         # Save the Nested Dicts for the nodes
         for node in my__network.nodes:
             with Dataset('{}{}_{}.node.nc'.format(output_folder, catchment.capitalize(), node), 'a') as my_file:
@@ -1165,7 +1165,7 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
                     len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
                 my_file.variables['DateTime'][start_idx:end_idx] = my_stamps
                 for my_variable in my__network.variables:
-                    my_file.variables['DateTime'][start_idx:end_idx] = my_values[my_variable]
+                    my_file.variables[my_variable][start_idx:end_idx] = my_values[my_variable]
 
     else:
         raise Exception("Unknown method for updating simulations files.")
