@@ -12,7 +12,7 @@ def create_subset_flow_file(catchment, link, catchment_area, gauge, gauged_area,
 
     flow_label = 'flow'
 
-    my_dt_series = [step for step in my_tf.series_data[1:] if (step >= plot_dt_start) and (step <= plot_dt_end)]
+    my_dt_series = [step for step in my_tf.needed_data_series if (step >= plot_dt_start) and (step <= plot_dt_end)]
 
     if not gauged_area == -999.00:  # i.e. the gauged area is known
         try:

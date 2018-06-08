@@ -5,6 +5,8 @@ from matplotlib import dates
 import matplotlib.pyplot as plt
 import logging
 import argparse
+from datetime import datetime
+from os import path
 
 from scripts.CSFclasses import *
 import popCSFinout as popIO
@@ -28,15 +30,16 @@ def main(catchment, outlet, gauge, root):
 
     # Set up the plotting session (either with .simulation file or through the console)
     data_datetime_start, data_datetime_end, data_time_gap_in_min, \
-        simu_datetime_start, simu_datetime_end, simu_time_gap_in_min, \
-        plot_datetime_start, plot_datetime_end = \
+        save_datetime_start, save_datetime_end, save_time_gap_in_min, \
+        plot_datetime_start, plot_datetime_end,\
+        simu_time_gap_in_min = \
         set_up_plotting(catchment, outlet, input_directory)
 
     # Precise the specific folders to use in the directories
     input_folder = "{}{}_{}/".format(input_directory, catchment, outlet)
     output_folder = "{}{}_{}_{}_{}/".format(output_directory, catchment, outlet,
-                                            simu_datetime_start.strftime("%Y%m%d"),
-                                            simu_datetime_end.strftime("%Y%m%d"))
+                                            save_datetime_start.strftime("%Y%m%d%H%M%S"),
+                                            save_datetime_end.strftime("%Y%m%d%H%M%S"))
 
     # Determine gauged waterbody associated to the hydrometric gauge
     gauged_waterbody, gauged_area = find_waterbody_from_gauge(input_folder, catchment, outlet, gauge)
@@ -48,7 +51,8 @@ def main(catchment, outlet, gauge, root):
 
     # Create a TimeFrame object
     my__time_frame = TimeFrame(data_datetime_start, data_datetime_end,
-                               int(data_time_gap_in_min), int(simu_time_gap_in_min), 0)
+                               save_datetime_start, save_datetime_end,
+                               int(data_time_gap_in_min), int(save_time_gap_in_min), int(simu_time_gap_in_min), 0)
 
     # Create a Network object from network and waterBodies files
     my__network = Network(catchment, outlet, input_folder, spec_directory)
@@ -58,7 +62,6 @@ def main(catchment, outlet, gauge, root):
         read_meteo_files(my__network, my__time_frame,
                          catchment, outlet,
                          'rain',
-                         data_datetime_start, data_datetime_end,
                          gauged_waterbody,
                          input_folder, output_folder)
 
@@ -66,7 +69,6 @@ def main(catchment, outlet, gauge, root):
     read_meteo_files(my__network, my__time_frame,
                      catchment, outlet,
                      'peva',
-                     data_datetime_start, data_datetime_end,
                      gauged_waterbody,
                      input_folder, output_folder)
 
@@ -103,17 +105,19 @@ def set_up_plotting(catchment, outlet, input_dir):
     except KeyError:
         question_start_data = raw_input('Starting date for data? [format DD/MM/YYYY HH:MM:SS] ')
     try:
-        datetime_start_data = datetime.datetime.strptime(question_start_data, '%d/%m/%Y %H:%M:%S')
+        datetime_start_data = datetime.strptime(question_start_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
         raise Exception("The data starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+
     try:
         question_end_data = my_answers_df.get_value('data_end_datetime', 'ANSWER')
     except KeyError:
         question_end_data = raw_input('Ending date for data? [format DD/MM/YYYY HH:MM:SS] ')
     try:
-        datetime_end_data = datetime.datetime.strptime(question_end_data, '%d/%m/%Y %H:%M:%S')
+        datetime_end_data = datetime.strptime(question_end_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
         raise Exception("The data ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+
     try:
         question_data_time_gap = my_answers_df.get_value('data_time_gap_min', 'ANSWER')
     except KeyError:
@@ -122,24 +126,36 @@ def set_up_plotting(catchment, outlet, input_dir):
         data_time_gap_in_min = float(int(question_data_time_gap))
     except ValueError:
         raise Exception("The data time gap is invalid. [not an integer]")
+
     try:
-        question_start_simu = my_answers_df.get_value('simu_start_datetime', 'ANSWER')
+        question_start_save = my_answers_df.get_value('save_start_datetime', 'ANSWER')
     except KeyError:
-        question_start_simu = raw_input('Starting date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
+        question_start_save = raw_input('Starting date for saving? [format DD/MM/YYYY HH:MM:SS] ')
     try:
-        datetime_start_simu = datetime.datetime.strptime(question_start_simu, '%d/%m/%Y %H:%M:%S')
+        datetime_start_save = datetime.strptime(question_start_save, '%d/%m/%Y %H:%M:%S')
     except ValueError:
         raise Exception(
-            "The simulation starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+            "The saving starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+
     try:
-        question_end_simu = my_answers_df.get_value('simu_end_datetime', 'ANSWER')
+        question_end_save = my_answers_df.get_value('save_end_datetime', 'ANSWER')
     except KeyError:
-        question_end_simu = raw_input('Ending date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
+        question_end_save = raw_input('Ending date for saving? [format DD/MM/YYYY HH:MM:SS] ')
     try:
-        datetime_end_simu = datetime.datetime.strptime(question_end_simu, '%d/%m/%Y %H:%M:%S')
+        datetime_end_save = datetime.strptime(question_end_save, '%d/%m/%Y %H:%M:%S')
     except ValueError:
         raise Exception(
-            "The simulation ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+            "The saving ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+
+    try:
+        question_save_time_gap = my_answers_df.get_value('save_time_gap_min', 'ANSWER')
+    except KeyError:
+        question_save_time_gap = raw_input('Time gap for saving? [integer in minutes] ')
+    try:
+        save_time_gap_in_min = float(int(question_save_time_gap))
+    except ValueError:
+        raise Exception("The saving time gap is invalid. [not an integer]")
+
     try:
         question_simu_time_gap = my_answers_df.get_value('simu_time_gap_min', 'ANSWER')
     except KeyError:
@@ -148,49 +164,38 @@ def set_up_plotting(catchment, outlet, input_dir):
         simu_time_gap_in_min = float(int(question_simu_time_gap))
     except ValueError:
         raise Exception("The simulation time gap is invalid. [not an integer]")
+
     try:
         question_start_plot = my_answers_df.get_value('plot_start_datetime', 'ANSWER')
     except KeyError:
         question_start_plot = raw_input('Starting date for plot? [format DD/MM/YYYY HH:MM:SS] ')
     try:
-        datetime_start_plot = datetime.datetime.strptime(question_start_plot, '%d/%m/%Y %H:%M:%S')
+        datetime_start_plot = datetime.strptime(question_start_plot, '%d/%m/%Y %H:%M:%S')
     except ValueError:
         raise Exception("The plot starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+
     try:
         question_end_plot = my_answers_df.get_value('plot_end_datetime', 'ANSWER')
     except ValueError:
         question_end_plot = raw_input('Ending date for plot? [format DD/MM/YYYY HH:MM:SS] ')
     try:
-        datetime_end_plot = datetime.datetime.strptime(question_end_plot, '%d/%m/%Y %H:%M:%S')
+        datetime_end_plot = datetime.strptime(question_end_plot, '%d/%m/%Y %H:%M:%S')
     except ValueError:
         raise Exception("The plot ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     # Check if temporal information is consistent
-    if datetime_start_data > datetime_end_data:
-        raise Exception("The data time frame is inconsistent.")
-
-    if datetime_start_simu > datetime_end_simu:
-        raise Exception("The simulation time frame is inconsistent.")
-
-    if datetime_start_plot > datetime_end_plot:
-        raise Exception("The plotting time frame is inconsistent.")
-
-    if datetime_start_simu < datetime_start_data:
-        raise Exception("The simulation start is earlier than the data start.")
-    if datetime_end_simu > datetime_end_data:
-        raise Exception("The simulation end is later than the data end.")
-
-    if datetime_start_plot < datetime_start_simu:
+    if datetime_start_plot < datetime_start_save:
         raise Exception("The plotting start is earlier than the simulation start.")
-    if datetime_end_plot > datetime_end_simu:
+    if datetime_end_plot > datetime_end_save:
         raise Exception("The plotting end is later than the simulation end.")
 
     if data_time_gap_in_min % simu_time_gap_in_min != 0.0:
         raise Exception("The data time gap is not a multiple of the simulation time gap.")
 
     return datetime_start_data, datetime_end_data, data_time_gap_in_min, \
-        datetime_start_simu, datetime_end_simu, simu_time_gap_in_min, \
-        datetime_start_plot, datetime_end_plot
+        datetime_start_save, datetime_end_save, save_time_gap_in_min, \
+        datetime_start_plot, datetime_end_plot, \
+        simu_time_gap_in_min
 
 
 def find_waterbody_from_gauge(in_folder, catchment, outlet, gauge):
@@ -248,16 +253,15 @@ def determine_gauging_zone(my__network, in_folder, catchment, outlet, gauged_wat
     return all_links
 
 
-def read_meteo_files(my__network, my__time_frame,
+def read_meteo_files(my__network, my__tf,
                      catchment, outlet,
                      meteo_type,
-                     dt_start_data, dt_end_data,
                      gauged_wb,
                      in_folder, out_folder):
     logger = logging.getLogger('SinglePlot.main')
     logger.info("Reading {} files.".format(meteo_type.lower()))
 
-    my_time_dt = my__time_frame.series_data[1:]
+    my_time_dt = my__tf.needed_data_series
     my_time_st = [my_dt.strftime('%Y-%m-%d %H:%M:%S') for my_dt in my_time_dt]
 
     # Get the average aerial meteo data over the catchment
@@ -268,17 +272,20 @@ def read_meteo_files(my__network, my__time_frame,
     my_dict_desc = prpIO.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
 
     for link in links_in_zone:
-        try:
-            my_df_inputs = pandas.read_csv("{}{}_{}_{}_{}.{}".format(in_folder, catchment, link,
-                                                                     dt_start_data.strftime("%Y%m%d"),
-                                                                     dt_end_data.strftime("%Y%m%d"),
-                                                                     meteo_type.lower()),
-                                           index_col=0)
-        except IOError:
-            raise Exception("No {} file for {}_{}_{}_{} in {}.".format(
-                meteo_type,
-                catchment, link, dt_start_data.strftime("%Y%m%d"), dt_end_data.strftime("%Y%m%d"),
-                in_folder))
+        my_meteo_file = None
+        for dt_format in ['%Y', '%Y%m', '%Y%m%d', '%Y%m%d%H', '%Y%m%d%H%M', '%Y%m%d%H%M%S']:
+            if path.isfile(
+                    "{}{}_{}_{}_{}.{}".format(in_folder, catchment, link, my__tf.data_start.strftime(dt_format),
+                                              my__tf.data_end.strftime(dt_format), meteo_type.lower())):
+                my_meteo_file = \
+                    "{}{}_{}_{}_{}.{}".format(in_folder, catchment, link, my__tf.data_start.strftime(dt_format),
+                                              my__tf.data_end.strftime(dt_format), meteo_type.lower())
+        if not my_meteo_file:
+            raise Exception("{}{}_{}_{}_{}.{} does not exist.".format(
+                in_folder, catchment, link, '[DataStart]', '[DataEnd]', meteo_type))
+
+        my_df_inputs = pandas.read_csv(my_meteo_file, index_col=0)
+
         my_data_mm = \
             np.c_[my_data_mm, np.asarray(my_df_inputs['{}'.format(meteo_type.upper())].loc[my_time_st].tolist())]
         my_area_m2 = \
@@ -289,7 +296,7 @@ def read_meteo_files(my__network, my__time_frame,
     meteo_data *= 1e3 / catchment_area  # get meteo data in mm
 
     # Save the meteo data lumped at the catchment scale in file
-    DataFrame({'DATETIME': my__time_frame.series_data[1:],
+    DataFrame({'DATETIME': my__tf.needed_data_series,
                '{}'.format(meteo_type.upper()): meteo_data.ravel()}).set_index('DATETIME').to_csv(
         '{}{}_{}.lumped.{}'.format(out_folder, catchment, gauged_wb, meteo_type.lower()), float_format='%e')
 
@@ -303,7 +310,7 @@ def read_flow_files(my__time_frame,
     logger = logging.getLogger('SinglePlot.main')
     logger.info("Reading flow files.")
 
-    my_time_dt = my__time_frame.series_data[1:]
+    my_time_dt = my__time_frame.needed_data_series
     my_time_st = [my_dt.strftime('%Y-%m-%d %H:%M:%S') for my_dt in my_time_dt]
 
     # Get the simulated flow at the outlet of the catchment
@@ -329,7 +336,7 @@ def plot_daily_hydro_hyeto(my__tf,
     logger = logging.getLogger('SinglePlot.main')
     logger.info("Plotting Hyetograph and Hydrograph.")
 
-    my_time_dt = my__tf.series_data[1:]
+    my_time_dt = my__tf.needed_data_series
 
     # Create a general figure
     fig = plt.figure(facecolor='white')
@@ -366,16 +373,22 @@ def plot_daily_hydro_hyeto(my__tf,
 
     if dt_end_plot <= dt_end_data:
         end_diff = dt_end_data - dt_end_plot
-        index_end = - (1 + end_diff.days)
+        if end_diff == timedelta(seconds=0):  # i.e. I want the last one
+            index_end = len(my_time_dt)
+        else:
+            index_end = - end_diff.days
     else:
         raise Exception("The end date for plotting is out of bound.")
+
+    c = flow_simulated[index_start:index_end][:, 0].tolist()
+    d = flow_gauged[index_start:index_end][:, 0].tolist()
 
     # __________________ Hyetograph __________________
 
     # Create a sub-figure for the hyetograph
     fig1 = fig.add_axes([0.1, 0.7, 0.8, 0.2])  # give location of the graph (%: from left, from bottom, width, height)
 
-    fig1.bar(my_time_dt[index_start:index_end], rain[index_start:index_end],
+    fig1.bar(my_time_dt[index_start:index_end], rain[index_start:index_end][:, 0].tolist(),
              label='Hyetograph', facecolor='#4ec4f2', edgecolor='#4ec4f2', linewidth=0)
     fig1.patch.set_facecolor('none')
 
@@ -406,11 +419,11 @@ def plot_daily_hydro_hyeto(my__tf,
     fig2 = fig.add_axes([0.1, 0.2, 0.8, 0.7])
 
     # Plot the simulated flows as lines
-    fig2.plot(my_time_dt[index_start:index_end], flow_simulated[index_start:index_end], color='#898989',
+    fig2.plot(my_time_dt[index_start:index_end], flow_simulated[index_start:index_end][:, 0].tolist(), color='#898989',
               label='Modelled', linewidth=0.5)
 
     # Plot the measured flows as points
-    fig2.plot(my_time_dt[index_start:index_end], flow_gauged[index_start:index_end],
+    fig2.plot(my_time_dt[index_start:index_end], flow_gauged[index_start:index_end][:, 0].tolist(),
               'x', markersize=0.5, label='Observed', color='#ffc511')
 
     ax2 = plt.axis()  # Get the current axis limits in a tuple (xmin, xmax, ymin, ymax)

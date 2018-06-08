@@ -25,16 +25,17 @@ def main(catchment, outlet, gauge, root):
         raise Exception("The combination [ {} - {} ] is incorrect.".format(catchment, outlet))
 
     # Set up the plotting session (either with .simulation file or through the console)
-    data_datetime_start, data_datetime_end, data_time_step_in_min, \
-        simu_datetime_start, simu_datetime_end, simu_time_step_in_min, \
-        plot_datetime_start, plot_datetime_end = \
+    data_datetime_start, data_datetime_end, data_time_gap_in_min, \
+        save_datetime_start, save_datetime_end, save_time_gap_in_min, \
+        plot_datetime_start, plot_datetime_end, \
+        simu_time_gap_in_min = \
         popP.set_up_plotting(catchment, outlet, input_directory)
 
     # Precise the specific folders to use in the directories
     input_folder = "{}{}_{}/".format(input_directory, catchment, outlet)
     output_folder = "{}{}_{}_{}_{}/".format(output_directory, catchment, outlet,
-                                            simu_datetime_start.strftime("%Y%m%d"),
-                                            simu_datetime_end.strftime("%Y%m%d"))
+                                            save_datetime_start.strftime("%Y%m%d%H%M%S"),
+                                            save_datetime_end.strftime("%Y%m%d%H%M%S"))
 
     # Determine gauged waterbody associated to the hydrometric gauge
     gauged_waterbody, gauged_area = popP.find_waterbody_from_gauge(input_folder, catchment, outlet, gauge)
