@@ -171,7 +171,7 @@ def get_nd_meteo_data_from_netcdf_file(catchment, link, my_tf, in_folder):
                     "{}{}_{}_{}_{}.{}.nc".format(in_folder, catchment, link, my_tf.data_start.strftime(dt_format),
                                                  my_tf.data_end.strftime(dt_format), meteo_type)
         if not my_meteo_file:
-            raise Exception("{}{}_{}_{}_{}.{} does not exist.".format(
+            raise Exception("{}{}_{}_{}_{}.{}.nc does not exist.".format(
                 in_folder, catchment, link, 'StartDate', 'EndDate', meteo_type))
 
         my_nd_meteo_data = read_netcdf_timeseries_with_data_checks(my_meteo_file, my_tf)
