@@ -1,6 +1,9 @@
-import datetime
+from datetime import datetime, timedelta
 import csv
+from os import path
 from netCDF4 import Dataset
+
+import prpCSFtime as prpT
 
 
 def read_csv(csv_file, var_type, ind_type, col4index):
@@ -25,7 +28,43 @@ def read_csv(csv_file, var_type, ind_type, col4index):
         raise Exception('File {} could not be found.'.format(csv_file))
 
 
-def read_netcdf(netcdf_file, var_type, ind_type):
+def read_csv_timeseries_with_data_checks(csv_file, tf):
+    try:
+        with open(csv_file, 'rb') as my_file:
+            my_nd_variables = dict()
+            my_list_dt = list()
+            my_reader = csv.DictReader(my_file)
+            fields = my_reader.fieldnames[:]
+            try:
+                fields.remove('DATETIME')
+            except KeyError:
+                raise Exception('Field {} does not exist in {}.'.format('DATETIME', csv_file))
+
+            for field in fields:
+                my_nd_variables[field] = dict()
+
+            for row in my_reader:
+                my_dt = datetime.strptime(row['DATETIME'], "%Y-%m-%d %H:%M:%S")
+                for field in fields:
+                    my_nd_variables[field][my_dt] = float(row[field])
+                my_list_dt.append(my_dt)
+
+        start_data, end_data, interval = prpT.check_interval_in_list(my_list_dt, csv_file)
+        if not tf.data_start == start_data:
+            raise Exception(
+                'Data Start provided does not comply with Data available in {}.'.format(csv_file))
+        if not tf.data_end == end_data:
+            raise Exception('Data End provided does not comply with Data available in {}.'.format(csv_file))
+        if not timedelta(minutes=tf.data_gap) == interval:
+            raise Exception('Data Gap provided does not comply with Data available in {}.'.format(csv_file))
+
+        return my_nd_variables
+
+    except IOError:
+        raise Exception('File {} could not be found.'.format(csv_file))
+
+
+def read_netcdf_timeseries_with_data_checks(netcdf_file, tf):
     # /!\ Unlike read_csv, read_netcdf only works for netCDF that contain a DATETIME variable
     try:
         with Dataset(netcdf_file, "r") as my_file:
@@ -42,15 +81,23 @@ def read_netcdf(netcdf_file, var_type, ind_type):
                     raise Exception(
                         'Fields {} and {} do not have the same length in {}.'.format(field, 'DATETIME', netcdf_file))
 
-            list_str_dt = [datetime.datetime.utcfromtimestamp(tstamp).strftime("%Y-%m-%d %H:%M:%S")
-                           for tstamp in my_file.variables['DATETIME'][:]]
+            list_dt = [datetime.utcfromtimestamp(tstamp) for tstamp in my_file.variables['DATETIME'][:]]
             list_vals = {field: my_file.variables[field][:] for field in fields}
 
-            for idx, dt in enumerate(list_str_dt):
-                my_dict = dict()
+            for field in fields:
+                my_nd_variables[str(field)] = dict()
+
+            for idx, dt in enumerate(list_dt):
                 for field in fields:
-                    my_dict[str(field)] = var_type(list_vals[field][idx])
-                my_nd_variables[ind_type(dt)] = my_dict
+                    my_nd_variables[str(field)][dt] = float(list_vals[field][idx])
+
+            start_data, end_data, interval = prpT.check_interval_in_list(list_dt, netcdf_file)
+            if not tf.data_start == start_data:
+                raise Exception('Data Start provided does not comply with Data available in {}.'.format(netcdf_file))
+            if not tf.data_end == end_data:
+                raise Exception('Data End provided does not comply with Data available in {}.'.format(netcdf_file))
+            if not timedelta(minutes=tf.data_gap) == interval:
+                raise Exception('Data Gap provided does not comply with Data available in {}.'.format(netcdf_file))
 
         return my_nd_variables
 
@@ -58,107 +105,97 @@ def read_netcdf(netcdf_file, var_type, ind_type):
         raise Exception('File {} could not be found.'.format(netcdf_file))
 
 
-def get_nd_meteo_data_from_file(catchment, link, my_tf, series_data, series_simu,
-                                dt_start_data, dt_end_data, in_file_format, in_folder):
+def get_nd_meteo_data_from_file(catchment, link, my_tf, in_file_format, in_folder):
     if in_file_format == 'netcdf':
-        return get_nd_meteo_data_from_netcdf_file(catchment, link, my_tf, series_data, series_simu,
-                                                  dt_start_data, dt_end_data, in_folder)
+        return get_nd_meteo_data_from_netcdf_file(catchment, link, my_tf, in_folder)
     else:
-        return get_nd_meteo_data_from_csv_file(catchment, link, my_tf, series_data, series_simu,
-                                               dt_start_data, dt_end_data, in_folder)
+        return get_nd_meteo_data_from_csv_file(catchment, link, my_tf, in_folder)
 
 
-def get_nd_meteo_data_from_csv_file(catchment, link, my_tf, series_data, series_simu,
-                                    dt_start_data, dt_end_data, in_folder):
-
-    my_start = dt_start_data.strftime("%Y%m%d")
-    my_end = dt_end_data.strftime("%Y%m%d")
+def get_nd_meteo_data_from_csv_file(catchment, link, my_tf, in_folder):
 
     my_meteo_data_types = ["rain", "peva", "airt", "soit"]
 
-    my_dbl_dict = {i: {c: 0.0 for c in my_meteo_data_types} for i in series_simu}
-
-    divisor = my_tf.gap_data / my_tf.gap_simu
+    nd_meteo_simu = {c: dict() for c in my_meteo_data_types}
 
     for meteo_type in my_meteo_data_types:
-        try:
-            my_meteo_nd = read_csv("{}{}_{}_{}_{}.{}".format(in_folder, catchment, link, my_start, my_end, meteo_type),
-                                   var_type=str, ind_type=str, col4index='DATETIME')
-
-            for my_dt_data in series_data[1:]:  # ignore first value which is for the initial conditions
-                try:
-                    my_value = my_meteo_nd[my_dt_data.strftime("%Y-%m-%d %H:%M:%S")][meteo_type.upper()]
-                    my_portion = float(my_value) / divisor
-                except KeyError:  # could only be raised for .get_value(), when index or column does not exist
-                    raise Exception("{}{}_{}_{}_{}.{} does not contain any value for {}.".format(
-                        in_folder, catchment, link, my_start, my_end, meteo_type,
-                        my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
-                except ValueError:  # could only be raised for float(), when my_value is not a number
-                    raise Exception("{}{}_{}_{}_{}.{} contains an invalid value for {}.".format(
-                        in_folder, catchment, link, my_start, my_end, meteo_type,
-                        my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
-                # total = float(my_value)
-                for my_sub_step in xrange(0, -divisor, -1):
-                    my_dt_simu = my_dt_data + datetime.timedelta(minutes=my_sub_step * my_tf.gap_simu)
-                    if (meteo_type == 'rain') or (meteo_type == 'peva'):
-                        my_dbl_dict[my_dt_simu][meteo_type] = float(my_portion)
-                    else:
-                        my_dbl_dict[my_dt_simu][meteo_type] = float(my_value)
-
-        except IOError:
+        my_meteo_file = None
+        for dt_format in ['%Y', '%Y%m', '%Y%m%d', '%Y%m%d%H', '%Y%m%d%H%M', '%Y%m%d%H%M%S']:
+            if path.isfile(
+                    "{}{}_{}_{}_{}.{}".format(in_folder, catchment, link, my_tf.data_start.strftime(dt_format),
+                                              my_tf.data_end.strftime(dt_format), meteo_type)):
+                my_meteo_file = \
+                    "{}{}_{}_{}_{}.{}".format(in_folder, catchment, link, my_tf.data_start.strftime(dt_format),
+                                              my_tf.data_end.strftime(dt_format), meteo_type)
+        if not my_meteo_file:
             raise Exception("{}{}_{}_{}_{}.{} does not exist.".format(
-                in_folder, catchment, link, my_start, my_end, meteo_type))
+                in_folder, catchment, link, '[DataStart]', '[DataEnd]', meteo_type))
 
-        del my_meteo_nd
+        my_nd_meteo_data = read_csv_timeseries_with_data_checks(my_meteo_file, my_tf)
 
-    return my_dbl_dict
+        time_delta_res = prpT.get_required_resolution(
+            my_tf.data_needed_start, my_tf.simu_start,
+            timedelta(minutes=my_tf.data_gap), timedelta(minutes=my_tf.simu_gap))
+
+        if meteo_type in ["rain", "peva"]:
+            nd_meteo_simu[meteo_type] = prpT.rescale_time_resolution_of_regular_cumulative_data(
+                my_nd_meteo_data[meteo_type.upper()],
+                my_tf.data_needed_start, my_tf.data_needed_end, timedelta(minutes=my_tf.data_gap),
+                time_delta_res,
+                my_tf.simu_start, my_tf.simu_end, timedelta(minutes=my_tf.simu_gap))
+        else:  # i.e. meteo_type in ["airt", "soit"]
+            nd_meteo_simu[meteo_type] = prpT.rescale_time_resolution_of_regular_mean_data(
+                my_nd_meteo_data[meteo_type.upper()],
+                my_tf.data_needed_start, my_tf.data_needed_end, timedelta(minutes=my_tf.data_gap),
+                time_delta_res,
+                my_tf.simu_start, my_tf.simu_end, timedelta(minutes=my_tf.simu_gap))
+
+        del my_nd_meteo_data
+
+    return nd_meteo_simu
 
 
-def get_nd_meteo_data_from_netcdf_file(catchment, link, my_tf, series_data, series_simu,
-                                       dt_start_data, dt_end_data, in_folder):
-
-    my_start = dt_start_data.strftime("%Y%m%d")
-    my_end = dt_end_data.strftime("%Y%m%d")
+def get_nd_meteo_data_from_netcdf_file(catchment, link, my_tf, in_folder):
 
     my_meteo_data_types = ["rain", "peva", "airt", "soit"]
 
-    my_dbl_dict = {i: {c: 0.0 for c in my_meteo_data_types} for i in series_simu}
-
-    divisor = my_tf.gap_data / my_tf.gap_simu
+    nd_meteo_simu = {c: dict() for c in my_meteo_data_types}
 
     for meteo_type in my_meteo_data_types:
-        try:
-            my_meteo_nd = read_netcdf("{}{}_{}_{}_{}.{}.nc".format(in_folder, catchment, link,
-                                                                   my_start, my_end, meteo_type),
-                                      var_type=str, ind_type=str)
-
-            for my_dt_data in series_data[1:]:  # ignore first value which is for the initial conditions
-                try:
-                    my_value = my_meteo_nd[my_dt_data.strftime("%Y-%m-%d %H:%M:%S")][meteo_type.upper()]
-                    my_portion = float(my_value) / divisor
-                except KeyError:  # could only be raised for .get_value(), when index or column does not exist
-                    raise Exception("{}{}_{}_{}_{}.{} does not contain any value for {}.".format(
-                        in_folder, catchment, link, my_start, my_end, meteo_type,
-                        my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
-                except ValueError:  # could only be raised for float(), when my_value is not a number
-                    raise Exception("{}{}_{}_{}_{}.{} contains an invalid value for {}.".format(
-                        in_folder, catchment, link, my_start, my_end, meteo_type,
-                        my_dt_data.strftime("%Y-%m-%d %H:%M:%S")))
-                # total = float(my_value)
-                for my_sub_step in xrange(0, -divisor, -1):
-                    my_dt_simu = my_dt_data + datetime.timedelta(minutes=my_sub_step * my_tf.gap_simu)
-                    if (meteo_type == 'rain') or (meteo_type == 'peva'):
-                        my_dbl_dict[my_dt_simu][meteo_type] = float(my_portion)
-                    else:
-                        my_dbl_dict[my_dt_simu][meteo_type] = float(my_value)
-
-        except IOError:
+        my_meteo_file = None
+        for dt_format in ['%Y', '%Y%m', '%Y%m%d', '%Y%m%d%H', '%Y%m%d%H%M', '%Y%m%d%H%M%S']:
+            if path.isfile(
+                    "{}{}_{}_{}_{}.{}.nc".format(in_folder, catchment, link, my_tf.data_start.strftime(dt_format),
+                                                 my_tf.data_end.strftime(dt_format), meteo_type)):
+                my_meteo_file = \
+                    "{}{}_{}_{}_{}.{}.nc".format(in_folder, catchment, link, my_tf.data_start.strftime(dt_format),
+                                                 my_tf.data_end.strftime(dt_format), meteo_type)
+        if not my_meteo_file:
             raise Exception("{}{}_{}_{}_{}.{} does not exist.".format(
-                in_folder, catchment, link, my_start, my_end, meteo_type))
+                in_folder, catchment, link, 'StartDate', 'EndDate', meteo_type))
 
-        del my_meteo_nd
+        my_nd_meteo_data = read_netcdf_timeseries_with_data_checks(my_meteo_file, my_tf)
 
-    return my_dbl_dict
+        time_delta_res = prpT.get_required_resolution(
+            my_tf.data_needed_start, my_tf.simu_start,
+            timedelta(minutes=my_tf.data_gap), timedelta(minutes=my_tf.simu_gap))
+
+        if meteo_type in ["rain", "peva"]:
+            nd_meteo_simu[meteo_type] = prpT.rescale_time_resolution_of_regular_cumulative_data(
+                my_nd_meteo_data[meteo_type.upper()],
+                my_tf.data_needed_start, my_tf.data_needed_end, timedelta(minutes=my_tf.data_gap),
+                time_delta_res,
+                my_tf.simu_start, my_tf.simu_end, timedelta(minutes=my_tf.simu_gap))
+        else:  # i.e. meteo_type in ["airt", "soit"]
+            nd_meteo_simu[meteo_type] = prpT.rescale_time_resolution_of_regular_mean_data(
+                my_nd_meteo_data[meteo_type.upper()],
+                my_tf.data_needed_start, my_tf.data_needed_end, timedelta(minutes=my_tf.data_gap),
+                time_delta_res,
+                my_tf.simu_start, my_tf.simu_end, timedelta(minutes=my_tf.simu_gap))
+
+        del my_nd_meteo_data
+
+    return nd_meteo_simu
 
 
 def get_nd_from_file(obj_network, folder, var_type, extension='csv'):

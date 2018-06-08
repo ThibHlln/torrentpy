@@ -725,37 +725,37 @@ def get_in_land(waterbody, datetime_time_step, time_gap_min,
     time_gap_sec = time_gap_min * 60.0
 
     # bring in water quality model inputs
-    c_in_temp = dict_meteo[waterbody][datetime_time_step]["soit"]
+    c_in_temp = dict_meteo[waterbody]["soit"][datetime_time_step]
 
     mass_n = \
-        dict_loads[waterbody][datetime_time_step]["org_n_grassland"] * \
+        dict_loads[waterbody]["org_n_grassland"][datetime_time_step] * \
         dict_desc[waterbody]["grassland_ratio"] * area_m2 * 1e-4 + \
-        dict_loads[waterbody][datetime_time_step]["ino_n_grassland"] * \
+        dict_loads[waterbody]["ino_n_grassland"][datetime_time_step] * \
         dict_desc[waterbody]["grassland_ratio"] * area_m2 * 1e-4 + \
-        dict_loads[waterbody][datetime_time_step]["org_n_arable"] * \
+        dict_loads[waterbody]["org_n_arable"][datetime_time_step] * \
         dict_desc[waterbody]["arable_ratio"] * area_m2 * 1e-4 + \
-        dict_loads[waterbody][datetime_time_step]["ino_n_arable"] * \
+        dict_loads[waterbody]["ino_n_arable"][datetime_time_step] * \
         dict_desc[waterbody]["arable_ratio"] * area_m2 * 1e-4 + \
-        dict_loads[waterbody][datetime_time_step]["n_urban"] * \
+        dict_loads[waterbody]["n_urban"][datetime_time_step] * \
         dict_desc[waterbody]["urban_ratio"] * area_m2 * 1e-4 + \
-        dict_loads[waterbody][datetime_time_step]["n_atm_deposition"] * \
+        dict_loads[waterbody]["n_atm_deposition"][datetime_time_step] * \
         dict_desc[waterbody]["woodland_ratio"] * area_m2 * 1e-4 + \
-        dict_loads[waterbody][datetime_time_step]["n_septic_tanks"]
+        dict_loads[waterbody]["n_septic_tanks"][datetime_time_step]
     c_in_m_no3 = mass_n * 0.70  # assumed 70% as nitrate
     c_in_m_nh4 = mass_n * 0.30  # assumed 30% as ammonia
-    c_in_m_p_ino = (dict_loads[waterbody][datetime_time_step]["ino_p_grassland"] *
+    c_in_m_p_ino = (dict_loads[waterbody]["ino_p_grassland"][datetime_time_step] *
                     dict_desc[waterbody]["grassland_ratio"] * area_m2 * 1e-4 +
-                    dict_loads[waterbody][datetime_time_step]["ino_p_arable"] *
+                    dict_loads[waterbody]["ino_p_arable"][datetime_time_step] *
                     dict_desc[waterbody]["arable_ratio"] * area_m2 * 1e-4 +
-                    dict_loads[waterbody][datetime_time_step]["p_urban"] *
+                    dict_loads[waterbody]["p_urban"][datetime_time_step] *
                     dict_desc[waterbody]["urban_ratio"] * area_m2 * 1e-4 +
-                    dict_loads[waterbody][datetime_time_step]["p_atm_deposition"] *
+                    dict_loads[waterbody]["p_atm_deposition"][datetime_time_step] *
                     dict_desc[waterbody]["woodland_ratio"] * area_m2 * 1e-4)
-    c_in_m_p_org = (dict_loads[waterbody][datetime_time_step]["org_p_grassland"] *
+    c_in_m_p_org = (dict_loads[waterbody]["org_p_grassland"][datetime_time_step] *
                     dict_desc[waterbody]["grassland_ratio"] * area_m2 * 1e-4 +
-                    dict_loads[waterbody][datetime_time_step]["org_p_arable"] *
+                    dict_loads[waterbody]["org_p_arable"][datetime_time_step] *
                     dict_desc[waterbody]["arable_ratio"] * area_m2 * 1e-4 +
-                    dict_loads[waterbody][datetime_time_step]["p_septic_tanks"])
+                    dict_loads[waterbody]["p_septic_tanks"][datetime_time_step])
     # store water quality model input in data frame
     dict_data_frame[waterbody][datetime_time_step]["c_in_temp"] = c_in_temp
     dict_data_frame[waterbody][datetime_time_step]["c_in_m_no3"] = c_in_m_no3
@@ -1281,7 +1281,7 @@ def get_in_stream(network, waterbody, datetime_time_step, time_gap_min,
     time_gap_sec = time_gap_min * 60.0
 
     # bring in water quality river model inputs
-    r_in_temp = dict_meteo[waterbody][datetime_time_step]["airt"]
+    r_in_temp = dict_meteo[waterbody]["airt"][datetime_time_step]
     r_in_c_no3 = dict_data_frame[node_up][datetime_time_step + timedelta(minutes=-time_gap_min)]["c_no3"]
     r_in_c_nh4 = dict_data_frame[node_up][datetime_time_step + timedelta(minutes=-time_gap_min)]["c_nh4"]
     r_in_c_dph = dict_data_frame[node_up][datetime_time_step + timedelta(minutes=-time_gap_min)]["c_dph"]

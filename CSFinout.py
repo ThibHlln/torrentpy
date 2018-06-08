@@ -125,22 +125,22 @@ def create_simulation_files_netcdf(my__network, dict__ls_models,
                 my_file.createVariable(my_variable, np.float64, ("DateTime",), zlib=True, complevel=1)
 
 
-def update_simulation_files(my__network, my__tf, my_data_slice, my_simu_slice,
+def update_simulation_files(my__network, my__tf, my_data_slice,
                             dict__nd_data, dict__ls_models,
-                            catchment, out_file_format, output_folder, report='data_gap', method='raw'):
+                            catchment, out_file_format, output_folder, method='raw'):
     if out_file_format == 'netcdf':
-        update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_slice,
+        update_simulation_files_netcdf(my__network, my__tf, my_data_slice,
                                        dict__nd_data, dict__ls_models,
-                                       catchment, output_folder, report=report, method=method)
+                                       catchment, output_folder, method=method)
     else:
-        update_simulation_files_csv(my__network, my__tf, my_data_slice, my_simu_slice,
+        update_simulation_files_csv(my__network, my__tf, my_data_slice,
                                     dict__nd_data, dict__ls_models,
-                                    catchment, output_folder, report=report, method=method)
+                                    catchment, output_folder, method=method)
 
 
-def update_simulation_files_csv(my__network, my__tf, my_data_slice, my_simu_slice,
+def update_simulation_files_csv(my__network, my__tf, my_save_slice,
                                 dict__nd_data, dict__ls_models,
-                                catchment, output_folder, report='data_gap', method='raw'):
+                                catchment, output_folder, method='raw'):
     """
     This function saves the simulation variables into the CSV files for the nodes and the links.
     It features two arguments:
@@ -164,10 +164,8 @@ def update_simulation_files_csv(my__network, my__tf, my_data_slice, my_simu_slic
     :type my__network: Network
     :param my__tf: TimeFrame object for the simulation period
     :type my__tf: TimeFrame
-    :param my_data_slice: list of datetime for the period simulated (separated by data time gap)
-    :type my_data_slice: list()
-    :param my_simu_slice: list of datetime for the period simulated (separated by simulated time gap)
-    :type my_simu_slice: list()
+    :param my_save_slice: list of datetime that need to be reported on
+    :type my_save_slice: list()
     :param dict__nd_data: dictionary containing the nested dictionaries for the nodes and the links for variables
         { key = link/node: value = nested_dictionary(index=datetime,column=variable) }
     :type dict__nd_data: dict()
@@ -178,9 +176,6 @@ def update_simulation_files_csv(my__network, my__tf, my_data_slice, my_simu_slic
     :type catchment: str()
     :param output_folder: path to the output folder where to save the simulation files
     :type output_folder: str()
-    :param report: choice on the time gap to report simulation variables :
-     'simu_gap' = at the simulation gap / 'data_gap' = only at the data gap
-    :type report: str()
     :param method: choice on the technique to process simulation variables when reporting time gap > simu time gap :
      'summary' = sums for inputs and averages for the rest / 'raw' = last values only for all
     :type method: str()
@@ -189,18 +184,10 @@ def update_simulation_files_csv(my__network, my__tf, my_data_slice, my_simu_slic
     logger = logging.getLogger('SingleRun.main')
 
     logger.info("> Updating results in files.")
-
-    # Select the relevant list of DateTime given the argument used during function call
-    if report == 'data_gap':
-        my_list_datetime = my_data_slice  # list of reporting time steps
-        simu_steps_per_reporting_step = my__tf.gap_data / my__tf.gap_simu
-    elif report == 'simu_gap':
-        my_list_datetime = my_simu_slice  # list of reporting time steps
-        simu_steps_per_reporting_step = 1
-    else:
-        raise Exception('Unknown reporting time gap for updating simulations files.')
-
+    
     if method == 'summary':
+        # Determine number of simulation steps to consider for reporting
+        simu_steps_per_save_step = my__tf.save_gap / my__tf.simu_gap
         # Save the Nested Dicts for the links (separating inputs, states, and outputs)
         for link in my__network.links:
             my_inputs = list()
@@ -214,40 +201,40 @@ def update_simulation_files_csv(my__network, my__tf, my_data_slice, my_simu_slic
 
             with open('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
-                for step in my_list_datetime[1:]:
+                for step in my_save_slice[1:]:
                     my_list = list()
                     for my_input in my_inputs:
                         my_values = list()
-                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
+                        for my_sub_step in xrange(0, -simu_steps_per_save_step, -1):
                             my_values.append(
                                 dict__nd_data[link][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_input])
+                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.simu_gap)][my_input])
                         my_list.append('%e' % sum(my_values))
                     my_writer.writerow([step] + my_list)
 
             with open('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
-                for step in my_list_datetime[1:]:
+                for step in my_save_slice[1:]:
                     my_list = list()
                     for my_state in my_states:
                         my_values = list()
-                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
+                        for my_sub_step in xrange(0, -simu_steps_per_save_step, -1):
                             my_values.append(
                                 dict__nd_data[link][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_state])
+                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.simu_gap)][my_state])
                         my_list.append('%e' % (sum(my_values) / len(my_values)))
                     my_writer.writerow([step] + my_list)
 
             with open('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
-                for step in my_list_datetime[1:]:
+                for step in my_save_slice[1:]:
                     my_list = list()
                     for my_output in my_outputs:
                         my_values = list()
-                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
+                        for my_sub_step in xrange(0, -simu_steps_per_save_step, -1):
                             my_values.append(
                                 dict__nd_data[link][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_output])
+                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.simu_gap)][my_output])
                         my_list.append('%e' % (sum(my_values) / len(my_values)))
                     my_writer.writerow([step] + my_list)
 
@@ -255,14 +242,14 @@ def update_simulation_files_csv(my__network, my__tf, my_data_slice, my_simu_slic
         for node in my__network.nodes:
             with open('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node), 'ab') as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
-                for step in my_list_datetime[1:]:
+                for step in my_save_slice[1:]:
                     my_list = list()
                     for my_variable in my__network.variables:
                         my_values = list()
-                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
+                        for my_sub_step in xrange(0, -simu_steps_per_save_step, -1):
                             my_values.append(
                                 dict__nd_data[node][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_variable])
+                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.simu_gap)][my_variable])
                         my_list.append('%e' % (sum(my_values) / len(my_values)))
                     my_writer.writerow([step] + my_list)
 
@@ -280,17 +267,17 @@ def update_simulation_files_csv(my__network, my__tf, my_data_slice, my_simu_slic
 
             with open('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
-                for step in my_list_datetime[1:]:
+                for step in my_save_slice[1:]:
                     my_writer.writerow([step] + ['%e' % dict__nd_data[link][step][my_input]
                                                  for my_input in my_inputs])
             with open('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
-                for step in my_list_datetime[1:]:
+                for step in my_save_slice[1:]:
                     my_writer.writerow([step] + ['%e' % dict__nd_data[link][step][my_state]
                                                  for my_state in my_states])
             with open('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
-                for step in my_list_datetime[1:]:
+                for step in my_save_slice[1:]:
                     my_writer.writerow([step] + ['%e' % dict__nd_data[link][step][my_output]
                                                  for my_output in my_outputs])
 
@@ -298,7 +285,7 @@ def update_simulation_files_csv(my__network, my__tf, my_data_slice, my_simu_slic
         for node in my__network.nodes:
             with open('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node), 'ab') as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
-                for step in my_list_datetime[1:]:
+                for step in my_save_slice[1:]:
                     my_writer.writerow([step] + ['%e' % dict__nd_data[node][step][my_variable]
                                                  for my_variable in my__network.variables])
 
@@ -306,9 +293,9 @@ def update_simulation_files_csv(my__network, my__tf, my_data_slice, my_simu_slic
         raise Exception("Unknown method for updating simulations files.")
 
 
-def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_slice,
+def update_simulation_files_netcdf(my__network, my__tf, my_save_slice,
                                    dict__nd_data, dict__ls_models,
-                                   catchment, output_folder, report='data_gap', method='raw'):
+                                   catchment, output_folder, method='raw'):
     """
     This function saves the simulation variables into the CSV files for the nodes and the links.
     It features two arguments:
@@ -332,10 +319,8 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
     :type my__network: Network
     :param my__tf: TimeFrame object for the simulation period
     :type my__tf: TimeFrame
-    :param my_data_slice: list of datetime for the period simulated (separated by data time gap)
-    :type my_data_slice: list()
-    :param my_simu_slice: list of datetime for the period simulated (separated by simulated time gap)
-    :type my_simu_slice: list()
+    :param my_save_slice: list of datetime that need to be reported on
+    :type my_save_slice: list()
     :param dict__nd_data: dictionary containing the nested dictionaries for the nodes and the links for variables
         { key = link/node: value = nested_dictionary(index=datetime,column=variable) }
     :type dict__nd_data: dict()
@@ -346,9 +331,6 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
     :type catchment: str()
     :param output_folder: path to the output folder where to save the simulation files
     :type output_folder: str()
-    :param report: choice on the time gap to report simulation variables :
-     'simu_gap' = at the simulation gap / 'data_gap' = only at the data gap
-    :type report: str()
     :param method: choice on the technique to process simulation variables when reporting time gap > simu time gap :
      'summary' = sums for inputs and averages for the rest / 'raw' = last values only for all
     :type method: str()
@@ -358,21 +340,13 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
 
     logger.info("> Updating results in files.")
 
-    # Select the relevant list of DateTime given the argument used during function call
-    if report == 'data_gap':
-        my_list_datetime = my_data_slice  # list of reporting time steps
-        simu_steps_per_reporting_step = my__tf.gap_data / my__tf.gap_simu
-    elif report == 'simu_gap':
-        my_list_datetime = my_simu_slice  # list of reporting time steps
-        simu_steps_per_reporting_step = 1
-    else:
-        raise Exception('Unknown reporting time gap for updating simulations files.')
-
     my_stamps = \
-        (np.asarray(my_list_datetime[1:], dtype='datetime64[us]') - np.datetime64('1970-01-01T00:00:00Z')) / \
+        (np.asarray(my_save_slice[1:], dtype='datetime64[us]') - np.datetime64('1970-01-01T00:00:00Z')) / \
         np.timedelta64(1, 's')
 
     if method == 'summary':
+        # Determine number of simulation steps to consider for reporting
+        simu_steps_per_save_step = my__tf.save_gap / my__tf.simu_gap
         # Save the Nested Dicts for the links (separating inputs, states, and outputs)
         for link in my__network.links:
             my_inputs = list()
@@ -386,13 +360,13 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
 
             with Dataset('{}{}_{}.inputs.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
                 my_values = {my_input: list() for my_input in my_inputs}
-                for step in my_list_datetime[1:]:
+                for step in my_save_slice[1:]:
                     for my_input in my_inputs:
                         my_sum = 0.0
-                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
+                        for my_sub_step in xrange(0, -simu_steps_per_save_step, -1):
                             my_sum += \
                                 dict__nd_data[link][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_input]
+                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.simu_gap)][my_input]
                         my_values[my_input].append(my_sum)
                 start_idx, end_idx = \
                     len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
@@ -402,13 +376,13 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
 
             with Dataset('{}{}_{}.states.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
                 my_values = {my_state: list() for my_state in my_states}
-                for step in my_list_datetime[1:]:
+                for step in my_save_slice[1:]:
                     for my_state in my_states:
                         my_sum = 0.0
-                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
+                        for my_sub_step in xrange(0, -simu_steps_per_save_step, -1):
                             my_sum += \
                                 dict__nd_data[link][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_state]
+                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.simu_gap)][my_state]
                         my_values[my_state].append(my_sum)
                 start_idx, end_idx = \
                     len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
@@ -418,13 +392,13 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
 
             with Dataset('{}{}_{}.outputs.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
                 my_values = {my_output: list() for my_output in my_outputs}
-                for step in my_list_datetime[1:]:
+                for step in my_save_slice[1:]:
                     for my_output in my_outputs:
                         my_sum = 0.0
-                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
+                        for my_sub_step in xrange(0, -simu_steps_per_save_step, -1):
                             my_sum += \
                                 dict__nd_data[link][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_output]
+                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.simu_gap)][my_output]
                         my_values[my_output].append(my_sum)
                 start_idx, end_idx = \
                     len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
@@ -436,13 +410,13 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
         for node in my__network.nodes:
             with Dataset('{}{}_{}.node.nc'.format(output_folder, catchment.capitalize(), node), 'a') as my_file:
                 my_values = {my_variable: list() for my_variable in my__network.variables}
-                for step in my_list_datetime[1:]:
+                for step in my_save_slice[1:]:
                     for my_variable in my__network.variables:
                         my_sum = 0.0
-                        for my_sub_step in xrange(0, -simu_steps_per_reporting_step, -1):
+                        for my_sub_step in xrange(0, -simu_steps_per_save_step, -1):
                             my_sum += \
                                 dict__nd_data[node][
-                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.gap_simu)][my_variable]
+                                    step + datetime.timedelta(minutes=my_sub_step * my__tf.simu_gap)][my_variable]
                         my_values[my_variable].append(my_sum)
                 start_idx, end_idx = \
                     len(my_file.variables['DateTime']), len(my_file.variables['DateTime']) + len(my_stamps)
@@ -464,7 +438,7 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
 
             with Dataset('{}{}_{}.inputs.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
                 my_values = {my_input: list() for my_input in my_inputs}
-                for step in my_list_datetime[1:]:
+                for step in my_save_slice[1:]:
                     for my_input in my_inputs:
                         my_values[my_input].append(dict__nd_data[link][step][my_input])
                 start_idx, end_idx = \
@@ -475,7 +449,7 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
 
             with Dataset('{}{}_{}.states.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
                 my_values = {my_state: list() for my_state in my_states}
-                for step in my_list_datetime[1:]:
+                for step in my_save_slice[1:]:
                     for my_state in my_states:
                         my_values[my_state].append(dict__nd_data[link][step][my_state])
                 start_idx, end_idx = \
@@ -486,7 +460,7 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
 
             with Dataset('{}{}_{}.outputs.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
                 my_values = {my_output: list() for my_output in my_outputs}
-                for step in my_list_datetime[1:]:
+                for step in my_save_slice[1:]:
                     for my_output in my_outputs:
                         my_values[my_output].append(dict__nd_data[link][step][my_output])
                 start_idx, end_idx = \
@@ -499,7 +473,7 @@ def update_simulation_files_netcdf(my__network, my__tf, my_data_slice, my_simu_s
         for node in my__network.nodes:
             with Dataset('{}{}_{}.node.nc'.format(output_folder, catchment.capitalize(), node), 'a') as my_file:
                 my_values = {my_variable: list() for my_variable in my__network.variables}
-                for step in my_list_datetime[1:]:
+                for step in my_save_slice[1:]:
                     for my_variable in my__network.variables:
                         my_values[my_variable].append(dict__nd_data[node][step][my_variable])
                 start_idx, end_idx = \

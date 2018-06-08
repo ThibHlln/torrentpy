@@ -4,6 +4,7 @@ from pandas import DataFrame
 from itertools import izip
 import argparse
 from glob import glob
+from datetime import datetime, timedelta
 from os import path, getcwd
 
 from CSFclasses import *
@@ -28,14 +29,15 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
 
     # Set up the simulation (either with .simulation file or through the console)
     data_time_gap_in_min, data_datetime_start, data_datetime_end, \
-        simu_time_gap_in_min, simu_datetime_start, simu_datetime_end, water_quality = \
+        save_time_gap_in_min, save_datetime_start, save_datetime_end, \
+        simu_time_gap_in_min, water_quality = \
         setup_simulation(catchment, outlet, input_directory)
 
     # Precise the specific folders to use in the directories
     input_folder = "{}{}_{}/".format(input_directory, catchment, outlet)
     output_folder = "{}{}_{}_{}_{}/".format(output_directory, catchment, outlet,
-                                            simu_datetime_start.strftime("%Y%m%d"),
-                                            simu_datetime_end.strftime("%Y%m%d"))
+                                            save_datetime_start.strftime("%Y%m%d%H%M%S"),
+                                            save_datetime_end.strftime("%Y%m%d%H%M%S"))
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
@@ -62,11 +64,14 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
             os.remove(my_file)
 
     # Create a TimeFrame object for simulation run and warm-up run
-    my__time_frame = TimeFrame(simu_datetime_start, simu_datetime_end,
-                               int(data_time_gap_in_min), int(simu_time_gap_in_min), slice_length)
-    my__time_frame_warm_up = TimeFrame(my__time_frame.start, my__time_frame.start +
-                                       datetime.timedelta(days=warm_up_in_days - 1),
-                                       int(data_time_gap_in_min), int(simu_time_gap_in_min), slice_length)
+    my__time_frame = TimeFrame(data_datetime_start, data_datetime_end, save_datetime_start, save_datetime_end,
+                               int(data_time_gap_in_min), int(save_time_gap_in_min), int(simu_time_gap_in_min),
+                               slice_length)
+    my__time_frame_warm_up = TimeFrame(my__time_frame.data_start, my__time_frame.data_end,
+                                       my__time_frame.save_start, my__time_frame.save_start +
+                                       timedelta(days=warm_up_in_days) - timedelta(minutes=my__time_frame.save_gap),
+                                       int(data_time_gap_in_min), int(save_time_gap_in_min), int(simu_time_gap_in_min),
+                                       slice_length)
 
     # Create a Network object from network and waterBodies files
     my__network = Network(catchment, outlet, input_folder, spec_directory, wq=water_quality)
@@ -84,9 +89,6 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
         logger.info("Determining initial conditions.")
         # Get meteo input data
         dict__nd_meteo = prpF.get_meteo_input_for_links(my__network, my__time_frame_warm_up,
-                                                        my__time_frame_warm_up.series_data,
-                                                        my__time_frame_warm_up.series_simu,
-                                                        data_datetime_start, data_datetime_end,
                                                         in_fmt, input_folder)
         # Initialise dicts needed to link time slices together (use last time step of one as first for the other)
         for link in my__network.links:
@@ -98,8 +100,8 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
             # For nodes, no states so no initial conditions, but instantiation of dict required
             my_last_lines[node] = dict()
 
-        for my_simu_slice, my_data_slice in izip(my__time_frame_warm_up.slices_simu,
-                                                 my__time_frame_warm_up.slices_data):
+        for my_simu_slice, my_save_slice in izip(my__time_frame_warm_up.simu_slices,
+                                                 my__time_frame_warm_up.save_slices):
             logger.info("Running Warm-Up Period {} - {}.".format(my_simu_slice[1].strftime('%d/%m/%Y %H:%M:%S'),
                                                                  my_simu_slice[-1].strftime('%d/%m/%Y %H:%M:%S')))
             # Initialise data structures
@@ -116,7 +118,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
             # Get other input data
             dict__nd_loadings = \
                 prpF.get_contaminant_input_for_links(my__network, my__time_frame_warm_up,
-                                                     my_data_slice, my_simu_slice,
+                                                     my_save_slice, my_simu_slice,
                                                      input_folder, spec_directory) if water_quality else {}
 
             # Simulate
@@ -149,11 +151,9 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
     logger.info("Starting the simulation.")
     # Get meteo input data
     dict__nd_meteo = prpF.get_meteo_input_for_links(my__network, my__time_frame,
-                                                    my__time_frame.series_data, my__time_frame.series_simu,
-                                                    data_datetime_start, data_datetime_end,
                                                     in_fmt, input_folder)
-    for my_simu_slice, my_data_slice in izip(my__time_frame.slices_simu,
-                                             my__time_frame.slices_data):
+    for my_simu_slice, my_save_slice in izip(my__time_frame.simu_slices,
+                                             my__time_frame.save_slices):
 
         logger.info("Running Period {} - {}.".format(my_simu_slice[1].strftime('%d/%m/%Y %H:%M:%S'),
                                                      my_simu_slice[-1].strftime('%d/%m/%Y %H:%M:%S')))
@@ -170,7 +170,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
 
         # Get other input data
         dict__nd_loadings = prpF.get_contaminant_input_for_links(my__network, my__time_frame,
-                                                                 my_data_slice, my_simu_slice,
+                                                                 my_save_slice, my_simu_slice,
                                                                  input_folder, spec_directory) if water_quality else {}
 
         # Simulate
@@ -180,9 +180,9 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
                  )
 
         # Write results in files
-        csfIO.update_simulation_files(my__network, my__time_frame, my_data_slice, my_simu_slice,
+        csfIO.update_simulation_files(my__network, my__time_frame, my_save_slice,
                                       dict__nd_data, dict__ls_models,
-                                      catchment, out_fmt, output_folder, report='data_gap', method='summary')
+                                      catchment, out_fmt, output_folder, method='summary')
 
         # Save history (last time step) for next slice
         for link in my__network.links:
@@ -233,7 +233,7 @@ def setup_simulation(catchment, outlet, input_dir):
     except KeyError:
         question_start_data = raw_input('Starting date for data? [format DD/MM/YYYY HH:MM:SS] ')
     try:
-        datetime_start_data = datetime.datetime.strptime(question_start_data, '%d/%m/%Y %H:%M:%S')
+        datetime_start_data = datetime.strptime(question_start_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
         raise Exception("The data starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
@@ -242,29 +242,29 @@ def setup_simulation(catchment, outlet, input_dir):
     except KeyError:
         question_end_data = raw_input('Ending date for data? [format DD/MM/YYYY HH:MM:SS] ')
     try:
-        datetime_end_data = datetime.datetime.strptime(question_end_data, '%d/%m/%Y %H:%M:%S')
+        datetime_end_data = datetime.strptime(question_end_data, '%d/%m/%Y %H:%M:%S')
     except ValueError:
         raise Exception("The data ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
-        question_start_simu = my_answers_df.get_value('simu_start_datetime', 'ANSWER')
+        question_start_save = my_answers_df.get_value('save_start_datetime', 'ANSWER')
     except KeyError:
-        question_start_simu = raw_input('Starting date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
+        question_start_save = raw_input('Starting date for saving? [format DD/MM/YYYY HH:MM:SS] ')
     try:
-        datetime_start_simu = datetime.datetime.strptime(question_start_simu, '%d/%m/%Y %H:%M:%S')
+        datetime_start_save = datetime.strptime(question_start_save, '%d/%m/%Y %H:%M:%S')
     except ValueError:
         raise Exception(
-            "The simulation starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+            "The saving starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
-        question_end_simu = my_answers_df.get_value('simu_end_datetime', 'ANSWER')
+        question_end_save = my_answers_df.get_value('save_end_datetime', 'ANSWER')
     except KeyError:
-        question_end_simu = raw_input('Ending date for simulation? [format DD/MM/YYYY HH:MM:SS] ')
+        question_end_save = raw_input('Ending date for saving? [format DD/MM/YYYY HH:MM:SS] ')
     try:
-        datetime_end_simu = datetime.datetime.strptime(question_end_simu, '%d/%m/%Y %H:%M:%S')
+        datetime_end_save = datetime.strptime(question_end_save, '%d/%m/%Y %H:%M:%S')
     except ValueError:
         raise Exception(
-            "The simulation ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
+            "The saving ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
         question_data_time_gap = my_answers_df.get_value('data_time_gap_min', 'ANSWER')
@@ -274,6 +274,15 @@ def setup_simulation(catchment, outlet, input_dir):
         data_time_gap_in_min = float(int(question_data_time_gap))
     except ValueError:
         raise Exception("The data time gap is invalid. [not an integer]")
+
+    try:
+        question_save_time_gap = my_answers_df.get_value('save_time_gap_min', 'ANSWER')
+    except KeyError:
+        question_save_time_gap = raw_input('Time gap for saving? [integer in minutes] ')
+    try:
+        save_time_gap_in_min = float(int(question_save_time_gap))
+    except ValueError:
+        raise Exception("The saving time gap is invalid. [not an integer]")
 
     try:
         question_simu_time_gap = my_answers_df.get_value('simu_time_gap_min', 'ANSWER')
@@ -293,26 +302,9 @@ def setup_simulation(catchment, outlet, input_dir):
     else:
         raise Exception("The water quality choice is invalid. [not \'on\' nor \'off\']")
 
-    # Check if temporal information is consistent
-    if datetime_start_data > datetime_end_data:
-        raise Exception("The data time frame is inconsistent.")
-
-    if datetime_start_simu > datetime_end_simu:
-        raise Exception("The simulation time frame is inconsistent.")
-
-    if datetime_start_simu < datetime_start_data:
-        raise Exception("The simulation start is earlier than the data start.")
-    if datetime_end_simu > datetime_end_data:
-        raise Exception("The simulation end is later than the data end.")
-
-    if data_time_gap_in_min % simu_time_gap_in_min != 0.0:
-        # guarantees that both of the following statements are true:
-        # i)  data_gap >= simu_gap
-        # ii) data_gap is a multiple of simu_gap
-        raise Exception("The data time gap is not a multiple of the simulation time gap.")
-
     return data_time_gap_in_min, datetime_start_data, datetime_end_data, \
-        simu_time_gap_in_min, datetime_start_simu, datetime_end_simu, water_quality
+        save_time_gap_in_min, datetime_start_save, datetime_end_save, \
+        simu_time_gap_in_min, water_quality
 
 
 def setup_logger(catchment, outlet, name, prefix, output_folder, is_single_run):
@@ -404,10 +396,10 @@ def simulate(my__network, my__time_frame, my_simu_slice,
             if link in dict__c_models:
                 dict__c_models[link].run(my__network, link, dict__nd_data,
                                          dict__nd_meteo, dict__nd_loadings,
-                                         step, my__time_frame.gap_simu,
+                                         step, my__time_frame.simu_gap,
                                          logger_simu)
         # Sum up everything coming towards each node
-        delta = datetime.timedelta(minutes=my__time_frame.gap_simu)
+        delta = timedelta(minutes=my__time_frame.simu_gap)
         for node in my__network.nodes:
             # Sum up outputs for hydrology
             q_h2o = 0.0
@@ -458,14 +450,14 @@ def simulate(my__network, my__time_frame, my_simu_slice,
             if link in dict__r_models:
                 dict__r_models[link].run(my__network, link, dict__nd_data,
                                          dict__nd_meteo, dict__nd_loadings,
-                                         step, my__time_frame.gap_simu,
+                                         step, my__time_frame.simu_gap,
                                          logger_simu)
         # Calculate water (and contaminant) routing in lake for each link
         for link in my__network.links:
             if link in dict__l_models:
                 dict__l_models[link].run(my__network, link, dict__nd_data,
                                          dict__nd_meteo, dict__nd_loadings,
-                                         step, my__time_frame.gap_simu,
+                                         step, my__time_frame.simu_gap,
                                          logger_simu)
 
     # Sum up everything that was routed towards each node at penultimate time step

@@ -1,7 +1,7 @@
 import csv
 import os
 from logging import getLogger
-import datetime
+from datetime import timedelta
 import pandas
 from math import ceil
 
@@ -11,9 +11,7 @@ import CSFmodels as csfM
 class Network:
     """
     This class defines all the constituting parts of a catchment structures as a node-link network, as well as the
-    different relationships between the nodes and the links, and the characteristics of the links. The optional
-    parameter 'adding_up' allows to specify where the catchment runoff is routed to: if True runoff is routed to the
-    node upstream of the link, if False runoff is routed to the node downstream of the link, Default is set as False.
+    different relationships between the nodes and the links, and the characteristics of the links.
     """
     def __init__(self, catchment, outlet, input_folder, specs_folder, wq=False):
         # name of the catchment
@@ -450,101 +448,182 @@ class Model:
 
 class TimeFrame:
     """
-    This class defines the temporal attributes of the simulation period. It contains the start and the end of the
-    simulation as well as the lists of DateTime series for the simulation time steps and the data time steps (that
-    can be identical or nested). It also breaks down the series into slices in order to reduce the memory demand during
-    the simulation.
+    This class gathers the temporal information provided by the user. Then, it defines the temporal attributes
+    of the simulator.
 
-    N.B. 1: The data gap needs to be a multiple of the simulation gap.
-    N.B. 2: The start and the end of the simulation are defined by the user, the class always adds one data step
-    prior to the start date defined by the user in order to set the initial conditions, which means that one or more
-    simulation steps are added as a consequence, depending on whether the simulation step < the data step or equal.
+    Three type of temporal attributes are considered: 'data' refers to the input to the simulator
+    (e.g. meteorological variables in input files), 'simu' refers to the internal time used by the models (i.e. model
+    temporal discretisation), and 'save' refers to the output from the simulator (i.e. what will be written in the
+    output files).
+
+    For each type, three attributes (start, end, gap) are required to build timeseries. Then each timeseries will
+    broken down into slices (to avoid flash memory limitations).
+
+    In terms of starts/ends, the user is only required to provide them for 'data' and for 'save', start/end for 'simu'
+    are inferred using 'save' start/end/gap and the 'simu' gap.
+
+    In terms of timeseries, 'simu' and 'save' timeseries are built using their respective start/end/gap, however,
+    the 'simu' timeseries will only be built if the data period specified provides enough information. For 'data',
+    only a timeseries of needed_data is provided (i.e. a the minimum timeseries of data required to cover the 'simu'
+    period). This is to avoid storing in flash memory an unnecessary long timeseries if 'simu' period is significantly
+    shorter than 'data' period.
+    To allow for initial conditions to be set up, one or more time steps are added prior the respective starts of
+    'simu' and 'save'. The 'save' time is added one datetime before save_start, while the 'simu' is added one or more
+    datetime if it requires several simu_gap to cover one data_gap.
+
+    N.B. The 'save' gap is required to be a multiple of 'simu' gap because this simulator is not intended to
+    interpolate on the simulation results, the simulator can only extract or summarise from simulation steps.
+    Instead, the user is expected to adapt their simulation gap to match the required reporting gap.
     """
-    def __init__(self, datetime_start, datetime_end,
-                 data_increment_in_minutes, simu_increment_in_minutes,
+    def __init__(self, dt_data_start, dt_data_end, dt_save_start, dt_save_end,
+                 data_increment_in_minutes, save_increment_in_minutes, simu_increment_in_minutes,
                  expected_simu_slice_length):
-        # DateTime of the start of the time period simulated
-        self.start = datetime_start
-        # DateTime of the end of the time period simulated
-        self.end = datetime_end
-        # Time gap of the data used for simulation
-        self.gap_data = data_increment_in_minutes
-        # Time gap of the simulation
-        self.gap_simu = simu_increment_in_minutes
-        # List of DateTime for the data (i.e. list of time steps)
-        self.series_data = TimeFrame.get_list_datetime(self, 'data')
-        # List of DateTime for the simulation (i.e. list of time steps)
-        self.series_simu = TimeFrame.get_list_datetime(self, 'simu')
-        # List of Lists of DateTime for simulation and for data, respectively
-        self.slices_simu, self.slices_data = \
-            TimeFrame.slice_list_datetime(self, expected_simu_slice_length)
+        # Time Attributes for Input Data (Read in Files)
+        self.data_start = dt_data_start  # DateTime
+        self.data_end = dt_data_end  # DateTime
+        self.data_gap = data_increment_in_minutes  # Int [minutes]
 
-    def get_list_datetime(self, option):
-        """
-        This function returns a list of DateTime by using the start and the end of the simulation and the time gap
-        (either the data time gap or the simulation time gap, using the option parameter to specify which one).
+        # Time Attributed for Output Data (Save/Write in Files)
+        self.save_start = dt_save_start  # DateTime
+        self.save_end = dt_save_end  # DateTime
+        self.save_gap = save_increment_in_minutes  # Int [minutes]
 
-        N.B. For the initial conditions, the function always adds:
-            - [if 'data' option] one data step prior to the data start date
-            - [if 'simu' option] one (or more if data gap > simulation gap) simulation step(s)
-            prior to the simulation start date
+        # Time Attributes for Simulation (Internal to the Simulator)
+        self.simu_gap = simu_increment_in_minutes  # Int [minutes]
+        self.simu_start_earliest, self.simu_end_latest = \
+            TimeFrame.get_most_possible_extreme_simu_start_end(self)  # DateTime, DateTime
+        self.simu_start, self.simu_end = \
+            TimeFrame.get_simu_start_end_given_save_start_end(self)  # DateTime, DateTime
 
-        :param option: choice to specify if function should work on data or on simulation series
-        :type option: str()
-        :return: a list of DateTime
-        :rtype: list()
-        """
-        extent = self.end - self.start
-        options = {'data': self.gap_data, 'simu': self.gap_simu}
+        # Time Attributes Only for Input Data Needed given Simulation Period
+        self.data_needed_start, self.data_needed_end = \
+            TimeFrame.get_data_start_end_given_simu_start_end(self)
 
-        start_index = int(self.gap_data / options[option])
-        end_index = int(extent.total_seconds() // (options[option] * 60)) + 1
+        # DateTime Series for Data, Save, and Simulation
+        self.needed_data_series = TimeFrame.get_list_data_needed_dt_without_initial_conditions(self)
+        self.save_series = TimeFrame.get_list_save_dt_with_initial_conditions(self)
+        self.simu_series = TimeFrame.get_list_simu_dt_with_initial_conditions(self)
 
+        # Slices of DateTime Series for Save and Simulation
+        self.save_slices, self.simu_slices = \
+            TimeFrame.slice_datetime_series(self, expected_simu_slice_length)
+
+    def get_most_possible_extreme_simu_start_end(self):
+
+        # check whether data period makes sense on its own
+        if not self.data_start <= self.data_end:
+            raise Exception("Data Start is greater than Data End.")
+
+        # determine the maximum possible simulation period given the period of data availability
+        simu_start_earliest = self.data_start - timedelta(minutes=self.data_gap) + timedelta(minutes=self.simu_gap)
+        simu_end_latest = self.data_end
+
+        return simu_start_earliest, simu_end_latest
+
+    def get_simu_start_end_given_save_start_end(self):
+
+        # check whether saving/reporting period makes sense on its own
+        if not self.save_start <= self.save_end:
+            raise Exception("Save Start is greater than Save End.")
+
+        # check whether the simulation time gap will allow to report on the saving/reporting time gap
+        if not self.save_gap % self.simu_gap == 0:
+            raise Exception("Save Gap is not greater and a multiple of Simulation Gap.")
+
+        # determine the simulation period required to cover the whole saving/reporting period
+        simu_start = self.save_start - timedelta(minutes=self.save_gap) + timedelta(minutes=self.simu_gap)
+        simu_end = self.save_end
+
+        # check if simu_start/simu_end period is contained in simu_start_earlier/simu_end_latest (i.e. available data)
+        if not ((self.simu_start_earliest <= simu_start) and (simu_end <= self.simu_end_latest)):
+            raise Exception("Input Data Period is insufficient to cover Save Period.")
+
+        return simu_start, simu_end
+
+    def get_data_start_end_given_simu_start_end(self):
+
+        # check if Data Period is a multiple of Data Time Gap
+        if not (self.data_end - self.data_start).total_seconds() % \
+               timedelta(minutes=self.data_gap).total_seconds() == 0:
+            raise Exception("Data Period does not contain a whole number of Data Time Gaps.")
+
+        # increment from data_start until simu_start is just covered
+        data_start_for_simu = self.data_start
+        while data_start_for_simu < self.simu_start:
+            data_start_for_simu += timedelta(minutes=self.data_gap)
+
+        # decrement from data_end until end_start is just covered
+        data_end_for_simu = self.data_end
+        while data_end_for_simu >= self.simu_end:
+            data_end_for_simu -= timedelta(minutes=self.data_gap)
+        data_end_for_simu += timedelta(minutes=self.data_gap)
+
+        return data_start_for_simu, data_end_for_simu
+
+    def get_list_data_needed_dt_without_initial_conditions(self):
+
+        # generate a list of DateTime for Data Period without initial conditions (not required)
         my_list_datetime = list()
-        for factor in xrange(-start_index, end_index, 1):  # add one or more datetime before start
-            my_datetime = self.start + datetime.timedelta(minutes=factor * options[option])
-            my_list_datetime.append(my_datetime)
+        my_dt = self.data_needed_start
+        while my_dt <= self.data_needed_end:
+            my_list_datetime.append(my_dt)
+            my_dt += timedelta(minutes=self.data_gap)
 
         return my_list_datetime
 
-    def slice_list_datetime(self, expected_length):
-        """
-        This function returns two lists of lists of DateTime for simulation and data, respectively. It uses the two
-        DateTime series and the expected length of the simulation time slice. A time slice is a subset of a time
-        series as follows : [ series ] = [ slice 1 ] + [ slice 2 ] + ... + [ slice n ]
-        The function adjusts the expected length to make sure that the slicing is done between two data
-        time steps.
+    def get_list_save_dt_with_initial_conditions(self):
 
-        N.B. the last slice is usually shorter than the others, unless the input time series is a multiple
-        of the adjusted length
+        # generate a list of DateTime for Saving/Reporting Period with one extra prior step for initial conditions
+        my_list_datetime = list()
+        my_dt = self.save_start - timedelta(minutes=self.save_gap)
+        while my_dt <= self.save_end:
+            my_list_datetime.append(my_dt)
+            my_dt += timedelta(minutes=self.save_gap)
 
-        :param expected_length: number of time steps desired per time slice
-        :type expected_length: int()
-        :return: two lists of time slices for simulation and data, respectively
-        :rtype: list(), list()
-        """
-        simu_steps_per_data_step = self.gap_data / self.gap_simu
+        return my_list_datetime
 
-        # Adjust the length to make sure that it slices exactly between two steps of the data
-        simu_length = (expected_length * self.gap_simu) // self.gap_data * simu_steps_per_data_step
-        data_length = simu_length / simu_steps_per_data_step
+    def get_list_simu_dt_with_initial_conditions(self):
 
+        # generate a list of DateTime for Simulation Period with one extra prior step for initial conditions
+        my_list_datetime = list()
+        my_dt = self.simu_start - timedelta(minutes=self.simu_gap)
+        while my_dt <= self.simu_end:
+            my_list_datetime.append(my_dt)
+            my_dt += timedelta(minutes=self.simu_gap)
+
+        return my_list_datetime
+
+    def slice_datetime_series(self, expected_length):
+
+        my_save_slices = list()
         my_simu_slices = list()
-        my_data_slices = list()
 
-        if simu_length > 0:  # the expected length is longer than one data time gap
-            stop_index = int(ceil(float(len(self.series_simu)) / float(simu_length)))
-            for i in xrange(0, stop_index, 1):
-                start_index = i * simu_length
-                end_index = ((i + 1) * simu_length) + 1
-                my_simu_slices.append(self.series_simu[start_index:end_index])
-            stop_index = int(ceil(float(len(self.series_data)) / float(data_length)))
-            for i in xrange(0, stop_index, 1):
-                start_index = i * data_length
-                end_index = ((i + 1) * data_length) + 1
-                my_data_slices.append(self.series_data[start_index:end_index])
-        else:  # no need to slice, return the original lists as one slice
-            my_simu_slices.append(self.series_simu[:])
-            my_data_slices.append(self.series_data[:])
+        if expected_length > 0:  # i.e. a slice length has been specified and is greater than 0
+            if not (expected_length * self.simu_gap) >= self.save_gap:
+                raise Exception('Expected Length for Slicing Up is smaller than the Saving Time Gap.')
 
-        return my_simu_slices, my_data_slices
+            # Adjust the length to make sure that it slices exactly between two saving/reporting steps
+            simu_slice_length = (expected_length * self.simu_gap) // self.save_gap * self.save_gap / self.simu_gap
+            save_slice_length = simu_slice_length * self.simu_gap / self.save_gap
+
+            if simu_slice_length > 0:  # the expected length is longer than one saving/reporting time gap
+                stop_index = int(ceil(float(len(self.save_series)) / float(save_slice_length)))
+                for i in xrange(0, stop_index, 1):
+                    start_index = i * save_slice_length
+                    end_index = ((i + 1) * save_slice_length) + 1
+                    if len(self.save_series[start_index:end_index]) > 1:  # it would only be the initial conditions
+                        my_save_slices.append(self.save_series[start_index:end_index])
+                stop_index = int(ceil(float(len(self.simu_series)) / float(simu_slice_length)))
+                for i in xrange(0, stop_index, 1):
+                    start_index = i * simu_slice_length
+                    end_index = ((i + 1) * simu_slice_length) + 1
+                    if len(self.simu_series[start_index:end_index]) > 1:  # it would only be the initial conditions
+                        my_simu_slices.append(self.simu_series[start_index:end_index])
+            else:  # no need to slice, return the complete original lists (i.e. one slice for each)
+                my_save_slices.append(self.save_series[:])
+                my_simu_slices.append(self.simu_series[:])
+        else:  # i.e. a slice length has not been specified or is equal to 0
+            my_save_slices.append(self.save_series[:])
+            my_simu_slices.append(self.simu_series[:])
+
+        return my_save_slices, my_simu_slices

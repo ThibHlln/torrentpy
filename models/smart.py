@@ -230,8 +230,8 @@ def get_in(waterbody, datetime_time_step, time_gap_min,
     time_gap_sec = time_gap_min * 60.0
 
     # bring in model inputs
-    c_in_rain = dict_meteo[waterbody][datetime_time_step]["rain"]
-    c_in_peva = dict_meteo[waterbody][datetime_time_step]["peva"]
+    c_in_rain = dict_meteo[waterbody]["rain"][datetime_time_step]
+    c_in_peva = dict_meteo[waterbody]["peva"][datetime_time_step]
     # store input in data frame
     dict_data_frame[waterbody][datetime_time_step]["c_in_rain"] = c_in_rain
     dict_data_frame[waterbody][datetime_time_step]["c_in_peva"] = c_in_peva
