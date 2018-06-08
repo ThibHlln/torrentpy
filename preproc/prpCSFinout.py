@@ -65,7 +65,6 @@ def read_csv_timeseries_with_data_checks(csv_file, tf):
 
 
 def read_netcdf_timeseries_with_data_checks(netcdf_file, tf):
-    # /!\ Unlike read_csv, read_netcdf only works for netCDF that contain a DATETIME variable
     try:
         with Dataset(netcdf_file, "r") as my_file:
             my_file.set_auto_mask(False)
