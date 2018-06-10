@@ -3,14 +3,16 @@ import scipy.stats
 import logging
 from itertools import izip
 import argparse
+from pandas import DataFrame
 
 from scripts.CSFclasses import *
 import popCSFplot as popP
+import popCSFinout as popIO
 import scripts.CSFrun as csfR
 import scripts.preproc.prpCSFinout as prpIO
 
 
-def main(catchment, outlet, gauge, root):
+def main(catchment, outlet, gauge, root, in_fmt="csv"):
     # Format catchment and outlet names
     catchment = catchment.capitalize()
     outlet = outlet.upper()
@@ -51,7 +53,16 @@ def main(catchment, outlet, gauge, root):
 
     # Collect the observed (OBS) and modelled (MOD) discharge data
     df_flows_obs = pandas.read_csv('{}{}_{}_{}.flow'.format(output_folder, catchment, gauged_waterbody, gauge))
-    df_flows_mod = pandas.read_csv('{}{}_{}.outputs'.format(output_folder, catchment, gauged_waterbody))
+
+    if in_fmt == 'netcdf':
+        my_nd_node = popIO.read_netcdf_timeseries(
+            "{}{}_{}.outputs.nc".format(output_folder, catchment, gauged_waterbody), time_variable='DateTime')
+        df_flows_mod = DataFrame.from_dict(my_nd_node, orient='columns')
+    else:
+        df_flows_mod = pandas.read_csv(
+            "{}{}_{}.outputs".format(output_folder, catchment, gauged_waterbody), index_col=0)
+
+    # df_flows_mod = pandas.read_csv('{}{}_{}.outputs'.format(output_folder, catchment, gauged_waterbody))
 
     nda_flows_obs = df_flows_obs['flow'].values
     nda_flows_mod = df_flows_mod['r_out_q_h2o'].values
@@ -212,9 +223,10 @@ if __name__ == '__main__':
                         help="european code of the catchment outlet [format IE_XX_##X######]")
     parser.add_argument('gauge', type=str,
                         help="code of the hydrometric gauge [5-digit code]")
-    parser.set_defaults(add_up=True)
+    parser.add_argument('-i', '--in_format', type=csfR.valid_file_format, default='csv',
+                        help="format of input data files [csv or netcdf]")
 
     args = parser.parse_args()
 
     # Run the main() function
-    main(args.catchment, args.outlet, args.gauge, csf_root)
+    main(args.catchment, args.outlet, args.gauge, csf_root, in_fmt=args.in_format)

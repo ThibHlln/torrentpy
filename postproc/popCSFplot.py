@@ -14,7 +14,7 @@ import scripts.preproc.prpCSFinout as prpIO
 import scripts.CSFrun as csfR
 
 
-def main(catchment, outlet, gauge, root):
+def main(catchment, outlet, gauge, root, in_fmt="csv"):
     # Format catchment and outlet names
     catchment = catchment.capitalize()
     outlet = outlet.upper()
@@ -61,14 +61,14 @@ def main(catchment, outlet, gauge, root):
     rainfall, catchment_area = \
         read_meteo_files(my__network, my__time_frame,
                          catchment, outlet,
-                         'rain',
+                         'rain', in_fmt,
                          gauged_waterbody,
                          input_folder, output_folder)
 
     # Read the potential evapotranspiration files (in order to create .lumped.peva files)
     read_meteo_files(my__network, my__time_frame,
                      catchment, outlet,
-                     'peva',
+                     'peva', in_fmt,
                      gauged_waterbody,
                      input_folder, output_folder)
 
@@ -81,7 +81,7 @@ def main(catchment, outlet, gauge, root):
     gauged_flow_m3s, simu_flow_m3s = \
         read_flow_files(my__time_frame,
                         catchment,
-                        gauge, gauged_waterbody,
+                        gauge, gauged_waterbody, in_fmt,
                         output_folder)
 
     # Plot the desired graphs
@@ -255,7 +255,7 @@ def determine_gauging_zone(my__network, in_folder, catchment, outlet, gauged_wat
 
 def read_meteo_files(my__network, my__tf,
                      catchment, outlet,
-                     meteo_type,
+                     meteo_type, in_format,
                      gauged_wb,
                      in_folder, out_folder):
     logger = logging.getLogger('SinglePlot.main')
@@ -271,20 +271,29 @@ def read_meteo_files(my__network, my__tf,
     my_area_m2 = np.empty(shape=(0, 1), dtype=np.float64)
     my_dict_desc = prpIO.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
 
+    if in_format == 'netcdf':
+        ext = '.nc'
+    else:
+        ext = ''
+
     for link in links_in_zone:
         my_meteo_file = None
         for dt_format in ['%Y', '%Y%m', '%Y%m%d', '%Y%m%d%H', '%Y%m%d%H%M', '%Y%m%d%H%M%S']:
             if path.isfile(
-                    "{}{}_{}_{}_{}.{}".format(in_folder, catchment, link, my__tf.data_start.strftime(dt_format),
-                                              my__tf.data_end.strftime(dt_format), meteo_type.lower())):
+                    "{}{}_{}_{}_{}.{}{}".format(in_folder, catchment, link, my__tf.data_start.strftime(dt_format),
+                                                my__tf.data_end.strftime(dt_format), meteo_type.lower(), ext)):
                 my_meteo_file = \
-                    "{}{}_{}_{}_{}.{}".format(in_folder, catchment, link, my__tf.data_start.strftime(dt_format),
-                                              my__tf.data_end.strftime(dt_format), meteo_type.lower())
+                    "{}{}_{}_{}_{}.{}{}".format(in_folder, catchment, link, my__tf.data_start.strftime(dt_format),
+                                                my__tf.data_end.strftime(dt_format), meteo_type.lower(), ext)
         if not my_meteo_file:
-            raise Exception("{}{}_{}_{}_{}.{} does not exist.".format(
-                in_folder, catchment, link, '[DataStart]', '[DataEnd]', meteo_type))
+            raise Exception("{}{}_{}_{}_{}.{}{} does not exist.".format(
+                in_folder, catchment, link, '[DataStart]', '[DataEnd]', meteo_type.lower(), ext))
 
-        my_df_inputs = pandas.read_csv(my_meteo_file, index_col=0)
+        if in_format == 'netcdf':
+            my_nd_inputs = popIO.read_netcdf_timeseries(my_meteo_file, time_variable='DATETIME')
+            my_df_inputs = DataFrame.from_dict(my_nd_inputs, orient='columns')
+        else:
+            my_df_inputs = pandas.read_csv(my_meteo_file, index_col=0)
 
         my_data_mm = \
             np.c_[my_data_mm, np.asarray(my_df_inputs['{}'.format(meteo_type.upper())].loc[my_time_st].tolist())]
@@ -305,7 +314,7 @@ def read_meteo_files(my__network, my__tf,
 
 def read_flow_files(my__time_frame,
                     catchment,
-                    gauge, gauged_wb,
+                    gauge, gauged_wb, in_format,
                     out_folder):
     logger = logging.getLogger('SinglePlot.main')
     logger.info("Reading flow files.")
@@ -314,8 +323,14 @@ def read_flow_files(my__time_frame,
     my_time_st = [my_dt.strftime('%Y-%m-%d %H:%M:%S') for my_dt in my_time_dt]
 
     # Get the simulated flow at the outlet of the catchment
+    if in_format == 'netcdf':
+        my_nd_node = popIO.read_netcdf_timeseries("{}{}_{}.outputs.nc".format(out_folder, catchment, gauged_wb),
+                                                  time_variable='DateTime')
+        my_df_node = DataFrame.from_dict(my_nd_node, orient='columns')
+    else:
+        my_df_node = pandas.read_csv("{}{}_{}.outputs".format(out_folder, catchment, gauged_wb), index_col=0)
+
     simu_flow_m3s = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
-    my_df_node = pandas.read_csv("{}{}_{}.outputs".format(out_folder, catchment, gauged_wb), index_col=0)
     simu_flow_m3s = np.c_[simu_flow_m3s, np.asarray(my_df_node['r_out_q_h2o'].loc[my_time_st].tolist())]
 
     # Get the measured flow near the outlet of the catchment
@@ -598,9 +613,10 @@ if __name__ == '__main__':
                         help="european code of the catchment outlet [format IE_XX_##X######]")
     parser.add_argument('gauge', type=str,
                         help="code of the hydrometric gauge [5-digit code]")
-    parser.set_defaults(add_up=True)
+    parser.add_argument('-i', '--in_format', type=csfR.valid_file_format, default='csv',
+                        help="format of input data files [csv or netcdf]")
 
     args = parser.parse_args()
 
     # Run the main() function
-    main(args.catchment, args.outlet, args.gauge, csf_root)
+    main(args.catchment, args.outlet, args.gauge, csf_root, in_fmt=args.in_format)

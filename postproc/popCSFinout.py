@@ -2,6 +2,7 @@ from collections import OrderedDict
 from csv import DictReader, writer
 from numpy import float64
 from datetime import datetime, timedelta
+from netCDF4 import Dataset
 
 import popCSFfunctions as popF
 
@@ -47,6 +48,39 @@ def get_dict_discharge_series(file_location, start_report, end_report, catchment
 
     return popF.rescale_time_resolution_of_irregular_mean_data(dict_flow, start_report, end_report,
                                                                timedelta(days=1), timedelta(hours=1))
+
+
+def read_netcdf_timeseries(netcdf_file, time_variable):
+    try:
+        with Dataset(netcdf_file, "r") as my_file:
+            my_file.set_auto_mask(False)
+            my_nd_variables = dict()
+            fields = my_file.variables.keys()
+            try:
+                fields.remove(time_variable)
+            except KeyError:
+                raise Exception('Field {} does not exist in {}.'.format(time_variable, netcdf_file))
+
+            for field in fields:
+                if not len(my_file.variables[time_variable]) == len(my_file.variables[field]):
+                    raise Exception(
+                        'Fields {} and {} do not have the same length in {}.'.format(field, time_variable, netcdf_file))
+
+            list_dt = [datetime.utcfromtimestamp(tstamp) for tstamp in my_file.variables[time_variable][:]]
+            list_st_dt = [dt.strftime('%Y-%m-%d %H:%M:%S') for dt in list_dt]
+            list_vals = {field: my_file.variables[field][:] for field in fields}
+
+            for field in fields:
+                my_nd_variables[str(field)] = dict()
+
+            for idx, dt in enumerate(list_st_dt):
+                for field in fields:
+                    my_nd_variables[str(field)][dt] = float(list_vals[field][idx])
+
+        return my_nd_variables
+
+    except IOError:
+        raise Exception('File {} could not be found.'.format(netcdf_file))
 
 
 def read_flow_file(file_location):
