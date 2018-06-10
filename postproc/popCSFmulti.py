@@ -1,6 +1,6 @@
 import logging
 from multiprocessing import Pool, cpu_count, log_to_stderr
-from os import path, getcwd
+from os import path, getcwd, remove
 from csv import DictReader
 
 
@@ -69,6 +69,9 @@ if __name__ == '__main__':
     output_dir = ''.join([csf_root, "/out/"])
 
     my_log_file = '{}/postprocessing.batch.log'.format(output_dir)
+    if path.isfile(my_log_file):  # del file if already exists
+        remove(my_log_file)
+
     my_batch_file = '{}/postprocessing.batch'.format(input_dir)
 
     cores = cpu_count()
