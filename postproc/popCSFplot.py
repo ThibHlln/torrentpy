@@ -101,7 +101,7 @@ def set_up_plotting(catchment, outlet, input_dir):
         my_answers_df = DataFrame()
 
     try:
-        question_start_data = my_answers_df.get_value('data_start_datetime', 'ANSWER')
+        question_start_data = my_answers_df.at['data_start_datetime', 'ANSWER']
     except KeyError:
         question_start_data = raw_input('Starting date for data? [format DD/MM/YYYY HH:MM:SS] ')
     try:
@@ -110,7 +110,7 @@ def set_up_plotting(catchment, outlet, input_dir):
         raise Exception("The data starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
-        question_end_data = my_answers_df.get_value('data_end_datetime', 'ANSWER')
+        question_end_data = my_answers_df.at['data_end_datetime', 'ANSWER']
     except KeyError:
         question_end_data = raw_input('Ending date for data? [format DD/MM/YYYY HH:MM:SS] ')
     try:
@@ -119,7 +119,7 @@ def set_up_plotting(catchment, outlet, input_dir):
         raise Exception("The data ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
-        question_data_time_gap = my_answers_df.get_value('data_time_gap_min', 'ANSWER')
+        question_data_time_gap = my_answers_df.at['data_time_gap_min', 'ANSWER']
     except KeyError:
         question_data_time_gap = raw_input('Time gap for data? [integer in minutes] ')
     try:
@@ -128,7 +128,7 @@ def set_up_plotting(catchment, outlet, input_dir):
         raise Exception("The data time gap is invalid. [not an integer]")
 
     try:
-        question_start_save = my_answers_df.get_value('save_start_datetime', 'ANSWER')
+        question_start_save = my_answers_df.at['save_start_datetime', 'ANSWER']
     except KeyError:
         question_start_save = raw_input('Starting date for saving? [format DD/MM/YYYY HH:MM:SS] ')
     try:
@@ -138,7 +138,7 @@ def set_up_plotting(catchment, outlet, input_dir):
             "The saving starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
-        question_end_save = my_answers_df.get_value('save_end_datetime', 'ANSWER')
+        question_end_save = my_answers_df.at['save_end_datetime', 'ANSWER']
     except KeyError:
         question_end_save = raw_input('Ending date for saving? [format DD/MM/YYYY HH:MM:SS] ')
     try:
@@ -148,7 +148,7 @@ def set_up_plotting(catchment, outlet, input_dir):
             "The saving ending date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
-        question_save_time_gap = my_answers_df.get_value('save_time_gap_min', 'ANSWER')
+        question_save_time_gap = my_answers_df.at['save_time_gap_min', 'ANSWER']
     except KeyError:
         question_save_time_gap = raw_input('Time gap for saving? [integer in minutes] ')
     try:
@@ -157,7 +157,7 @@ def set_up_plotting(catchment, outlet, input_dir):
         raise Exception("The saving time gap is invalid. [not an integer]")
 
     try:
-        question_simu_time_gap = my_answers_df.get_value('simu_time_gap_min', 'ANSWER')
+        question_simu_time_gap = my_answers_df.at['simu_time_gap_min', 'ANSWER']
     except KeyError:
         question_simu_time_gap = raw_input('Time gap for simulation? [integer in minutes] ')
     try:
@@ -166,7 +166,7 @@ def set_up_plotting(catchment, outlet, input_dir):
         raise Exception("The simulation time gap is invalid. [not an integer]")
 
     try:
-        question_start_plot = my_answers_df.get_value('plot_start_datetime', 'ANSWER')
+        question_start_plot = my_answers_df.at['plot_start_datetime', 'ANSWER']
     except KeyError:
         question_start_plot = raw_input('Starting date for plot? [format DD/MM/YYYY HH:MM:SS] ')
     try:
@@ -175,7 +175,7 @@ def set_up_plotting(catchment, outlet, input_dir):
         raise Exception("The plot starting date format entered is invalid. [not compliant with DD/MM/YYYY HH:MM:SS]")
 
     try:
-        question_end_plot = my_answers_df.get_value('plot_end_datetime', 'ANSWER')
+        question_end_plot = my_answers_df.at['plot_end_datetime', 'ANSWER']
     except ValueError:
         question_end_plot = raw_input('Ending date for plot? [format DD/MM/YYYY HH:MM:SS] ')
     try:
