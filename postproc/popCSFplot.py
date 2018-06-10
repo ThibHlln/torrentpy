@@ -1,17 +1,18 @@
 from pandas import DataFrame
 import numpy as np
-import matplotlib as mpl
-from matplotlib import dates
-import matplotlib.pyplot as plt
 import logging
 import argparse
 from datetime import datetime
-from os import path
 
 from scripts.CSFclasses import *
 import popCSFinout as popIO
 import scripts.preproc.prpCSFinout as prpIO
 import scripts.CSFrun as csfR
+
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.dates as dates
+import matplotlib.pyplot as plt
 
 
 def main(catchment, outlet, gauge, root, in_fmt="csv"):
@@ -185,12 +186,9 @@ def set_up_plotting(catchment, outlet, input_dir):
 
     # Check if temporal information is consistent
     if datetime_start_plot < datetime_start_save:
-        raise Exception("The plotting start is earlier than the simulation start.")
+        raise Exception("The plotting start is earlier than the save start.")
     if datetime_end_plot > datetime_end_save:
-        raise Exception("The plotting end is later than the simulation end.")
-
-    if data_time_gap_in_min % simu_time_gap_in_min != 0.0:
-        raise Exception("The data time gap is not a multiple of the simulation time gap.")
+        raise Exception("The plotting end is later than the save end.")
 
     return datetime_start_data, datetime_end_data, data_time_gap_in_min, \
         datetime_start_save, datetime_end_save, save_time_gap_in_min, \
@@ -261,7 +259,7 @@ def read_meteo_files(my__network, my__tf,
     logger = logging.getLogger('SinglePlot.main')
     logger.info("Reading {} files.".format(meteo_type.lower()))
 
-    my_time_dt = my__tf.needed_data_series
+    my_time_dt = my__tf.save_series
     my_time_st = [my_dt.strftime('%Y-%m-%d %H:%M:%S') for my_dt in my_time_dt]
 
     # Get the average aerial meteo data over the catchment
@@ -271,32 +269,16 @@ def read_meteo_files(my__network, my__tf,
     my_area_m2 = np.empty(shape=(0, 1), dtype=np.float64)
     my_dict_desc = prpIO.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
 
-    if in_format == 'netcdf':
-        ext = '.nc'
-    else:
-        ext = ''
-
     for link in links_in_zone:
-        my_meteo_file = None
-        for dt_format in ['%Y', '%Y%m', '%Y%m%d', '%Y%m%d%H', '%Y%m%d%H%M', '%Y%m%d%H%M%S']:
-            if path.isfile(
-                    "{}{}_{}_{}_{}.{}{}".format(in_folder, catchment, link, my__tf.data_start.strftime(dt_format),
-                                                my__tf.data_end.strftime(dt_format), meteo_type.lower(), ext)):
-                my_meteo_file = \
-                    "{}{}_{}_{}_{}.{}{}".format(in_folder, catchment, link, my__tf.data_start.strftime(dt_format),
-                                                my__tf.data_end.strftime(dt_format), meteo_type.lower(), ext)
-        if not my_meteo_file:
-            raise Exception("{}{}_{}_{}_{}.{}{} does not exist.".format(
-                in_folder, catchment, link, '[DataStart]', '[DataEnd]', meteo_type.lower(), ext))
-
         if in_format == 'netcdf':
-            my_nd_inputs = popIO.read_netcdf_timeseries(my_meteo_file, time_variable='DATETIME')
+            my_nd_inputs = popIO.read_netcdf_timeseries("{}{}_{}.inputs.nc".format(out_folder, catchment, gauged_wb),
+                                                        time_variable='DateTime')
             my_df_inputs = DataFrame.from_dict(my_nd_inputs, orient='columns')
         else:
-            my_df_inputs = pandas.read_csv(my_meteo_file, index_col=0)
+            my_df_inputs = pandas.read_csv("{}{}_{}.inputs".format(out_folder, catchment, gauged_wb), index_col=0)
 
         my_data_mm = \
-            np.c_[my_data_mm, np.asarray(my_df_inputs['{}'.format(meteo_type.upper())].loc[my_time_st].tolist())]
+            np.c_[my_data_mm, np.asarray(my_df_inputs['{}'.format('c_in_' + meteo_type)].loc[my_time_st].tolist())]
         my_area_m2 = \
             np.r_[my_area_m2, np.asarray([[my_dict_desc[link]['area']]])]
     my_data_m = my_data_mm / 1e3  # convert mm to m of meteo data
@@ -305,7 +287,7 @@ def read_meteo_files(my__network, my__tf,
     meteo_data *= 1e3 / catchment_area  # get meteo data in mm
 
     # Save the meteo data lumped at the catchment scale in file
-    DataFrame({'DATETIME': my__tf.needed_data_series,
+    DataFrame({'DATETIME': my__tf.save_series,
                '{}'.format(meteo_type.upper()): meteo_data.ravel()}).set_index('DATETIME').to_csv(
         '{}{}_{}.lumped.{}'.format(out_folder, catchment, gauged_wb, meteo_type.lower()), float_format='%e')
 
@@ -319,7 +301,7 @@ def read_flow_files(my__time_frame,
     logger = logging.getLogger('SinglePlot.main')
     logger.info("Reading flow files.")
 
-    my_time_dt = my__time_frame.needed_data_series
+    my_time_dt = my__time_frame.save_series
     my_time_st = [my_dt.strftime('%Y-%m-%d %H:%M:%S') for my_dt in my_time_dt]
 
     # Get the simulated flow at the outlet of the catchment
@@ -351,7 +333,7 @@ def plot_daily_hydro_hyeto(my__tf,
     logger = logging.getLogger('SinglePlot.main')
     logger.info("Plotting Hyetograph and Hydrograph.")
 
-    my_time_dt = my__tf.needed_data_series
+    my_time_dt = my__tf.save_series
 
     # Create a general figure
     fig = plt.figure(facecolor='white')
