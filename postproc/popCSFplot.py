@@ -259,7 +259,7 @@ def read_meteo_files(my__network, my__tf,
     logger = logging.getLogger('SinglePlot.main')
     logger.info("Reading {} files.".format(meteo_type.lower()))
 
-    my_time_dt = my__tf.save_series
+    my_time_dt = my__tf.save_series[1:]
     my_time_st = [my_dt.strftime('%Y-%m-%d %H:%M:%S') for my_dt in my_time_dt]
 
     # Get the average aerial meteo data over the catchment
@@ -287,7 +287,7 @@ def read_meteo_files(my__network, my__tf,
     meteo_data *= 1e3 / catchment_area  # get meteo data in mm
 
     # Save the meteo data lumped at the catchment scale in file
-    DataFrame({'DATETIME': my__tf.save_series,
+    DataFrame({'DATETIME': my_time_st,
                '{}'.format(meteo_type.upper()): meteo_data.ravel()}).set_index('DATETIME').to_csv(
         '{}{}_{}.lumped.{}'.format(out_folder, catchment, gauged_wb, meteo_type.lower()), float_format='%e')
 
@@ -301,7 +301,7 @@ def read_flow_files(my__time_frame,
     logger = logging.getLogger('SinglePlot.main')
     logger.info("Reading flow files.")
 
-    my_time_dt = my__time_frame.save_series
+    my_time_dt = my__time_frame.save_series[1:]
     my_time_st = [my_dt.strftime('%Y-%m-%d %H:%M:%S') for my_dt in my_time_dt]
 
     # Get the simulated flow at the outlet of the catchment
@@ -333,7 +333,7 @@ def plot_daily_hydro_hyeto(my__tf,
     logger = logging.getLogger('SinglePlot.main')
     logger.info("Plotting Hyetograph and Hydrograph.")
 
-    my_time_dt = my__tf.save_series
+    my_time_dt = my__tf.save_series[1:]
 
     # Create a general figure
     fig = plt.figure(facecolor='white')
