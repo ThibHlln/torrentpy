@@ -45,21 +45,21 @@ def create_simulation_files_csv(my__network, dict__ls_models,
             my_states += model.state_names
             my_outputs += model.output_names
 
-        with open('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link), 'wb') as my_file:
+        with open('{}{}_{}.inputs'.format(output_folder, catchment, link), 'wb') as my_file:
             my_writer = csv.writer(my_file, delimiter=',')
             my_writer.writerow(['DateTime'] + my_inputs)
 
-        with open('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link), 'wb') as my_file:
+        with open('{}{}_{}.states'.format(output_folder, catchment, link), 'wb') as my_file:
             my_writer = csv.writer(my_file, delimiter=',')
             my_writer.writerow(['DateTime'] + my_states)
 
-        with open('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link), 'wb') as my_file:
+        with open('{}{}_{}.outputs'.format(output_folder, catchment, link), 'wb') as my_file:
             my_writer = csv.writer(my_file, delimiter=',')
             my_writer.writerow(['DateTime'] + my_outputs)
 
     # Create the CSV files with headers for the nodes
     for node in my__network.nodes:
-        with open('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node), 'wb') as my_file:
+        with open('{}{}_{}.node'.format(output_folder, catchment, node), 'wb') as my_file:
             my_writer = csv.writer(my_file, delimiter=',')
             my_writer.writerow(['DateTime'] + my__network.variables)
 
@@ -94,21 +94,21 @@ def create_simulation_files_netcdf(my__network, dict__ls_models,
             my_states += model.state_names
             my_outputs += model.output_names
 
-        with Dataset('{}{}_{}.inputs.nc'.format(output_folder, catchment.capitalize(), link), 'w') as my_file:
+        with Dataset('{}{}_{}.inputs.nc'.format(output_folder, catchment, link), 'w') as my_file:
             my_file.createDimension("DateTime", None)
             t = my_file.createVariable("DateTime", np.float64, ("DateTime",), zlib=True)
             t.units = 'seconds since 1970-01-01 00:00:00.0'
             for my_input in my_inputs:
                 my_file.createVariable(my_input, np.float64, ("DateTime",), zlib=True, complevel=1)
 
-        with Dataset('{}{}_{}.states.nc'.format(output_folder, catchment.capitalize(), link), 'w') as my_file:
+        with Dataset('{}{}_{}.states.nc'.format(output_folder, catchment, link), 'w') as my_file:
             my_file.createDimension("DateTime", None)
             t = my_file.createVariable("DateTime", np.float64, ("DateTime",), zlib=True)
             t.units = 'seconds since 1970-01-01 00:00:00.0'
             for my_state in my_states:
                 my_file.createVariable(my_state, np.float64, ("DateTime",), zlib=True, complevel=1)
 
-        with Dataset('{}{}_{}.outputs.nc'.format(output_folder, catchment.capitalize(), link), 'w') as my_file:
+        with Dataset('{}{}_{}.outputs.nc'.format(output_folder, catchment, link), 'w') as my_file:
             my_file.createDimension("DateTime", None)
             t = my_file.createVariable("DateTime", np.float64, ("DateTime",), zlib=True)
             t.units = 'seconds since 1970-01-01 00:00:00.0'
@@ -117,7 +117,7 @@ def create_simulation_files_netcdf(my__network, dict__ls_models,
 
     # Create the NetCDF4 files with headers for the nodes
     for node in my__network.nodes:
-        with Dataset('{}{}_{}.node.nc'.format(output_folder, catchment.capitalize(), node), 'w') as my_file:
+        with Dataset('{}{}_{}.node.nc'.format(output_folder, catchment, node), 'w') as my_file:
             my_file.createDimension("DateTime", None)
             t = my_file.createVariable("DateTime", np.float64, ("DateTime",), zlib=True)
             t.units = 'seconds since 1970-01-01 00:00:00.0'
@@ -200,7 +200,7 @@ def update_simulation_files_csv(my__network, my__tf, my_save_slice,
                 my_states += model.state_names
                 my_outputs += model.output_names
 
-            with open('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
+            with open('{}{}_{}.inputs'.format(output_folder, catchment, link), 'ab') as my_file:
                 # for inputs, 'raw' and 'summary report the same values because they are cumulative values
                 my_writer = csv.writer(my_file, delimiter=',')
                 for step in my_save_slice[1:]:
@@ -214,7 +214,7 @@ def update_simulation_files_csv(my__network, my__tf, my_save_slice,
                         my_list.append('%e' % sum(my_values))
                     my_writer.writerow([step] + my_list)
 
-            with open('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
+            with open('{}{}_{}.states'.format(output_folder, catchment, link), 'ab') as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
                 for step in my_save_slice[1:]:
                     my_list = list()
@@ -227,7 +227,7 @@ def update_simulation_files_csv(my__network, my__tf, my_save_slice,
                         my_list.append('%e' % (sum(my_values) / len(my_values)))
                     my_writer.writerow([step] + my_list)
 
-            with open('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
+            with open('{}{}_{}.outputs'.format(output_folder, catchment, link), 'ab') as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
                 for step in my_save_slice[1:]:
                     my_list = list()
@@ -242,7 +242,7 @@ def update_simulation_files_csv(my__network, my__tf, my_save_slice,
 
         # Save the Nested Dicts for the nodes
         for node in my__network.nodes:
-            with open('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node), 'ab') as my_file:
+            with open('{}{}_{}.node'.format(output_folder, catchment, node), 'ab') as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
                 for step in my_save_slice[1:]:
                     my_list = list()
@@ -267,7 +267,7 @@ def update_simulation_files_csv(my__network, my__tf, my_save_slice,
                 my_states += model.state_names
                 my_outputs += model.output_names
 
-            with open('{}{}_{}.inputs'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
+            with open('{}{}_{}.inputs'.format(output_folder, catchment, link), 'ab') as my_file:
                 # for inputs, 'raw' and 'summary report the same values because they are cumulative values
                 my_writer = csv.writer(my_file, delimiter=',')
                 for step in my_save_slice[1:]:
@@ -281,13 +281,13 @@ def update_simulation_files_csv(my__network, my__tf, my_save_slice,
                         my_list.append('%e' % sum(my_values))
                     my_writer.writerow([step] + my_list)
 
-            with open('{}{}_{}.states'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
+            with open('{}{}_{}.states'.format(output_folder, catchment, link), 'ab') as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
                 for step in my_save_slice[1:]:
                     my_writer.writerow([step] + ['%e' % dict__nd_data[link][step][my_state]
                                                  for my_state in my_states])
 
-            with open('{}{}_{}.outputs'.format(output_folder, catchment.capitalize(), link), 'ab') as my_file:
+            with open('{}{}_{}.outputs'.format(output_folder, catchment, link), 'ab') as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
                 for step in my_save_slice[1:]:
                     my_writer.writerow([step] + ['%e' % dict__nd_data[link][step][my_output]
@@ -295,7 +295,7 @@ def update_simulation_files_csv(my__network, my__tf, my_save_slice,
 
         # Save the Nested Dicts for the nodes
         for node in my__network.nodes:
-            with open('{}{}_{}.node'.format(output_folder, catchment.capitalize(), node), 'ab') as my_file:
+            with open('{}{}_{}.node'.format(output_folder, catchment, node), 'ab') as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
                 for step in my_save_slice[1:]:
                     my_writer.writerow([step] + ['%e' % dict__nd_data[node][step][my_variable]
@@ -371,7 +371,7 @@ def update_simulation_files_netcdf(my__network, my__tf, my_save_slice,
                 my_states += model.state_names
                 my_outputs += model.output_names
 
-            with Dataset('{}{}_{}.inputs.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
+            with Dataset('{}{}_{}.inputs.nc'.format(output_folder, catchment, link), 'a') as my_file:
                 # for inputs, 'raw' and 'summary report the same values because they are cumulative values
                 my_values = {my_input: list() for my_input in my_inputs}
                 for step in my_save_slice[1:]:
@@ -388,7 +388,7 @@ def update_simulation_files_netcdf(my__network, my__tf, my_save_slice,
                 for my_input in my_inputs:
                     my_file.variables[my_input][start_idx:end_idx] = my_values[my_input]
 
-            with Dataset('{}{}_{}.states.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
+            with Dataset('{}{}_{}.states.nc'.format(output_folder, catchment, link), 'a') as my_file:
                 my_values = {my_state: list() for my_state in my_states}
                 for step in my_save_slice[1:]:
                     for my_state in my_states:
@@ -404,7 +404,7 @@ def update_simulation_files_netcdf(my__network, my__tf, my_save_slice,
                 for my_state in my_states:
                     my_file.variables[my_state][start_idx:end_idx] = my_values[my_state]
 
-            with Dataset('{}{}_{}.outputs.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
+            with Dataset('{}{}_{}.outputs.nc'.format(output_folder, catchment, link), 'a') as my_file:
                 my_values = {my_output: list() for my_output in my_outputs}
                 for step in my_save_slice[1:]:
                     for my_output in my_outputs:
@@ -422,7 +422,7 @@ def update_simulation_files_netcdf(my__network, my__tf, my_save_slice,
 
         # Save the Nested Dicts for the nodes
         for node in my__network.nodes:
-            with Dataset('{}{}_{}.node.nc'.format(output_folder, catchment.capitalize(), node), 'a') as my_file:
+            with Dataset('{}{}_{}.node.nc'.format(output_folder, catchment, node), 'a') as my_file:
                 my_values = {my_variable: list() for my_variable in my__network.variables}
                 for step in my_save_slice[1:]:
                     for my_variable in my__network.variables:
@@ -450,7 +450,7 @@ def update_simulation_files_netcdf(my__network, my__tf, my_save_slice,
                 my_states += model.state_names
                 my_outputs += model.output_names
 
-            with Dataset('{}{}_{}.inputs.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
+            with Dataset('{}{}_{}.inputs.nc'.format(output_folder, catchment, link), 'a') as my_file:
                 # for inputs, 'raw' and 'summary report the same values because they are cumulative values
                 my_values = {my_input: list() for my_input in my_inputs}
                 for step in my_save_slice[1:]:
@@ -467,7 +467,7 @@ def update_simulation_files_netcdf(my__network, my__tf, my_save_slice,
                 for my_input in my_inputs:
                     my_file.variables[my_input][start_idx:end_idx] = my_values[my_input]
 
-            with Dataset('{}{}_{}.states.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
+            with Dataset('{}{}_{}.states.nc'.format(output_folder, catchment, link), 'a') as my_file:
                 my_values = {my_state: list() for my_state in my_states}
                 for step in my_save_slice[1:]:
                     for my_state in my_states:
@@ -478,7 +478,7 @@ def update_simulation_files_netcdf(my__network, my__tf, my_save_slice,
                 for my_state in my_states:
                     my_file.variables[my_state][start_idx:end_idx] = my_values[my_state]
 
-            with Dataset('{}{}_{}.outputs.nc'.format(output_folder, catchment.capitalize(), link), 'a') as my_file:
+            with Dataset('{}{}_{}.outputs.nc'.format(output_folder, catchment, link), 'a') as my_file:
                 my_values = {my_output: list() for my_output in my_outputs}
                 for step in my_save_slice[1:]:
                     for my_output in my_outputs:
@@ -491,7 +491,7 @@ def update_simulation_files_netcdf(my__network, my__tf, my_save_slice,
 
         # Save the Nested Dicts for the nodes
         for node in my__network.nodes:
-            with Dataset('{}{}_{}.node.nc'.format(output_folder, catchment.capitalize(), node), 'a') as my_file:
+            with Dataset('{}{}_{}.node.nc'.format(output_folder, catchment, node), 'a') as my_file:
                 my_values = {my_variable: list() for my_variable in my__network.variables}
                 for step in my_save_slice[1:]:
                     for my_variable in my__network.variables:
