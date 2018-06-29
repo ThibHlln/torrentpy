@@ -1,11 +1,8 @@
 import logging
-import imp
 from pandas import DataFrame
 from itertools import izip
-import argparse
 from glob import glob
 from datetime import datetime, timedelta
-from os import path, getcwd
 
 from classes import *
 import inout as io
@@ -13,11 +10,9 @@ import functions as fn
 import preproc.functions as prp_fn
 
 
-def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", out_fmt="csv", is_single_run=False):
-    # Location of the different needed directories
-    spec_directory = ''.join([root, "/scripts/torrentpy/specs/"])
-    input_directory = ''.join([root, "/in/"])
-    output_directory = ''.join([root, "/out/"])
+def main(catchment, outlet, slice_length, warm_up_in_days,
+         const_directory, input_directory, output_directory,
+         in_fmt="csv", out_fmt="csv", is_single_run=False):
 
     # Check if combination catchment/outlet is coherent by using the name of the input folder
     if not os.path.exists("{}{}_{}".format(input_directory, catchment, outlet)):
@@ -70,11 +65,11 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
                                        slice_length)
 
     # Create a Network object from network and waterBodies files
-    my__network = Network(catchment, outlet, input_folder, spec_directory, wq=water_quality)
+    my__network = Network(catchment, outlet, input_folder, wq=water_quality)
 
     # Create Models for the links
     dict__ls_models, dict__c_models, dict__r_models, dict__l_models = \
-        fn.generate_models_for_links(my__network, spec_directory, input_folder, output_folder)
+        fn.generate_models_for_links(my__network, const_directory, input_folder, output_folder)
 
     # Create files to store simulation results
     io.create_simulation_files(my__network, dict__ls_models, catchment, out_fmt, output_folder)
@@ -115,7 +110,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
             dict__nd_loadings = \
                 prp_fn.get_contaminant_input_for_links(my__network, my__time_frame_warm_up,
                                                        my_save_slice, my_simu_slice,
-                                                       input_folder, spec_directory) if water_quality else {}
+                                                       input_folder, const_directory) if water_quality else {}
 
             # Simulate
             simulate(my__network, my__time_frame_warm_up, my_simu_slice,
@@ -165,9 +160,10 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
             dict__nd_data[node][my_simu_slice[0]].update(my_last_lines[node])
 
         # Get other input data
-        dict__nd_loadings = prp_fn.get_contaminant_input_for_links(my__network, my__time_frame,
-                                                                   my_save_slice, my_simu_slice,
-                                                                   input_folder, spec_directory) if water_quality else {}
+        dict__nd_loadings = \
+            prp_fn.get_contaminant_input_for_links(my__network, my__time_frame,
+                                                   my_save_slice, my_simu_slice,
+                                                   input_folder, const_directory) if water_quality else {}
 
         # Simulate
         simulate(my__network, my__time_frame, my_simu_slice,
@@ -488,50 +484,3 @@ def simulate(my__network, my__time_frame, my_simu_slice,
                 if q_h2o > 0.0:
                     dict__nd_data[node][step][variable] = my_dict_variables[variable] / q_h2o
                 my_dict_variables[variable] = 0.0
-
-
-def valid_file_format(fmt):
-    if fmt.lower() == "netcdf":
-        try:
-            imp.find_module('netCDF4')
-            return "netcdf"
-        except ImportError:
-            raise argparse.ArgumentTypeError("NetCDF4 module is not installed, please choose another file format.")
-    elif fmt.lower() == "csv":
-        try:
-            imp.find_module('csv')
-            return "csv"
-        except ImportError:
-            raise argparse.ArgumentTypeError("CSV module is not installed, please choose another file format.")
-    else:
-        raise argparse.ArgumentTypeError("File format not recognised: '{0}'.".format(fmt))
-
-
-if __name__ == "__main__":
-    # Define the root of the CSF package
-    if getcwd() == path.dirname(path.realpath(__file__)):  # execution from the directory where the script is
-        csf_root = path.realpath('../..')  # move to parent of parent directory of this current python file
-    else:  # execution not from the directory where the script is
-        csf_root = getcwd()  # keep the current working directory
-
-    # Collect the arguments of the program call
-    parser = argparse.ArgumentParser(description="simulate hydrology and water quality "
-                                                 "for one catchment and one time period")
-    parser.add_argument('catchment', type=str,
-                        help="name of the catchment")
-    parser.add_argument('outlet', type=str,
-                        help="european code of the catchment outlet [format IE_XX_##X######]")
-    parser.add_argument('-s', '--slice_up', type=int, default=0,
-                        help="length of simulation period slice-up in time steps")
-    parser.add_argument('-w', '--warm_up', type=int, default=0,
-                        help="warm-up duration in days")
-    parser.add_argument('-i', '--in_format', type=valid_file_format, default='csv',
-                        help="format of input data files [csv or netcdf]")
-    parser.add_argument('-o', '--out_format', type=valid_file_format, default='csv',
-                        help="format of output data files [csv or netcdf]")
-
-    args = parser.parse_args()
-
-    # Run the main() function
-    main(args.catchment, args.outlet, args.slice_up, args.warm_up, csf_root,
-         in_fmt=args.in_format, out_fmt=args.out_format, is_single_run=True)

@@ -8,12 +8,13 @@ from math import ceil
 import models as mod
 
 
-class Network:
+class Network(object):
     """
     This class defines all the constituting parts of a catchment structures as a node-link network, as well as the
     different relationships between the nodes and the links, and the characteristics of the links.
     """
-    def __init__(self, catchment, outlet, input_folder, specs_folder, wq=False):
+    def __init__(self, catchment, outlet, input_folder, wq=False):
+        specs_folder = os.path.dirname(os.path.realpath(__file__)) + os.sep + 'specs' + os.sep
         # name of the catchment
         self.name = catchment
         # european code of the outlet
@@ -173,12 +174,13 @@ class Network:
         return my_list
 
 
-class Model:
+class Model(object):
     """
     This class defines a model associated to a link in the Network object. It contains the names of the inputs, states,
     parameters, and outputs as well as the values of the parameters and the constants.
     """
-    def __init__(self, category, identifier, my__network, link, specs_folder, input_folder, output_folder):
+    def __init__(self, category, identifier, my__network, link, const_folder, input_folder, output_folder):
+        specs_folder = os.path.dirname(os.path.realpath(__file__)) + os.sep + 'specs' + os.sep
         # category of the Model (catchment, river, or lake)
         self.category = category
         # name of the Model within the category
@@ -198,7 +200,7 @@ class Model:
         # values for the parameters of the Model
         self.parameters = Model.get_dict_parameters(self, my__network, specs_folder, input_folder, output_folder)
         # values for the constants of the Model
-        self.constants = Model.get_dict_constants(self, specs_folder)
+        self.constants = Model.get_dict_constants(self, specs_folder, const_folder)
 
     def get_list_names(self, specs_folder, specs_type):
         """
@@ -240,13 +242,14 @@ class Model:
 
         return my_list
 
-    def get_dict_constants(self, specs_folder):
+    def get_dict_constants(self, specs_folder, const_folder):
         """
         This method get the list of the names for the constants of the Model in its specification file in the
         specifications folder. Then, the methods reads the constants values in the constant file for the Model located
         in the specifications folder.
 
         :param specs_folder: path to the specification folder where to find the specifications file
+        :param const_folder: path to the constants folder where to find the constants file
         :return: dictionary containing the constants names and values
             {key: constant_name, value: constant_value}
         """
@@ -284,7 +287,7 @@ class Model:
 
             if my_list:
                 try:
-                    my_file = "{}{}.{}".format(specs_folder, component, specs_type)
+                    my_file = "{}{}.{}".format(const_folder, component, specs_type)
                     my_df = pandas.read_csv(my_file, index_col=0)
                     for name in my_list:
                         try:
@@ -296,8 +299,8 @@ class Model:
                                 specs_type[:-1], name, component))
 
                 except IOError:
-                    logger.error("{}{}.{} does not exist.".format(specs_folder, component, specs_type))
-                    raise Exception("{}{}.{} does not exist.".format(specs_folder, component, specs_type))
+                    logger.error("{}{}.{} does not exist.".format(const_folder, component, specs_type))
+                    raise Exception("{}{}.{} does not exist.".format(const_folder, component, specs_type))
 
         return my_dict
 
@@ -446,7 +449,7 @@ class Model:
         return dict_init
 
 
-class TimeFrame:
+class TimeFrame(object):
     """
     This class gathers the temporal information provided by the user. Then, it defines the temporal attributes
     of the simulator.

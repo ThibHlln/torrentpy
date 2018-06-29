@@ -3,15 +3,15 @@ import logging
 from classes import *
 
 
-def generate_models_for_links(my__network, specifications_folder, input_folder, output_folder):
+def generate_models_for_links(my__network, constants_folder, input_folder, output_folder):
     """
     This function creates the Model objects for all the links in the network. Each link can have several structures
     (e.g. a catchment model and a reach model).
 
     :param my__network: Network object for the simulated catchment
     :type my__network: Network
-    :param specifications_folder:
-    :param input_folder: path to the output folder where to save the simulation files
+    :param constants_folder: path to the constants folder where to find the model constants files
+    :param input_folder: path to the output folder where to find the inputs files
     :param output_folder: path to the output folder where to save the simulation files
     :type output_folder: str()
     :return: dictionary containing all the Model objects generated
@@ -27,19 +27,19 @@ def generate_models_for_links(my__network, specifications_folder, input_folder, 
             # Declare Model objects
             if my__network.categories[link] == "11":  # river headwater
                 dict__c_models[link] = Model("CATCHMENT", "SMART_INCAL", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
+                                             constants_folder, input_folder, output_folder)
                 dict__r_models[link] = Model("RIVER", "LINRES_INCAS", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
+                                             constants_folder, input_folder, output_folder)
                 dict__ls_models[link] = [dict__c_models[link], dict__r_models[link]]
             elif my__network.categories[link] == "10":  # river
                 dict__c_models[link] = Model("CATCHMENT", "SMART_INCAL", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
+                                             constants_folder, input_folder, output_folder)
                 dict__r_models[link] = Model("RIVER", "LINRES_INCAS", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
+                                             constants_folder, input_folder, output_folder)
                 dict__ls_models[link] = [dict__c_models[link], dict__r_models[link]]
             elif my__network.categories[link] == "20":  # lake
                 dict__l_models[link] = Model("LAKE", "BATHTUB", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
+                                             constants_folder, input_folder, output_folder)
                 dict__ls_models[link] = [dict__l_models[link]]
                 # For now, no direct rainfall on open water in model
                 # need to be changed, but to do so, need remove lake polygon from sub-basin polygon)
@@ -51,19 +51,19 @@ def generate_models_for_links(my__network, specifications_folder, input_folder, 
             # Declare Model objects
             if my__network.categories[link] == "11":  # river headwater
                 dict__c_models[link] = Model("CATCHMENT", "SMART", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
+                                             constants_folder, input_folder, output_folder)
                 dict__r_models[link] = Model("RIVER", "LINRES", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
+                                             constants_folder, input_folder, output_folder)
                 dict__ls_models[link] = [dict__c_models[link], dict__r_models[link]]
             elif my__network.categories[link] == "10":  # river
                 dict__c_models[link] = Model("CATCHMENT", "SMART", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
+                                             constants_folder, input_folder, output_folder)
                 dict__r_models[link] = Model("RIVER", "LINRES", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
+                                             constants_folder, input_folder, output_folder)
                 dict__ls_models[link] = [dict__c_models[link], dict__r_models[link]]
             elif my__network.categories[link] == "20":  # lake
                 dict__l_models[link] = Model("LAKE", "BATHTUB", my__network, link,
-                                             specifications_folder, input_folder, output_folder)
+                                             constants_folder, input_folder, output_folder)
                 dict__ls_models[link] = [dict__l_models[link]]
                 # For now, no direct rainfall on open water in model
                 # need to be changed, but to do so, need remove lake polygon from sub-basin polygon)
