@@ -1,0 +1,10 @@
+NodeDown,WaterBody,NodeUp
+0008,RiverReachH,0009
+0002,RiverReachB,0003
+0002,RiverReachC,0004
+0001,RiverReachA,0002
+0004,RiverReachF,0006
+0005,RiverReachG,0008
+0003,RiverReachD,0005
+0004,RiverReachE,0007
+0000,OutletName,0001

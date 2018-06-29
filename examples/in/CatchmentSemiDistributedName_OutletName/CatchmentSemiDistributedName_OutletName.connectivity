@@ -1,0 +1,9 @@
+WaterBody,NeighbourUp
+RiverReachC,RiverReachF
+RiverReachC,RiverReachE
+RiverReachG,RiverReachH
+RiverReachB,RiverReachD
+RiverReachD,RiverReachG
+RiverReachA,RiverReachC
+RiverReachA,RiverReachB
+OutletName,RiverReachA

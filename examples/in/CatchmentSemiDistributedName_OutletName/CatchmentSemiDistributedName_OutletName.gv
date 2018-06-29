@@ -1,0 +1,22 @@
+// Catchment
+digraph {
+	0000 [color="#7f7f7f" fillcolor="#7f7f7f" fontcolor=white fontname=helvetica fontsize=11.0 style=filled]
+	0001 [color="#7f7f7f" fillcolor="#7f7f7f" fontcolor=white fontname=helvetica fontsize=11.0 style=filled]
+	0002 [color="#7f7f7f" fillcolor="#7f7f7f" fontcolor=white fontname=helvetica fontsize=11.0 style=filled]
+	0003 [color="#7f7f7f" fillcolor="#7f7f7f" fontcolor=white fontname=helvetica fontsize=11.0 style=filled]
+	0004 [color="#7f7f7f" fillcolor="#7f7f7f" fontcolor=white fontname=helvetica fontsize=11.0 style=filled]
+	0005 [color="#7f7f7f" fillcolor="#7f7f7f" fontcolor=white fontname=helvetica fontsize=11.0 style=filled]
+	0006 [color="#7f7f7f" fillcolor="#7f7f7f" fontcolor=white fontname=helvetica fontsize=11.0 style=filled]
+	0007 [color="#7f7f7f" fillcolor="#7f7f7f" fontcolor=white fontname=helvetica fontsize=11.0 style=filled]
+	0008 [color="#7f7f7f" fillcolor="#7f7f7f" fontcolor=white fontname=helvetica fontsize=11.0 style=filled]
+	0009 [color="#7f7f7f" fillcolor="#7f7f7f" fontcolor=white fontname=helvetica fontsize=11.0 style=filled]
+	0009 -> 0008 [label=RiverReachH color="#2d74b6" fontcolor="#2d74b6" fontname=helvetica fontsize=11.0]
+	0003 -> 0002 [label=RiverReachB color="#2d74b6" fontcolor="#2d74b6" fontname=helvetica fontsize=11.0]
+	0004 -> 0002 [label=RiverReachC color="#2d74b6" fontcolor="#2d74b6" fontname=helvetica fontsize=11.0]
+	0002 -> 0001 [label=RiverReachA color="#2d74b6" fontcolor="#2d74b6" fontname=helvetica fontsize=11.0]
+	0006 -> 0004 [label=RiverReachF color="#2d74b6" fontcolor="#2d74b6" fontname=helvetica fontsize=11.0]
+	0008 -> 0005 [label=RiverReachG color="#2d74b6" fontcolor="#2d74b6" fontname=helvetica fontsize=11.0]
+	0005 -> 0003 [label=RiverReachD color="#2d74b6" fontcolor="#2d74b6" fontname=helvetica fontsize=11.0]
+	0007 -> 0004 [label=RiverReachE color="#2d74b6" fontcolor="#2d74b6" fontname=helvetica fontsize=11.0]
+	0001 -> 0000 [label=OutletName color="#2d74b6" fontcolor="#2d74b6" fontname=helvetica fontsize=11.0]
+}

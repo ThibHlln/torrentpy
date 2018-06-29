@@ -1,0 +1,10 @@
+WaterBody,WaterBodyTypeCode,HeadwaterStatus
+RiverReachB,1,0
+RiverReachE,1,1
+RiverReachG,1,0
+RiverReachF,1,1
+RiverReachD,1,0
+RiverReachA,1,0
+OutletName,1,0
+RiverReachH,1,1
+RiverReachC,1,0

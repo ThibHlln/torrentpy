@@ -1,0 +1,10 @@
+QUESTION,ANSWER
+data_start_datetime,01/01/2000 09:00:00
+data_end_datetime,31/12/2016 09:00:00
+data_time_gap_min,1440
+save_start_datetime,01/01/2007 09:00:00
+save_end_datetime,31/12/2016 09:00:00
+save_time_gap_min,1440
+simu_time_gap_min,60
+plot_start_datetime,01/01/2007 09:00:00
+plot_end_datetime,31/12/2016 09:00:00

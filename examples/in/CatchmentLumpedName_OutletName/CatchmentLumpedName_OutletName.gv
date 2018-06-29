@@ -1,0 +1,6 @@
+// Catchment
+digraph {
+	0000 [color="#7f7f7f" fillcolor="#7f7f7f" fontcolor=white fontname=helvetica fontsize=11.0 style=filled]
+	0001 [color="#7f7f7f" fillcolor="#7f7f7f" fontcolor=white fontname=helvetica fontsize=11.0 style=filled]
+	0001 -> 0000 [label=OutletName color="#2d74b6" fontcolor="#2d74b6" fontname=helvetica fontsize=11.0]
+}
