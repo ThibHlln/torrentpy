@@ -15,9 +15,9 @@ class Network:
     """
     def __init__(self, catchment, outlet, input_folder, specs_folder, wq=False):
         # name of the catchment
-        self.name = catchment.capitalize()
+        self.name = catchment
         # european code of the outlet
-        self.code = outlet.upper()
+        self.code = outlet
         # boolean for water quality simulations
         self.waterQuality = wq
         # path of the files necessary to generate the Network object
@@ -180,11 +180,11 @@ class Model:
     """
     def __init__(self, category, identifier, my__network, link, specs_folder, input_folder, output_folder):
         # category of the Model (catchment, river, or lake)
-        self.category = category.upper()
+        self.category = category
         # name of the Model within the category
-        self.identifier = identifier.upper()
+        self.identifier = identifier
         # european code of the link associated to the Model
-        self.link = link.upper()
+        self.link = link
         # list of the names for the inputs of the Model
         self.input_names = Model.get_list_names(self, specs_folder, "inputs")
         # list of the names for the parameters of the Model

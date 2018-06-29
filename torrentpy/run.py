@@ -14,10 +14,6 @@ import preproc.functions as prp_fn
 
 
 def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", out_fmt="csv", is_single_run=False):
-    # Format catchment and outlet names
-    catchment = catchment.capitalize()
-    outlet = outlet.upper()
-
     # Location of the different needed directories
     spec_directory = ''.join([root, "/scripts/torrentpy/specs/"])
     input_directory = ''.join([root, "/in/"])
