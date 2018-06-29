@@ -1,4 +1,4 @@
-from models import smart, linres, inca
+from structures import smart, linres, inca
 try:
     import SMARTc
     smart_in_c = True

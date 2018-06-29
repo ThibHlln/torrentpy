@@ -3,7 +3,7 @@ import csv
 from os import path
 from netCDF4 import Dataset
 
-import prpCSFtime as prpT
+import resolution as prp_rs
 
 
 def read_csv(csv_file, var_type, ind_type, col4index):
@@ -49,7 +49,7 @@ def read_csv_timeseries_with_data_checks(csv_file, tf):
                     my_nd_variables[field][my_dt] = float(row[field])
                 my_list_dt.append(my_dt)
 
-        start_data, end_data, interval = prpT.check_interval_in_list(my_list_dt, csv_file)
+        start_data, end_data, interval = prp_rs.check_interval_in_list(my_list_dt, csv_file)
         if not tf.data_start == start_data:
             raise Exception(
                 'Data Start provided does not comply with Data available in {}.'.format(csv_file))
@@ -90,7 +90,7 @@ def read_netcdf_timeseries_with_data_checks(netcdf_file, tf):
                 for field in fields:
                     my_nd_variables[str(field)][dt] = float(list_vals[field][idx])
 
-            start_data, end_data, interval = prpT.check_interval_in_list(list_dt, netcdf_file)
+            start_data, end_data, interval = prp_rs.check_interval_in_list(list_dt, netcdf_file)
             if not tf.data_start == start_data:
                 raise Exception('Data Start provided does not comply with Data available in {}.'.format(netcdf_file))
             if not tf.data_end == end_data:
@@ -132,18 +132,18 @@ def get_nd_meteo_data_from_csv_file(catchment, link, my_tf, in_folder):
 
         my_nd_meteo_data = read_csv_timeseries_with_data_checks(my_meteo_file, my_tf)
 
-        time_delta_res = prpT.get_required_resolution(
+        time_delta_res = prp_rs.get_required_resolution(
             my_tf.data_needed_start, my_tf.simu_start,
             timedelta(minutes=my_tf.data_gap), timedelta(minutes=my_tf.simu_gap))
 
         if meteo_type in ["rain", "peva"]:
-            nd_meteo_simu[meteo_type] = prpT.rescale_time_resolution_of_regular_cumulative_data(
+            nd_meteo_simu[meteo_type] = prp_rs.rescale_time_resolution_of_regular_cumulative_data(
                 my_nd_meteo_data[meteo_type.upper()],
                 my_tf.data_needed_start, my_tf.data_needed_end, timedelta(minutes=my_tf.data_gap),
                 time_delta_res,
                 my_tf.simu_start, my_tf.simu_end, timedelta(minutes=my_tf.simu_gap))
         else:  # i.e. meteo_type in ["airt", "soit"]
-            nd_meteo_simu[meteo_type] = prpT.rescale_time_resolution_of_regular_mean_data(
+            nd_meteo_simu[meteo_type] = prp_rs.rescale_time_resolution_of_regular_mean_data(
                 my_nd_meteo_data[meteo_type.upper()],
                 my_tf.data_needed_start, my_tf.data_needed_end, timedelta(minutes=my_tf.data_gap),
                 time_delta_res,
@@ -175,18 +175,18 @@ def get_nd_meteo_data_from_netcdf_file(catchment, link, my_tf, in_folder):
 
         my_nd_meteo_data = read_netcdf_timeseries_with_data_checks(my_meteo_file, my_tf)
 
-        time_delta_res = prpT.get_required_resolution(
+        time_delta_res = prp_rs.get_required_resolution(
             my_tf.data_needed_start, my_tf.simu_start,
             timedelta(minutes=my_tf.data_gap), timedelta(minutes=my_tf.simu_gap))
 
         if meteo_type in ["rain", "peva"]:
-            nd_meteo_simu[meteo_type] = prpT.rescale_time_resolution_of_regular_cumulative_data(
+            nd_meteo_simu[meteo_type] = prp_rs.rescale_time_resolution_of_regular_cumulative_data(
                 my_nd_meteo_data[meteo_type.upper()],
                 my_tf.data_needed_start, my_tf.data_needed_end, timedelta(minutes=my_tf.data_gap),
                 time_delta_res,
                 my_tf.simu_start, my_tf.simu_end, timedelta(minutes=my_tf.simu_gap))
         else:  # i.e. meteo_type in ["airt", "soit"]
-            nd_meteo_simu[meteo_type] = prpT.rescale_time_resolution_of_regular_mean_data(
+            nd_meteo_simu[meteo_type] = prp_rs.rescale_time_resolution_of_regular_mean_data(
                 my_nd_meteo_data[meteo_type.upper()],
                 my_tf.data_needed_start, my_tf.data_needed_end, timedelta(minutes=my_tf.data_gap),
                 time_delta_res,

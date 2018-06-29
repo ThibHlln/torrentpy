@@ -4,10 +4,10 @@ import logging
 import argparse
 from datetime import datetime
 
-from scripts.CSFclasses import *
-import popCSFinout as popIO
-import scripts.preproc.prpCSFinout as prpIO
-import scripts.CSFrun as csfR
+from scripts.torrentpy.classes import *
+import inout as pop_io
+import scripts.torrentpy.preproc.inout as prp_io
+import scripts.torrentpy.run as run
 
 import matplotlib as mpl
 mpl.use('Agg')
@@ -46,7 +46,7 @@ def main(catchment, outlet, gauge, root, in_fmt="csv"):
     gauged_waterbody, gauged_area = find_waterbody_from_gauge(input_folder, catchment, outlet, gauge)
 
     # Create a logger
-    csfR.setup_logger(catchment, gauged_waterbody, 'SinglePlot.main', 'plot', output_folder, is_single_run=True)
+    run.setup_logger(catchment, gauged_waterbody, 'SinglePlot.main', 'plot', output_folder, is_single_run=True)
     logger = logging.getLogger('SinglePlot.main')
     logger.warning("Starting plotting for {} {} {}.".format(catchment, outlet, gauge))
 
@@ -74,9 +74,9 @@ def main(catchment, outlet, gauge, root, in_fmt="csv"):
                      input_folder, output_folder)
 
     # Create a subset of the input discharge file
-    popIO.create_subset_flow_file(catchment, outlet, catchment_area, gauge, gauged_area,
-                                  my__time_frame, plot_datetime_start, plot_datetime_end,
-                                  input_folder, output_folder, logger)
+    pop_io.create_subset_flow_file(catchment, outlet, catchment_area, gauge, gauged_area,
+                                   my__time_frame, plot_datetime_start, plot_datetime_end,
+                                   input_folder, output_folder, logger)
 
     # Read the flow files
     gauged_flow_m3s, simu_flow_m3s = \
@@ -267,12 +267,12 @@ def read_meteo_files(my__network, my__tf,
 
     my_data_mm = np.empty(shape=(len(my_time_st), 0), dtype=np.float64)
     my_area_m2 = np.empty(shape=(0, 1), dtype=np.float64)
-    my_dict_desc = prpIO.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
+    my_dict_desc = prp_io.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
 
     for link in links_in_zone:
         if in_format == 'netcdf':
-            my_nd_inputs = popIO.read_netcdf_timeseries("{}{}_{}.inputs.nc".format(out_folder, catchment, gauged_wb),
-                                                        time_variable='DateTime')
+            my_nd_inputs = pop_io.read_netcdf_timeseries("{}{}_{}.inputs.nc".format(out_folder, catchment, gauged_wb),
+                                                         time_variable='DateTime')
             my_df_inputs = DataFrame.from_dict(my_nd_inputs, orient='columns')
         else:
             my_df_inputs = pandas.read_csv("{}{}_{}.inputs".format(out_folder, catchment, gauged_wb), index_col=0)
@@ -306,8 +306,8 @@ def read_flow_files(my__time_frame,
 
     # Get the simulated flow at the outlet of the catchment
     if in_format == 'netcdf':
-        my_nd_node = popIO.read_netcdf_timeseries("{}{}_{}.outputs.nc".format(out_folder, catchment, gauged_wb),
-                                                  time_variable='DateTime')
+        my_nd_node = pop_io.read_netcdf_timeseries("{}{}_{}.outputs.nc".format(out_folder, catchment, gauged_wb),
+                                                   time_variable='DateTime')
         my_df_node = DataFrame.from_dict(my_nd_node, orient='columns')
     else:
         my_df_node = pandas.read_csv("{}{}_{}.outputs".format(out_folder, catchment, gauged_wb), index_col=0)
@@ -595,7 +595,7 @@ if __name__ == '__main__':
                         help="european code of the catchment outlet [format IE_XX_##X######]")
     parser.add_argument('gauge', type=str,
                         help="code of the hydrometric gauge [5-digit code]")
-    parser.add_argument('-i', '--in_format', type=csfR.valid_file_format, default='csv',
+    parser.add_argument('-i', '--in_format', type=run.valid_file_format, default='csv',
                         help="format of input data files [csv or netcdf]")
 
     args = parser.parse_args()

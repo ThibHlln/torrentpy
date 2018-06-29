@@ -5,11 +5,11 @@ from itertools import izip
 import argparse
 from pandas import DataFrame
 
-from scripts.CSFclasses import *
-import popCSFplot as popP
-import popCSFinout as popIO
-import scripts.CSFrun as csfR
-import scripts.preproc.prpCSFinout as prpIO
+from scripts.torrentpy.classes import *
+import plot as pop_pl
+import inout as pop_io
+import scripts.torrentpy.run as run
+import scripts.torrentpy.preproc.inout as prp_io
 
 
 def main(catchment, outlet, gauge, root, in_fmt="csv"):
@@ -31,7 +31,7 @@ def main(catchment, outlet, gauge, root, in_fmt="csv"):
         save_datetime_start, save_datetime_end, save_time_gap_in_min, \
         plot_datetime_start, plot_datetime_end, \
         simu_time_gap_in_min = \
-        popP.set_up_plotting(catchment, outlet, input_directory)
+        pop_pl.set_up_plotting(catchment, outlet, input_directory)
 
     # Precise the specific folders to use in the directories
     input_folder = "{}{}_{}/".format(input_directory, catchment, outlet)
@@ -40,10 +40,10 @@ def main(catchment, outlet, gauge, root, in_fmt="csv"):
                                             save_datetime_end.strftime("%Y%m%d%H%M%S"))
 
     # Determine gauged waterbody associated to the hydrometric gauge
-    gauged_waterbody, gauged_area = popP.find_waterbody_from_gauge(input_folder, catchment, outlet, gauge)
+    gauged_waterbody, gauged_area = pop_pl.find_waterbody_from_gauge(input_folder, catchment, outlet, gauge)
 
     # Create a logger
-    csfR.setup_logger(
+    run.setup_logger(
         catchment, gauged_waterbody, 'SinglePerformance.main', 'performance', output_folder, is_single_run=True)
     logger = logging.getLogger('SinglePerformance.main')
     logger.warning("Starting performance assessment for {} {} {}.".format(catchment, outlet, gauge))
@@ -55,7 +55,7 @@ def main(catchment, outlet, gauge, root, in_fmt="csv"):
     df_flows_obs = pandas.read_csv('{}{}_{}_{}.flow'.format(output_folder, catchment, gauged_waterbody, gauge))
 
     if in_fmt == 'netcdf':
-        my_nd_node = popIO.read_netcdf_timeseries(
+        my_nd_node = pop_io.read_netcdf_timeseries(
             "{}{}_{}.outputs.nc".format(output_folder, catchment, gauged_waterbody), time_variable='DateTime')
         df_flows_mod = DataFrame.from_dict(my_nd_node, orient='columns')
     else:
@@ -104,13 +104,13 @@ def main(catchment, outlet, gauge, root, in_fmt="csv"):
     )
 
     logger.info("Plotting Flow Duration Curve.")
-    popP.plot_flow_duration_curve(flows_obs_ord, flows_freq_obs,
-                                  flows_mod_ord, flows_freq_mod,
-                                  output_folder, catchment, gauged_waterbody, gauge)
+    pop_pl.plot_flow_duration_curve(flows_obs_ord, flows_freq_obs,
+                                    flows_mod_ord, flows_freq_mod,
+                                    output_folder, catchment, gauged_waterbody, gauge)
     logger.info("Plotting Logarithmic Flow Duration Curve.")
-    popP.plot_flow_duration_curve_log(flows_obs_ord, flows_freq_obs,
-                                      flows_mod_ord, flows_freq_mod,
-                                      output_folder, catchment, gauged_waterbody, gauge)
+    pop_pl.plot_flow_duration_curve_log(flows_obs_ord, flows_freq_obs,
+                                        flows_mod_ord, flows_freq_mod,
+                                        output_folder, catchment, gauged_waterbody, gauge)
 
     logger.warning("Ending performance assessment for {} {} {}.".format(catchment, outlet, gauge))
 
@@ -130,9 +130,9 @@ def calculate_missing(flows, criterion=-99.0):
 
 def calculate_drainage_area(my__network, in_folder, catchment, outlet, gauged_wb):
     # Find all the waterbodies upstream of the gauge, including the gauged waterbody
-    all_wb = popP.determine_gauging_zone(my__network, in_folder, catchment, outlet, gauged_wb)
+    all_wb = pop_pl.determine_gauging_zone(my__network, in_folder, catchment, outlet, gauged_wb)
     # Collect the catchment descriptors
-    my_dict_desc = prpIO.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
+    my_dict_desc = prp_io.get_nd_from_file(my__network, in_folder, extension='descriptors', var_type=float)
     # Calculate the total upstream drainage area using the descriptor files
     drainage_area = 0.0
     for waterbody in all_wb:
@@ -223,7 +223,7 @@ if __name__ == '__main__':
                         help="european code of the catchment outlet [format IE_XX_##X######]")
     parser.add_argument('gauge', type=str,
                         help="code of the hydrometric gauge [5-digit code]")
-    parser.add_argument('-i', '--in_format', type=csfR.valid_file_format, default='csv',
+    parser.add_argument('-i', '--in_format', type=run.valid_file_format, default='csv',
                         help="format of input data files [csv or netcdf]")
 
     args = parser.parse_args()

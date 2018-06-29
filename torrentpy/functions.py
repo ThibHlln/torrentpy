@@ -1,11 +1,11 @@
 import logging
 
-from CSFclasses import *
+from classes import *
 
 
 def generate_models_for_links(my__network, specifications_folder, input_folder, output_folder):
     """
-    This function creates the Model objects for all the links in the network. Each link can have several models
+    This function creates the Model objects for all the links in the network. Each link can have several structures
     (e.g. a catchment model and a reach model).
 
     :param my__network: Network object for the simulated catchment
@@ -78,13 +78,13 @@ def generate_data_structures_for_links_and_nodes(my__network, my_simu_slice, dic
     """
     This function generates a nested dictionary for each node and for each link and stores them in a single dictionary
     that is returned. Each nested dictionary has the dimension of the simulation time slice times the number of
-    variables (inputs, states, and outputs) for all the models of the link.
+    variables (inputs, states, and outputs) for all the structures of the link.
 
     :param my__network: Network object for the simulated catchment
     :type my__network: Network
     :param my_simu_slice: list of DateTime to be simulated
     :type my_simu_slice: list
-    :param dict__ls_models: dictionary containing the list of models for each link
+    :param dict__ls_models: dictionary containing the list of structures for each link
         { key = link: value = list of Model objects }
     :type dict__ls_models: dict
     :return: dictionary containing the nested dictionaries

@@ -7,10 +7,10 @@ from glob import glob
 from datetime import datetime, timedelta
 from os import path, getcwd
 
-from CSFclasses import *
-import CSFinout as csfIO
-import CSFfunctions as csfF
-import preproc.prpCSFfunctions as prpF
+from classes import *
+import inout as io
+import functions as fn
+import preproc.functions as prp_fn
 
 
 def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", out_fmt="csv", is_single_run=False):
@@ -19,7 +19,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
     outlet = outlet.upper()
 
     # Location of the different needed directories
-    spec_directory = ''.join([root, "/scripts/specs/"])
+    spec_directory = ''.join([root, "/scripts/torrentpy/specs/"])
     input_directory = ''.join([root, "/in/"])
     output_directory = ''.join([root, "/out/"])
 
@@ -78,21 +78,21 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
 
     # Create Models for the links
     dict__ls_models, dict__c_models, dict__r_models, dict__l_models = \
-        csfF.generate_models_for_links(my__network, spec_directory, input_folder, output_folder)
+        fn.generate_models_for_links(my__network, spec_directory, input_folder, output_folder)
 
     # Create files to store simulation results
-    csfIO.create_simulation_files(my__network, dict__ls_models, catchment, out_fmt, output_folder)
+    io.create_simulation_files(my__network, dict__ls_models, catchment, out_fmt, output_folder)
 
     # Set the initial conditions ('blank' warm up run slice by slice) if required
     my_last_lines = dict()
     if not warm_up_in_days == 0:  # Warm-up run required
         logger.info("Determining initial conditions.")
         # Get meteo input data
-        dict__nd_meteo = prpF.get_meteo_input_for_links(my__network, my__time_frame_warm_up,
-                                                        in_fmt, input_folder)
+        dict__nd_meteo = prp_fn.get_meteo_input_for_links(my__network, my__time_frame_warm_up,
+                                                          in_fmt, input_folder)
         # Initialise dicts needed to link time slices together (use last time step of one as first for the other)
         for link in my__network.links:
-            # For links, get a dict of the models states initial conditions from "educated guesses"
+            # For links, get a dict of the structures states initial conditions from "educated guesses"
             my_last_lines[link] = dict()
             for model in dict__ls_models[link]:
                 my_last_lines[link].update(model.initialise(my__network))
@@ -105,9 +105,9 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
             logger.info("Running Warm-Up Period {} - {}.".format(my_simu_slice[1].strftime('%d/%m/%Y %H:%M:%S'),
                                                                  my_simu_slice[-1].strftime('%d/%m/%Y %H:%M:%S')))
             # Initialise data structures
-            dict__nd_data = csfF.generate_data_structures_for_links_and_nodes(my__network,
-                                                                              my_simu_slice,
-                                                                              dict__ls_models)
+            dict__nd_data = fn.generate_data_structures_for_links_and_nodes(my__network,
+                                                                            my_simu_slice,
+                                                                            dict__ls_models)
 
             # Get history of previous time slice last time step for initial conditions of current time slice
             for link in my__network.links:
@@ -117,9 +117,9 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
 
             # Get other input data
             dict__nd_loadings = \
-                prpF.get_contaminant_input_for_links(my__network, my__time_frame_warm_up,
-                                                     my_save_slice, my_simu_slice,
-                                                     input_folder, spec_directory) if water_quality else {}
+                prp_fn.get_contaminant_input_for_links(my__network, my__time_frame_warm_up,
+                                                       my_save_slice, my_simu_slice,
+                                                       input_folder, spec_directory) if water_quality else {}
 
             # Simulate
             simulate(my__network, my__time_frame_warm_up, my_simu_slice,
@@ -139,7 +139,7 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
     else:  # Warm-up run not required
         # Initialise dicts needed to link time slices together (use last time step of one as first for the other)
         for link in my__network.links:
-            # For links, get a dict of the models states initial conditions from "educated guesses"
+            # For links, get a dict of the structures states initial conditions from "educated guesses"
             my_last_lines[link] = dict()
             for model in dict__ls_models[link]:
                 my_last_lines[link].update(model.initialise(my__network))
@@ -150,17 +150,17 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
     # Simulate (run slice by slice)
     logger.info("Starting the simulation.")
     # Get meteo input data
-    dict__nd_meteo = prpF.get_meteo_input_for_links(my__network, my__time_frame,
-                                                    in_fmt, input_folder)
+    dict__nd_meteo = prp_fn.get_meteo_input_for_links(my__network, my__time_frame,
+                                                      in_fmt, input_folder)
     for my_simu_slice, my_save_slice in izip(my__time_frame.simu_slices,
                                              my__time_frame.save_slices):
 
         logger.info("Running Period {} - {}.".format(my_simu_slice[1].strftime('%d/%m/%Y %H:%M:%S'),
                                                      my_simu_slice[-1].strftime('%d/%m/%Y %H:%M:%S')))
         # Initialise data structures
-        dict__nd_data = csfF.generate_data_structures_for_links_and_nodes(my__network,
-                                                                          my_simu_slice,
-                                                                          dict__ls_models)
+        dict__nd_data = fn.generate_data_structures_for_links_and_nodes(my__network,
+                                                                        my_simu_slice,
+                                                                        dict__ls_models)
 
         # Get history of previous time step for initial conditions of current time step
         for link in my__network.links:
@@ -169,9 +169,9 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
             dict__nd_data[node][my_simu_slice[0]].update(my_last_lines[node])
 
         # Get other input data
-        dict__nd_loadings = prpF.get_contaminant_input_for_links(my__network, my__time_frame,
-                                                                 my_save_slice, my_simu_slice,
-                                                                 input_folder, spec_directory) if water_quality else {}
+        dict__nd_loadings = prp_fn.get_contaminant_input_for_links(my__network, my__time_frame,
+                                                                   my_save_slice, my_simu_slice,
+                                                                   input_folder, spec_directory) if water_quality else {}
 
         # Simulate
         simulate(my__network, my__time_frame, my_simu_slice,
@@ -180,9 +180,9 @@ def main(catchment, outlet, slice_length, warm_up_in_days, root, in_fmt="csv", o
                  )
 
         # Write results in files
-        csfIO.update_simulation_files(my__network, my__time_frame, my_save_slice,
-                                      dict__nd_data, dict__ls_models,
-                                      catchment, out_fmt, output_folder, method='summary')
+        io.update_simulation_files(my__network, my__time_frame, my_save_slice,
+                                   dict__nd_data, dict__ls_models,
+                                   catchment, out_fmt, output_folder, method='summary')
 
         # Save history (last time step) for next slice
         for link in my__network.links:
@@ -352,11 +352,11 @@ def simulate(my__network, my__time_frame, my_simu_slice,
              dict__c_models, dict__r_models, dict__l_models):
     """
     This function runs the simulations for a given catchment (defined by a Network object) and given time period
-    (defined by the time slice). For each time step, it first runs the models associated with the links (defined as
+    (defined by the time slice). For each time step, it first runs the structures associated with the links (defined as
     Model objects), then it sums up all of what is arriving at each node.
 
     N.B. The first time step in the time slice is ignored because it is for the initial or previous conditions that
-    are needed for the models to get the previous states of the links.
+    are needed for the structures to get the previous states of the links.
 
     :param my__network: Network object for the simulated catchment
     :type my__network: Network
@@ -373,13 +373,13 @@ def simulate(my__network, my__time_frame, my_simu_slice,
     :param dict__nd_loadings: dictionary containing the nested dictionaries for the links for contaminant inputs
         { key = link: value = nested_dictionary(index=datetime,column=contaminant_input) }
     :type dict__nd_loadings: dict
-    :param dict__c_models: dictionary containing the catchment models for each link
+    :param dict__c_models: dictionary containing the catchment structures for each link
         { key = link: value = Model objects }
     :type dict__c_models: dict
-    :param dict__r_models: dictionary containing the river models for each link
+    :param dict__r_models: dictionary containing the river structures for each link
         { key = link: value = Model objects }
     :type dict__r_models: dict
-    :param dict__l_models: dictionary containing the lake models for each link
+    :param dict__l_models: dictionary containing the lake structures for each link
         { key = link: value = Model objects }
     :type dict__l_models: dict
     :return: NOTHING, only updates the nested dictionaries for data
@@ -514,7 +514,7 @@ def valid_file_format(fmt):
 if __name__ == "__main__":
     # Define the root of the CSF package
     if getcwd() == path.dirname(path.realpath(__file__)):  # execution from the directory where the script is
-        csf_root = path.realpath('..')  # move to parent of parent directory of this current python file
+        csf_root = path.realpath('../..')  # move to parent of parent directory of this current python file
     else:  # execution not from the directory where the script is
         csf_root = getcwd()  # keep the current working directory
 

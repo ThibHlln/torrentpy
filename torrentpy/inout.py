@@ -23,7 +23,7 @@ def create_simulation_files_csv(my__network, dict__ls_models,
 
     :param my__network: Network object for the simulated catchment
     :type my__network: Network
-    :param dict__ls_models: dictionary containing the list of models for each link
+    :param dict__ls_models: dictionary containing the list of structures for each link
         { key = link: value = list of Model objects }
     :type dict__ls_models: dict()
     :param catchment: name of the catchment needed to name the simulation files
@@ -72,7 +72,7 @@ def create_simulation_files_netcdf(my__network, dict__ls_models,
 
     :param my__network: Network object for the simulated catchment
     :type my__network: Network
-    :param dict__ls_models: dictionary containing the list of models for each link
+    :param dict__ls_models: dictionary containing the list of structures for each link
         { key = link: value = list of Model objects }
     :type dict__ls_models: dict()
     :param catchment: name of the catchment needed to name the simulation files
@@ -169,7 +169,7 @@ def update_simulation_files_csv(my__network, my__tf, my_save_slice,
     :param dict__nd_data: dictionary containing the nested dictionaries for the nodes and the links for variables
         { key = link/node: value = nested_dictionary(index=datetime,column=variable) }
     :type dict__nd_data: dict()
-    :param dict__ls_models: dictionary containing the list of models for each link
+    :param dict__ls_models: dictionary containing the list of structures for each link
         { key = link: value = list of Model objects }
     :type dict__ls_models: dict()
     :param catchment: name of the catchment needed to name the simulation files
@@ -336,7 +336,7 @@ def update_simulation_files_netcdf(my__network, my__tf, my_save_slice,
     :param dict__nd_data: dictionary containing the nested dictionaries for the nodes and the links for variables
         { key = link/node: value = nested_dictionary(index=datetime,column=variable) }
     :type dict__nd_data: dict()
-    :param dict__ls_models: dictionary containing the list of models for each link
+    :param dict__ls_models: dictionary containing the list of structures for each link
         { key = link: value = list of Model objects }
     :type dict__ls_models: dict()
     :param catchment: name of the catchment needed to name the simulation files

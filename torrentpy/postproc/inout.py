@@ -4,7 +4,7 @@ from numpy import float64
 from datetime import datetime, timedelta
 from netCDF4 import Dataset
 
-import popCSFfunctions as popF
+import functions as pop_fn
 
 
 def create_subset_flow_file(catchment, link, catchment_area, gauge, gauged_area,
@@ -46,8 +46,8 @@ def get_dict_discharge_series(file_location, start_report, end_report, catchment
         if (start_date <= d) and (d <= end_date):
             dict_flow[dt] = data_flow[dt] * scaling_factor
 
-    return popF.rescale_time_resolution_of_irregular_mean_data(dict_flow, start_report, end_report,
-                                                               timedelta(days=1), timedelta(hours=1))
+    return pop_fn.rescale_time_resolution_of_irregular_mean_data(dict_flow, start_report, end_report,
+                                                                 timedelta(days=1), timedelta(hours=1))
 
 
 def read_netcdf_timeseries(netcdf_file, time_variable):

@@ -5,7 +5,7 @@ from datetime import timedelta
 import pandas
 from math import ceil
 
-import CSFmodels as csfM
+import models as mod
 
 
 class Network:
@@ -146,7 +146,7 @@ class Network:
         logger = getLogger('SingleRun.Network')
         my_list = list()
         try:
-            with open(specs_folder + "SIMULATOR.spec") as my_file:
+            with open(specs_folder + "TORRENTPY.spec") as my_file:
                 my_reader = csv.reader(my_file)
                 my_string = list()
                 count = 0
@@ -155,20 +155,20 @@ class Network:
                         my_string = row[1]
                         count += 1
                 if count == 0:
-                    logger.error("There is no {} specifications line in {}SIMULATOR.spec.".format(
+                    logger.error("There is no {} specifications line in {}TORRENTPY.spec.".format(
                         specs_type, specs_folder))
-                    raise Exception("There is no {} specifications line in {}SIMULATOR.spec.".format(
+                    raise Exception("There is no {} specifications line in {}TORRENTPY.spec.".format(
                         specs_type, specs_folder))
                 elif count > 1:
-                    logger.error("There is more than one {} specifications line in {}SIMULATOR.spec.".format(
+                    logger.error("There is more than one {} specifications line in {}TORRENTPY.spec.".format(
                         specs_type, specs_folder))
-                    raise Exception("There is more than one {} specifications line in {}SIMULATOR.spec.".format(
+                    raise Exception("There is more than one {} specifications line in {}TORRENTPY.spec.".format(
                         specs_type, specs_folder))
                 my_list.extend(my_string.split(";"))
 
         except IOError:
-            logger.error("There is no specifications file for SIMULATOR in {}.".format(specs_folder))
-            raise Exception("There is no specifications file for SIMULATOR in {}.".format(specs_folder))
+            logger.error("There is no specifications file for TORRENTPY in {}.".format(specs_folder))
+            raise Exception("There is no specifications file for TORRENTPY in {}.".format(specs_folder))
 
         return my_list
 
@@ -362,7 +362,7 @@ class Model:
                             raise Exception("The {} {} {} is not available for {}.".format(
                                 component, specs_type[:-1], name, self.link))
                 except IOError:
-                    dict_for_file = csfM.infer_parameters_from_descriptors(network.descriptors[self.link], component)
+                    dict_for_file = mod.infer_parameters_from_descriptors(network.descriptors[self.link], component)
 
                 my_dict.update(dict_for_file)
                 dict_for_file["EU_CD"] = self.link
@@ -412,18 +412,18 @@ class Model:
         :return: NOTHING
         """
         if self.category == "CATCHMENT":
-            csfM.run_catchment_model(self.identifier, waterbody, dict_nd_data,
-                                     obj_network.descriptors, self.parameters, self.constants,
-                                     dict_nd_meteo, dict_nd_loadings,
-                                     datetime_time_step, time_gap,
-                                     logger)
+            mod.run_catchment_model(self.identifier, waterbody, dict_nd_data,
+                                    obj_network.descriptors, self.parameters, self.constants,
+                                    dict_nd_meteo, dict_nd_loadings,
+                                    datetime_time_step, time_gap,
+                                    logger)
         elif self.category == "RIVER":
-            csfM.run_river_model(self.identifier, obj_network, waterbody, dict_nd_data,
-                                 self.parameters, self.constants, dict_nd_meteo,
-                                 datetime_time_step, time_gap,
-                                 logger)
+            mod.run_river_model(self.identifier, obj_network, waterbody, dict_nd_data,
+                                self.parameters, self.constants, dict_nd_meteo,
+                                datetime_time_step, time_gap,
+                                logger)
         elif self.category == "LAKE":
-            csfM.run_lake_model(self.identifier, waterbody)
+            mod.run_lake_model(self.identifier, waterbody)
 
     def initialise(self, obj_network):
         """
@@ -435,13 +435,13 @@ class Model:
         dict_init = dict()
         if self.category == "CATCHMENT":
             dict_init.update(
-                csfM.initialise_catchment_model(self.identifier, obj_network.descriptors[self.link], self.parameters))
+                mod.initialise_catchment_model(self.identifier, obj_network.descriptors[self.link], self.parameters))
         elif self.category == "RIVER":
             dict_init.update(
-                csfM.initialise_river_model(self.identifier, obj_network.descriptors[self.link], self.parameters))
+                mod.initialise_river_model(self.identifier, obj_network.descriptors[self.link], self.parameters))
         elif self.category == "LAKE":
             dict_init.update(
-                csfM.initialise_lake_model(self.identifier))
+                mod.initialise_lake_model(self.identifier))
 
         return dict_init
 
@@ -452,7 +452,7 @@ class TimeFrame:
     of the simulator.
 
     Three type of temporal attributes are considered: 'data' refers to the input to the simulator
-    (e.g. meteorological variables in input files), 'simu' refers to the internal time used by the models (i.e. model
+    (e.g. meteorological variables in input files), 'simu' refers to the internal time used by the structures (i.e. model
     temporal discretisation), and 'save' refers to the output from the simulator (i.e. what will be written in the
     output files).
 
