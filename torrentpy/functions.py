@@ -22,7 +22,7 @@ def generate_models_for_links(my__network, constants_folder, input_folder, outpu
     dict__r_models = dict()  # key: waterbody, value: river model object
     dict__l_models = dict()  # key: waterbody, value: lake model object
     dict__ls_models = dict()   # key: waterbody, value: list of river model objects
-    if my__network.waterQuality:
+    if my__network.water_quality:
         for link in my__network.links:
             # Declare Model objects
             if my__network.categories[link] == "11":  # river headwater

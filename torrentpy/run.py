@@ -412,7 +412,7 @@ def simulate(my__network, my__time_frame, my_simu_slice,
                 dict__nd_data[node][step - delta][variable] = my_dict_variables[variable]
                 my_dict_variables[variable] = 0.0
             # Sum up outputs for water quality
-            if my__network.waterQuality:
+            if my__network.water_quality:
                 for variable in ["c_no3", "c_nh4", "c_dph", "c_pph", "c_sed"]:
                     for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
                         if my__network.categories[link] == "11":  # headwater river
@@ -469,7 +469,7 @@ def simulate(my__network, my__time_frame, my_simu_slice,
             dict__nd_data[node][step][variable] = my_dict_variables[variable]
             my_dict_variables[variable] = 0.0
         # Sum up output for water quality
-        if my__network.waterQuality:
+        if my__network.water_quality:
             for variable in ["c_no3", "c_nh4", "c_dph", "c_pph", "c_sed"]:
                 for link in my__network.routing.get(node):  # for the streams of the links upstream of the node
                     if my__network.categories[link] == "11":  # headwater river

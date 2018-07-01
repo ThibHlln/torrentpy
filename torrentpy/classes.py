@@ -20,31 +20,27 @@ class Network(object):
         # european code of the outlet
         self.code = outlet
         # boolean for water quality simulations
-        self.waterQuality = wq
+        self.water_quality = wq
         # path of the files necessary to generate the Network object
-        self.networkFile = "{}{}_{}.network".format(input_folder, catchment, outlet)
-        self.waterBodiesFile = "{}{}_{}.waterbodies".format(input_folder, catchment, outlet)
-        self.descriptorsFile = "{}{}_{}.descriptors".format(input_folder, catchment, outlet)
-        # list of the nodes contained in the Network
-        self.nodes = Network.get_network_attributes(self)["nodes"]
-        # list of the links contained in the Network
-        self.links = Network.get_network_attributes(self)["links"]
-        # connections for links = nodes upstream and downstream of a given link
-        self.connections = Network.get_network_attributes(self)["connections"]
-        # adding for nodes = list of links whose catchments are pouring into the node
-        self.adding = Network.get_network_attributes(self)["adding"]
-        # routing for nodes = list of links whose reaches are pouring into the node
-        self.routing = Network.get_network_attributes(self)["routing"]
+        self.network_file = "{}{}_{}.network".format(input_folder, catchment, outlet)
+        self.waterBodies_file = "{}{}_{}.waterbodies".format(input_folder, catchment, outlet)
+        self.descriptors_file = "{}{}_{}.descriptors".format(input_folder, catchment, outlet)
+        # list of the NODES contained in the Network
+        # list of the LINKS contained in the Network
+        # CONNECTIONS for links = dictionary of tuples of upstream and downstream nodes for each link
+        # ROUTING for nodes = list of links whose reaches are pouring into the node
+        # ADDING for nodes = list of links whose catchments are pouring into the node
+        self.nodes, self.links, self.connections, self.routing, self.adding = Network._get_network_attributes(self)
         # categories for links = code to identify the type of catchment (river or lake, headwater or not)
-        self.categories = Network.get_waterbodies_attributes(self)
+        self.categories = Network._get_waterbodies_attributes(self)
         # descriptors for the links = physical descriptors characteristic of a given catchment
-        self.descriptors = Network.get_catchments_descriptors(self)
+        self.descriptors = Network._get_catchments_descriptors(self)
         # list of the variables to be propagated through the node-link network
-        self.variables_h = Network.get_one_list(specs_folder, "variables_h")
-        self.variables_q = Network.get_one_list(specs_folder, "variables_q") if wq else []
+        self.variables_h = Network._get_list_variables(specs_folder, "variables_h")
+        self.variables_q = Network._get_list_variables(specs_folder, "variables_q") if wq else []
         self.variables = self.variables_h + self.variables_q
 
-    def get_network_attributes(self):
+    def _get_network_attributes(self):
         """
         This method reads all the information contained in the network file in order to get the list of the nodes and
         the links as well as the connections, and the links adding to the nodes and routed by the nodes.
@@ -52,7 +48,7 @@ class Network(object):
         """
         logger = getLogger('SingleRun.Network')
         try:
-            with open(self.networkFile) as my_file:
+            with open(self.network_file) as my_file:
                 my_reader = csv.DictReader(my_file)
                 my_nodes = list()  # list of all nodes
                 my_links = list()  # list of all links (i.e. waterbodies)
@@ -76,15 +72,15 @@ class Network(object):
             logger.error("No link-node network file found for {}.".format(self.name))
             raise Exception("No link-node network file found for {}.".format(self.name))
 
-        return {
-            "nodes": my_nodes,
-            "links": my_links,
-            "connections": my_connections,
-            "routing": my_routing,
-            "adding": my_adding
-        }
+        return (
+            my_nodes,
+            my_links,
+            my_connections,
+            my_routing,
+            my_adding
+        )
 
-    def get_waterbodies_attributes(self):
+    def _get_waterbodies_attributes(self):
         """
         This method reads the attributes of the links from the waterBodies file. It associates the waterbody type code
         (1 for river, 2 for lake) and the headwater status (1 if headwater, 0 if not) to create a 2-digit code.
@@ -92,7 +88,7 @@ class Network(object):
         """
         logger = getLogger('SingleRun.Network')
         try:
-            with open(self.waterBodiesFile) as my_file:
+            with open(self.waterBodies_file) as my_file:
                 my_reader = csv.DictReader(my_file)
                 my_categories = dict()
                 for row in my_reader:
@@ -104,14 +100,14 @@ class Network(object):
 
         return my_categories
 
-    def get_catchments_descriptors(self):
+    def _get_catchments_descriptors(self):
         """
         This method reads the catchment descriptors from the descriptors file.
         :return: nested dictionary {key: link, value: {key: descriptor_name, value: descriptor_value}}
         """
         logger = getLogger('SingleRun.Network')
         try:
-            with open(self.descriptorsFile) as my_file:
+            with open(self.descriptors_file) as my_file:
                 my_descriptors = dict()
                 my_reader = csv.DictReader(my_file)
                 fields = my_reader.fieldnames[:]
@@ -136,7 +132,7 @@ class Network(object):
         return my_descriptors
 
     @staticmethod
-    def get_one_list(specs_folder, specs_type):
+    def _get_list_variables(specs_folder, specs_type):
         """
         This method reads the list of variables for the specification type given as a parameter from the file of
         specifications in the specification folder.
@@ -188,21 +184,21 @@ class Model(object):
         # european code of the link associated to the Model
         self.link = link
         # list of the names for the inputs of the Model
-        self.input_names = Model.get_list_names(self, specs_folder, "inputs")
+        self.input_names = Model._get_list_names(self, specs_folder, "inputs")
         # list of the names for the parameters of the Model
-        self.parameter_names = Model.get_list_names(self, specs_folder, "parameters")
+        self.parameter_names = Model._get_list_names(self, specs_folder, "parameters")
         # list of the names for the states of the Model
-        self.state_names = Model.get_list_names(self, specs_folder, "states")
+        self.state_names = Model._get_list_names(self, specs_folder, "states")
         # list of the names for the processes of the Model
-        self.process_names = Model.get_list_names(self, specs_folder, "processes")
+        self.process_names = Model._get_list_names(self, specs_folder, "processes")
         # list of the names for the outputs of the Model
-        self.output_names = Model.get_list_names(self, specs_folder, "outputs")
+        self.output_names = Model._get_list_names(self, specs_folder, "outputs")
         # values for the parameters of the Model
-        self.parameters = Model.get_dict_parameters(self, my__network, specs_folder, input_folder, output_folder)
+        self.parameters = Model._get_dict_parameters(self, my__network, specs_folder, input_folder, output_folder)
         # values for the constants of the Model
-        self.constants = Model.get_dict_constants(self, specs_folder, const_folder)
+        self.constants = Model._get_dict_constants(self, specs_folder, const_folder)
 
-    def get_list_names(self, specs_folder, specs_type):
+    def _get_list_names(self, specs_folder, specs_type):
         """
         This method reads the list of variables names for the specification type given as a parameter from the file of
         specifications in the specification folder.
@@ -242,7 +238,7 @@ class Model(object):
 
         return my_list
 
-    def get_dict_constants(self, specs_folder, const_folder):
+    def _get_dict_constants(self, specs_folder, const_folder):
         """
         This method get the list of the names for the constants of the Model in its specification file in the
         specifications folder. Then, the methods reads the constants values in the constant file for the Model located
@@ -304,7 +300,7 @@ class Model(object):
 
         return my_dict
 
-    def get_dict_parameters(self, network, specs_folder, input_folder, output_folder):
+    def _get_dict_parameters(self, network, specs_folder, input_folder, output_folder):
         """
         This method get the list of the names for the parameters of the Model in its specification file in the
         specifications folder. Then, the methods reads the parameters values in the parameter file for the Model located
@@ -494,24 +490,24 @@ class TimeFrame(object):
         # Time Attributes for Simulation (Internal to the Simulator)
         self.simu_gap = simu_increment_in_minutes  # Int [minutes]
         self.simu_start_earliest, self.simu_end_latest = \
-            TimeFrame.get_most_possible_extreme_simu_start_end(self)  # DateTime, DateTime
+            TimeFrame._get_most_possible_extreme_simu_start_end(self)  # DateTime, DateTime
         self.simu_start, self.simu_end = \
-            TimeFrame.get_simu_start_end_given_save_start_end(self)  # DateTime, DateTime
+            TimeFrame._get_simu_start_end_given_save_start_end(self)  # DateTime, DateTime
 
         # Time Attributes Only for Input Data Needed given Simulation Period
         self.data_needed_start, self.data_needed_end = \
-            TimeFrame.get_data_start_end_given_simu_start_end(self)
+            TimeFrame._get_data_start_end_given_simu_start_end(self)
 
         # DateTime Series for Data, Save, and Simulation
-        self.needed_data_series = TimeFrame.get_list_data_needed_dt_without_initial_conditions(self)
-        self.save_series = TimeFrame.get_list_save_dt_with_initial_conditions(self)
-        self.simu_series = TimeFrame.get_list_simu_dt_with_initial_conditions(self)
+        self.needed_data_series = TimeFrame._get_list_data_needed_dt_without_initial_conditions(self)
+        self.save_series = TimeFrame._get_list_save_dt_with_initial_conditions(self)
+        self.simu_series = TimeFrame._get_list_simu_dt_with_initial_conditions(self)
 
         # Slices of DateTime Series for Save and Simulation
         self.save_slices, self.simu_slices = \
-            TimeFrame.slice_datetime_series(self, expected_simu_slice_length)
+            TimeFrame._slice_datetime_series(self, expected_simu_slice_length)
 
-    def get_most_possible_extreme_simu_start_end(self):
+    def _get_most_possible_extreme_simu_start_end(self):
 
         # check whether data period makes sense on its own
         if not self.data_start <= self.data_end:
@@ -523,7 +519,7 @@ class TimeFrame(object):
 
         return simu_start_earliest, simu_end_latest
 
-    def get_simu_start_end_given_save_start_end(self):
+    def _get_simu_start_end_given_save_start_end(self):
 
         # check whether saving/reporting period makes sense on its own
         if not self.save_start <= self.save_end:
@@ -543,7 +539,7 @@ class TimeFrame(object):
 
         return simu_start, simu_end
 
-    def get_data_start_end_given_simu_start_end(self):
+    def _get_data_start_end_given_simu_start_end(self):
 
         # check if Data Period is a multiple of Data Time Gap
         if not (self.data_end - self.data_start).total_seconds() % \
@@ -563,7 +559,7 @@ class TimeFrame(object):
 
         return data_start_for_simu, data_end_for_simu
 
-    def get_list_data_needed_dt_without_initial_conditions(self):
+    def _get_list_data_needed_dt_without_initial_conditions(self):
 
         # generate a list of DateTime for Data Period without initial conditions (not required)
         my_list_datetime = list()
@@ -574,7 +570,7 @@ class TimeFrame(object):
 
         return my_list_datetime
 
-    def get_list_save_dt_with_initial_conditions(self):
+    def _get_list_save_dt_with_initial_conditions(self):
 
         # generate a list of DateTime for Saving/Reporting Period with one extra prior step for initial conditions
         my_list_datetime = list()
@@ -585,7 +581,7 @@ class TimeFrame(object):
 
         return my_list_datetime
 
-    def get_list_simu_dt_with_initial_conditions(self):
+    def _get_list_simu_dt_with_initial_conditions(self):
 
         # generate a list of DateTime for Simulation Period with one extra prior step for initial conditions
         my_list_datetime = list()
@@ -596,7 +592,7 @@ class TimeFrame(object):
 
         return my_list_datetime
 
-    def slice_datetime_series(self, expected_length):
+    def _slice_datetime_series(self, expected_length):
 
         my_save_slices = list()
         my_simu_slices = list()
