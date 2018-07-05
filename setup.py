@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# Copyright (C) 2018  Thibault Hallouin
 from setuptools import setup
 
 
@@ -28,7 +30,6 @@ setup(
         'Intended Audience :: Science/Research',
         'Intended Audience :: Developers',
         'Topic :: Scientific/Engineering',
-        'Topic :: Hydrological Sciences',
 
         'Operating System :: MacOS',
         'Operating System :: Microsoft :: Windows',

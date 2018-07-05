@@ -1,0 +1,7 @@
+numpy
+
+[with_graphviz]
+graphviz
+
+[with_netcdf]
+netCDF4
