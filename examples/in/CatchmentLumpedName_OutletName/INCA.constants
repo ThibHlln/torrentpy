@@ -1,4 +1,4 @@
-name,value
+ConstantName,ConstantValue
 c_cst_mob_no3_ove,0.1
 c_cst_mob_no3_dra,0.1
 c_cst_mob_no3_int,0.1
@@ -47,3 +47,7 @@ c_cst_flow_tolerance,0.01
 c_cst_vol_tolerance,0.00000001
 c_cst_flow_thr_mm_for_ero_ove,0.005
 c_cst_flow_thr_mm_for_ero_dra,0.05
+r_cst_c_dn,0.06
+r_cst_c_ni,0.1
+r_cst_flow_tolerance,0.01
+r_cst_vol_tolerance,0.01

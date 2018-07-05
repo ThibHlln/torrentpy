@@ -1,0 +1,10 @@
+WaterBody,r_p_att_no3,r_p_att_nh4,r_p_att_dph,r_p_att_pph,r_p_att_sed
+RiverReachH,0.9,0.9,0.9,1.0,1.0
+RiverReachB,0.9,0.9,0.9,1.0,1.0
+RiverReachC,0.9,0.9,0.9,1.0,1.0
+RiverReachA,0.9,0.9,0.9,1.0,1.0
+RiverReachF,0.9,0.9,0.9,1.0,1.0
+RiverReachG,0.9,0.9,0.9,1.0,1.0
+RiverReachD,0.9,0.9,0.9,1.0,1.0
+RiverReachE,0.9,0.9,0.9,1.0,1.0
+OutletName,0.9,0.9,0.9,1.0,1.0
