@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 # This file is part of TORRENTpy - An open-source tool for TranspORt thRough the catchmEnt NeTwork
-# Copyright (C) 2018  Thibault Hallouin (1)
+# Copyright (C) 2018  Thibault Hallouin (1), Eva Mockler (1,2), Michael Bruen (1)
 #
 # (1) Dooge Centre for Water Resources Research, University College Dublin, Ireland
+# (2) Environmental Protection Agency, Ireland
 #
 # TORRENTpy is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
