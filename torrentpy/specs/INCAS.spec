@@ -1,6 +1,0 @@
-inputs,r_in_temp;r_in_c_no3;r_in_c_nh4;r_in_c_dph;r_in_c_pph;r_in_c_sed
-outputs,r_out_c_no3;r_out_c_nh4;r_out_c_dph;r_out_c_pph;r_out_c_sed
-states,r_s_m_no3;r_s_m_nh4;r_s_m_dph;r_s_m_pph;r_s_m_sed
-parameters,r_p_att_no3;r_p_att_nh4;r_p_att_dph;r_p_att_pph;r_p_att_sed
-processes,
-constants,r_cst_c_dn;r_cst_c_ni;r_cst_flow_tolerance;r_cst_vol_tolerance
