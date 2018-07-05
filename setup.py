@@ -1,15 +1,8 @@
 from setuptools import setup
 
 
-long_desc = \
-    """
-    TORRENTpy is an open-source framework for water, solutes, and particles transport through lumped and 
-    semi-distributed catchments in Python. It is licensed under GNU GPL-3.0 (see license file provided). 
-    The framework simulates the hydrological fluxes using top-down catchment models that can be applied 
-    at the catchment scale or at the sub-catchment scale. Water quality models can complement the catchment 
-    models to simulate the water-borne contaminants (both solutes and particles) at the scale where the 
-    catchment models are applied (i.e. catchment scale or sub-catchment scale).
-    """
+with open("README.md", "r") as fh:
+    long_desc = fh.read()
 
 setup(
     name='torrentpy',
