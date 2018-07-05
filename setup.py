@@ -11,6 +11,7 @@ setup(
 
     description='TORRENTpy: a tool for TranspORt thRough the catchmEnt NeTwork',
     long_description=long_desc,
+    long_description_content_type="text/markdown",
 
     url='https://github.com/ThibHlln/torrentpy',
 
