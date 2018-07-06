@@ -109,6 +109,13 @@ def run(waterbody, datetime_time_step, logger,
         # inheritance from the hydrological model
         r_in_q_h2o, r_s_v_h2o_old, r_s_v_h2o, r_out_q_h2o):
     """
+    This function was written by Thibault Hallouin but is largely inspired by the work of Eva Mockler and Michael Bruen,
+    namely for the work published in: Mockler, E., Bruen, M., Desta, M., Misstear, B., Environmental Protection Agency,
+    Ireland, 2014. Pathways Project Final Report Volume 4: Catchment Modelling Tool (STRIVE Report). Dublin.
+
+    The INCA model was developed by researchers at the Department of Geography and Environmental Science of  the
+    University of Reading, United Kingdom: http://www.reading.ac.uk/geographyandenvironmentalscience/research/INCA/
+
     River Constants
     _ time_gap_sec        time gap between two simulation time steps [seconds]
 

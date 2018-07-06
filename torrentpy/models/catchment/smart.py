@@ -119,6 +119,11 @@ def run(waterbody, datetime_time_step, logger,
         c_s_v_h2o_ove, c_s_v_h2o_dra, c_s_v_h2o_int, c_s_v_h2o_sgw, c_s_v_h2o_dgw,
         c_s_v_h2o_ly1, c_s_v_h2o_ly2, c_s_v_h2o_ly3, c_s_v_h2o_ly4, c_s_v_h2o_ly5, c_s_v_h2o_ly6):
     """
+    This function was written by Thibault Hallouin but is largely inspired by the work of Eva Mockler, namely for
+    the work published in: Mockler, E., O’Loughlin, F., and Bruen, M.: Understanding hydrological flow paths in
+    conceptual catchment models using uncertainty and sensitivity analysis, Computers & Geosciences, 90, 66–77,
+    doi:10.1016/j.cageo.2015.08.015, 2016.
+
     Catchment Constants
     _ area_m2                   catchment area [m2]
     _ time_gap_sec              time gap between two simulation time steps [seconds]

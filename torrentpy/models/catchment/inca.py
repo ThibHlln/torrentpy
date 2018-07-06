@@ -169,6 +169,13 @@ def run(waterbody, datetime_time_step, logger,
         c_pr_eff_rain_to_ove, c_pr_eff_rain_to_dra, c_pr_eff_rain_to_int,
         c_pr_eff_rain_to_sgw, c_pr_eff_rain_to_dgw):
     """
+    This function was written by Thibault Hallouin but is largely inspired by the work of Eva Mockler and Michael Bruen,
+    namely for the work published in: Mockler, E., Bruen, M., Desta, M., Misstear, B., Environmental Protection Agency,
+    Ireland, 2014. Pathways Project Final Report Volume 4: Catchment Modelling Tool (STRIVE Report). Dublin.
+
+    The INCA model was developed by researchers at the Department of Geography and Environmental Science of  the
+    University of Reading, United Kingdom: http://www.reading.ac.uk/geographyandenvironmentalscience/research/INCA/
+
     Catchment Constants
     _ area_m2                   catchment area [m2]
     _ time_gap_sec              time gap between two simulation time steps [seconds]

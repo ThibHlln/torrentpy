@@ -112,6 +112,11 @@ def run(waterbody, datetime_time_step, logger,
         time_gap_sec,
         r_in_q_h2o, r_p_k_h2o, r_s_v_h2o):
     """
+    This function was written by Thibault Hallouin but is largely inspired by the work of Eva Mockler, namely for
+    the work published in: Mockler, E., O’Loughlin, F., and Bruen, M.: Understanding hydrological flow paths in
+    conceptual catchment models using uncertainty and sensitivity analysis, Computers & Geosciences, 90, 66–77,
+    doi:10.1016/j.cageo.2015.08.015, 2016.
+
     River Constants
     _ time_gap_sec        time gap between two simulation time steps [seconds]
 
