@@ -20,8 +20,8 @@ TORRENTpy is designed to read CSV (Comma-Separated Values) files and NetCDF (Net
 
 ## Version History
 
-* 0.1.0 [08 Jul 2018]: First version of TORRENTpy
+* 0.1.0 [05 Jul 2018]: First version of TORRENTpy
 
-### Ackownlegments
+## Acknowledgment
 
 This tool was developed with the financial support of Ireland's Environmental Protection Agency (Grant Number 2014-W-LS-5).
