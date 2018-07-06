@@ -33,8 +33,7 @@ setup(
 
         'Operating System :: MacOS',
         'Operating System :: Microsoft :: Windows',
-        'Operating System :: POSIX',
-        'Operating System :: Unix',
+        'Operating System :: POSIX :: Linux',
 
 
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
