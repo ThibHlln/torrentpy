@@ -1,6 +1,5 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Python Versions](https://img.shields.io/pypi/pyversions/torrentpy.png)](https://pypi.python.org/pypi/torrentpy)
-[![PyPI Version](https://img.shields.io/pypi/v/torrentpy.png)](https://pypi.python.org/pypi/torrentpy)
+[![PyPI Version](https://badge.fury.io/py/torrentpy.svg)](https://pypi.python.org/pypi/torrentpy)
 
 # TORRENTpy - An open-source tool for TranspORt thRough the catchmEnt NeTwork
 
