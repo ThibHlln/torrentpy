@@ -23,9 +23,9 @@ from logging import getLogger
 import os
 import csv
 from datetime import timedelta
-from itertools import izip
+from builtins import zip
 
-import torrentpy.inout as io
+from .inout import create_simulation_files, update_simulation_files
 
 
 class Network(object):
@@ -448,7 +448,7 @@ class Network(object):
         logger = getLogger('TORRENTpy.nw')
 
         # create empty output files
-        io.create_simulation_files(self, out_format)
+        create_simulation_files(self, out_format)
 
         # Set the initial conditions ('blank' warm up run slice by slice) if required
         my_last_lines = dict()
@@ -464,7 +464,7 @@ class Network(object):
                 # For nodes, no states so no initial conditions, but instantiation of dict required
                 my_last_lines[node.name] = dict()
 
-            for my_simu_slice, my_save_slice in izip(tf.warm_up.simu_slices, tf.warm_up.save_slices):
+            for my_simu_slice, my_save_slice in zip(tf.warm_up.simu_slices, tf.warm_up.save_slices):
                 logger.info("Running Warm-Up Period {} - {}.".format(my_simu_slice[1].strftime('%d/%m/%Y %H:%M:%S'),
                                                                      my_simu_slice[-1].strftime('%d/%m/%Y %H:%M:%S')))
                 # Initialise data models
@@ -502,7 +502,7 @@ class Network(object):
         # Simulate (run slice by slice)
         logger.info("Starting the simulation.")
         # Get meteo input data
-        for my_simu_slice, my_save_slice in izip(tf.simu_slices, tf.save_slices):
+        for my_simu_slice, my_save_slice in zip(tf.simu_slices, tf.save_slices):
 
             logger.info("Running Period {} - {}.".format(my_simu_slice[1].strftime('%d/%m/%Y %H:%M:%S'),
                                                          my_simu_slice[-1].strftime('%d/%m/%Y %H:%M:%S')))
@@ -519,7 +519,7 @@ class Network(object):
             self.run(db, tf, my_simu_slice)
 
             # Write results in files
-            io.update_simulation_files(self, tf, my_save_slice, db, out_format, method='summary')
+            update_simulation_files(self, tf, my_save_slice, db, out_format, method='summary')
 
             # Save history (last time step) for next slice
             for link in self.links:

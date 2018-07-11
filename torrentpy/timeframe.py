@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with TORRENTpy. If not, see <http://www.gnu.org/licenses/>.
 
+from builtins import range
 from datetime import timedelta
 from fractions import gcd
 from math import ceil
@@ -200,18 +201,18 @@ class TimeFrame(object):
                 raise Exception("Expected Length for Slicing Up is smaller than the Saving Time Gap.")
 
             # Adjust the length to make sure that it slices exactly between two saving/reporting steps
-            simu_slice_length = (expected_length * self.simu_gap) // self.save_gap * self.save_gap / self.simu_gap
-            save_slice_length = simu_slice_length * self.simu_gap / self.save_gap
+            simu_slice_length = (expected_length * self.simu_gap) // self.save_gap * self.save_gap // self.simu_gap
+            save_slice_length = simu_slice_length * self.simu_gap // self.save_gap
 
             if simu_slice_length > 0:  # the expected length is longer than one saving/reporting time gap
                 stop_index = int(ceil(float(len(self.save_series)) / float(save_slice_length)))
-                for i in xrange(0, stop_index, 1):
+                for i in range(0, stop_index, 1):
                     start_index = i * save_slice_length
                     end_index = ((i + 1) * save_slice_length) + 1
                     if len(self.save_series[start_index:end_index]) > 1:  # it would only be the initial conditions
                         my_save_slices.append(self.save_series[start_index:end_index])
                 stop_index = int(ceil(float(len(self.simu_series)) / float(simu_slice_length)))
-                for i in xrange(0, stop_index, 1):
+                for i in range(0, stop_index, 1):
                     start_index = i * simu_slice_length
                     end_index = ((i + 1) * simu_slice_length) + 1
                     if len(self.simu_series[start_index:end_index]) > 1:  # it would only be the initial conditions
@@ -298,7 +299,7 @@ def increase_time_resolution_of_regular_cumulative_data(dict_info, start_lo, end
     while (start_lo <= my_dt_lo) and (my_dt_lo <= end_lo):
         my_value = dict_info[my_dt_lo]
         my_portion = my_value / divisor
-        for my_sub_step in xrange(0, -divisor, -1):
+        for my_sub_step in range(0, -divisor, -1):
             new_dict_info[my_dt_lo + my_sub_step * time_delta_hi] = my_portion
         my_dt_lo += time_delta_lo
 
@@ -323,7 +324,7 @@ def decrease_time_resolution_of_regular_cumulative_data(dict_info, start_lo, end
     new_dict_info = dict()
     while (start_lo <= my_dt_lo) and (my_dt_lo <= end_lo):
         my_portion = 0.0
-        for my_sub_step in xrange(0, -divisor, -1):
+        for my_sub_step in range(0, -divisor, -1):
             my_portion += dict_info[my_dt_lo + my_sub_step * time_delta_hi]
         new_dict_info[my_dt_lo] = my_portion
         my_dt_lo += time_delta_lo
@@ -375,7 +376,7 @@ def increase_time_resolution_of_regular_mean_data(dict_info, start_lo, end_lo,
     new_dict_info = dict()
     while (start_lo <= my_dt_lo) and (my_dt_lo <= end_lo):
         my_value = dict_info[my_dt_lo]
-        for my_sub_step in xrange(0, -divisor, -1):
+        for my_sub_step in range(0, -divisor, -1):
             new_dict_info[my_dt_lo + my_sub_step * time_delta_hi] = my_value
         my_dt_lo += time_delta_lo
 
@@ -401,7 +402,7 @@ def decrease_time_resolution_of_regular_mean_data(dict_info, start_lo, end_lo,
     new_dict_info = dict()
     while (start_lo <= my_dt_lo) and (my_dt_lo <= end_lo):
         my_values = 0.0
-        for my_sub_step in xrange(0, -divisor, -1):
+        for my_sub_step in range(0, -divisor, -1):
             my_values += dict_info[my_dt_lo + my_sub_step * time_delta_hi]
         new_dict_info[my_dt_lo] = my_values / divisor
         my_dt_lo += time_delta_lo

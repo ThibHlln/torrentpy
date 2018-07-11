@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with TORRENTpy. If not, see <http://www.gnu.org/licenses/>.
 
+from .model import Model
 # import catchment models
 from .catchment.smart import SMARTc
 from .catchment.inca import INCAc

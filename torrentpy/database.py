@@ -22,7 +22,8 @@ from logging import getLogger
 from datetime import timedelta
 from glob import glob
 
-import inout as io
+from .inout import read_csv_timeseries_with_data_checks, \
+    read_netcdf_timeseries_with_data_checks
 from .timeframe import get_required_resolution, \
     rescale_time_resolution_of_regular_cumulative_data, \
     rescale_time_resolution_of_regular_mean_data
@@ -156,7 +157,7 @@ def get_nd_input_data_from_csv_file(cml, avg, tf, catchment, link, in_folder, da
             raise Exception(
                 "{}{}_{}*.{} or .{} do not exist.".format(in_folder, catchment, link, data_type, data_category))
 
-        my_nd_data_data = io.read_csv_timeseries_with_data_checks(my_data_file, tf)
+        my_nd_data_data = read_csv_timeseries_with_data_checks(my_data_file, tf)
 
         time_delta_res = get_required_resolution(
             tf.data_needed_start, tf.simu_start,
@@ -191,7 +192,7 @@ def get_nd_input_data_from_csv_file(cml, avg, tf, catchment, link, in_folder, da
             raise Exception(
                 "{}{}_{}*.{} or .{} do not exist.".format(in_folder, catchment, link, data_type, data_category))
 
-        my_nd_data_data = io.read_csv_timeseries_with_data_checks(my_data_file, tf)
+        my_nd_data_data = read_csv_timeseries_with_data_checks(my_data_file, tf)
 
         time_delta_res = get_required_resolution(
             tf.data_needed_start, tf.simu_start,
@@ -236,7 +237,7 @@ def get_nd_input_data_from_netcdf_file(cml, avg, tf, catchment, link, in_folder,
             raise Exception(
                 "{}{}_{}*.{}.nc or .{}.nc do not exist.".format(in_folder, catchment, link, data_type, data_category))
 
-        my_nd_data_data = io.read_netcdf_timeseries_with_data_checks(my_data_file, tf)
+        my_nd_data_data = read_netcdf_timeseries_with_data_checks(my_data_file, tf)
 
         time_delta_res = get_required_resolution(
             tf.data_needed_start, tf.simu_start,
@@ -265,7 +266,7 @@ def get_nd_input_data_from_netcdf_file(cml, avg, tf, catchment, link, in_folder,
             raise Exception(
                 "{}{}_{}*.{}.nc or .{}.nc do not exist.".format(in_folder, catchment, link, data_type, data_category))
 
-        my_nd_data_data = io.read_netcdf_timeseries_with_data_checks(my_data_file, tf)
+        my_nd_data_data = read_netcdf_timeseries_with_data_checks(my_data_file, tf)
 
         time_delta_res = get_required_resolution(
             tf.data_needed_start, tf.simu_start,

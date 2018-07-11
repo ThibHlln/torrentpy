@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with TORRENTpy. If not, see <http://www.gnu.org/licenses/>.
 
+from builtins import range
 from datetime import datetime, timedelta
 from logging import getLogger
 import csv
@@ -27,7 +28,7 @@ try:
 except ImportError:
     Dataset = None
 
-from timeframe import check_interval_in_list
+from .timeframe import check_interval_in_list
 
 
 def read_csv_timeseries_with_data_checks(csv_file, tf):
@@ -290,7 +291,7 @@ def update_simulation_files_csv(nw, tf, timeslice, db, method='raw'):
     logger.info("> Updating results in files.")
 
     # Determine number of simulation steps to consider for reporting
-    simu_steps_per_save_step = tf.save_gap / tf.simu_gap
+    simu_steps_per_save_step = tf.save_gap // tf.simu_gap
     
     if method == 'summary':
         # Save the Nested Dicts for the links (separating inputs, states, and outputs)
@@ -311,7 +312,7 @@ def update_simulation_files_csv(nw, tf, timeslice, db, method='raw'):
                     my_list = list()
                     for my_input in my_inputs:
                         my_values = list()
-                        for my_sub_step in xrange(0, -simu_steps_per_save_step, -1):
+                        for my_sub_step in range(0, -simu_steps_per_save_step, -1):
                             my_values.append(
                                 db.simulation[link.name][
                                     step + timedelta(minutes=my_sub_step * tf.simu_gap)][my_input])
@@ -324,7 +325,7 @@ def update_simulation_files_csv(nw, tf, timeslice, db, method='raw'):
                     my_list = list()
                     for my_state in my_states:
                         my_values = list()
-                        for my_sub_step in xrange(0, -simu_steps_per_save_step, -1):
+                        for my_sub_step in range(0, -simu_steps_per_save_step, -1):
                             my_values.append(
                                 db.simulation[link.name][
                                     step + timedelta(minutes=my_sub_step * tf.simu_gap)][my_state])
@@ -337,7 +338,7 @@ def update_simulation_files_csv(nw, tf, timeslice, db, method='raw'):
                     my_list = list()
                     for my_output in my_outputs:
                         my_values = list()
-                        for my_sub_step in xrange(0, -simu_steps_per_save_step, -1):
+                        for my_sub_step in range(0, -simu_steps_per_save_step, -1):
                             my_values.append(
                                 db.simulation[link.name][
                                     step + timedelta(minutes=my_sub_step * tf.simu_gap)][my_output])
@@ -352,7 +353,7 @@ def update_simulation_files_csv(nw, tf, timeslice, db, method='raw'):
                     my_list = list()
                     for my_variable in nw.variables:
                         my_values = list()
-                        for my_sub_step in xrange(0, -simu_steps_per_save_step, -1):
+                        for my_sub_step in range(0, -simu_steps_per_save_step, -1):
                             my_values.append(
                                 db.simulation[node.name][
                                     step + timedelta(minutes=my_sub_step * tf.simu_gap)][my_variable])
@@ -378,7 +379,7 @@ def update_simulation_files_csv(nw, tf, timeslice, db, method='raw'):
                     my_list = list()
                     for my_input in my_inputs:
                         my_values = list()
-                        for my_sub_step in xrange(0, -simu_steps_per_save_step, -1):
+                        for my_sub_step in range(0, -simu_steps_per_save_step, -1):
                             my_values.append(
                                 db.simulation[link.name][
                                     step + timedelta(minutes=my_sub_step * tf.simu_gap)][my_input])
@@ -453,7 +454,7 @@ def update_simulation_files_netcdf(nw, tf, timeslice, db, method='raw'):
         np.timedelta64(1, 's')
 
     # Determine number of simulation steps to consider for reporting
-    simu_steps_per_save_step = tf.save_gap / tf.simu_gap
+    simu_steps_per_save_step = tf.save_gap // tf.simu_gap
 
     if method == 'summary':
         # Save the Nested Dicts for the links (separating inputs, states, and outputs)
@@ -473,7 +474,7 @@ def update_simulation_files_netcdf(nw, tf, timeslice, db, method='raw'):
                 for step in timeslice[1:]:
                     for my_input in my_inputs:
                         my_value = list()
-                        for my_sub_step in xrange(0, -simu_steps_per_save_step, -1):
+                        for my_sub_step in range(0, -simu_steps_per_save_step, -1):
                             my_value.append(
                                 db.simulation[link.name][
                                     step + timedelta(minutes=my_sub_step * tf.simu_gap)][my_input])
@@ -489,7 +490,7 @@ def update_simulation_files_netcdf(nw, tf, timeslice, db, method='raw'):
                 for step in timeslice[1:]:
                     for my_state in my_states:
                         my_value = list()
-                        for my_sub_step in xrange(0, -simu_steps_per_save_step, -1):
+                        for my_sub_step in range(0, -simu_steps_per_save_step, -1):
                             my_value.append(
                                 db.simulation[link.name][
                                     step + timedelta(minutes=my_sub_step * tf.simu_gap)][my_state])
@@ -505,7 +506,7 @@ def update_simulation_files_netcdf(nw, tf, timeslice, db, method='raw'):
                 for step in timeslice[1:]:
                     for my_output in my_outputs:
                         my_value = list()
-                        for my_sub_step in xrange(0, -simu_steps_per_save_step, -1):
+                        for my_sub_step in range(0, -simu_steps_per_save_step, -1):
                             my_value.append(
                                 db.simulation[link.name][
                                     step + timedelta(minutes=my_sub_step * tf.simu_gap)][my_output])
@@ -523,7 +524,7 @@ def update_simulation_files_netcdf(nw, tf, timeslice, db, method='raw'):
                 for step in timeslice[1:]:
                     for my_variable in nw.variables:
                         my_value = list()
-                        for my_sub_step in xrange(0, -simu_steps_per_save_step, -1):
+                        for my_sub_step in range(0, -simu_steps_per_save_step, -1):
                             my_value.append(
                                 db.simulation[node.name][
                                     step + timedelta(minutes=my_sub_step * tf.simu_gap)][my_variable])
@@ -552,7 +553,7 @@ def update_simulation_files_netcdf(nw, tf, timeslice, db, method='raw'):
                 for step in timeslice[1:]:
                     for my_input in my_inputs:
                         my_value = list()
-                        for my_sub_step in xrange(0, -simu_steps_per_save_step, -1):
+                        for my_sub_step in range(0, -simu_steps_per_save_step, -1):
                             my_value.append(
                                 db.simulation[link.name][
                                     step + timedelta(minutes=my_sub_step * tf.simu_gap)][my_input])

@@ -21,7 +21,6 @@
 from logging import getLogger
 
 from .models import *
-from .models.model import Model
 
 
 class KnowledgeBase(object):

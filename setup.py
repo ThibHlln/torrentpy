@@ -43,10 +43,12 @@ setup(
         'Programming Language :: Python :: Implementation :: CPython'
     ],
 
-    packages=['torrentpy', 'examples'],
+    packages=['torrentpy', 'torrentpy.utils', 'torrentpy.models', 'torrentpy.models.catchment',
+              'torrentpy.models.river', 'torrentpy.models.lake', 'examples'],
 
     install_requires=[
-        'numpy'
+        'numpy',
+        'future'
     ],
 
     extras_require={
