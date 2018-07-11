@@ -22,6 +22,7 @@ import logging
 from logging import getLogger
 import os
 import csv
+from glob import glob
 from datetime import timedelta
 from builtins import zip
 
@@ -42,8 +43,15 @@ class Network(object):
         # path of the folders and files necessary to generate the Network object
         self.in_fld = in_fld
         self.out_fld = out_fld
-        if not os.path.exists(out_fld):  # create the output folder if it does not already exist
+        # clean it up the output folder if it already exists, otherwise create it
+        if os.path.exists(out_fld):
+            for ext in [".parameters", ".node*", ".inputs*", ".outputs*", ".states*"]:
+                my_files = glob("{}{}*{}".format(out_fld, catchment, ext))
+                for my_file in my_files:
+                    os.remove(my_file)
+        else:
             os.makedirs(out_fld)
+        # store locations of key files
         self.network_file = '{}{}_{}.network'.format(in_fld, catchment, outlet)
         self.waterbodies_file = '{}{}_{}.waterbodies'.format(in_fld, catchment, outlet)
         self.descriptors_file = '{}{}_{}.descriptors'.format(in_fld, catchment, outlet)
