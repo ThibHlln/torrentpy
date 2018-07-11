@@ -63,11 +63,11 @@ class KnowledgeBase(object):
         logger = getLogger('TORRENTpy.kb')
 
         if name not in self._catchment_models:
-            if isinstance(class_definition, Model):
+            if issubclass(class_definition, Model):
                 self._catchment_models[name] = class_definition
             else:
-                logger.error("{} class definition is not an instance of the Model class.".format(name))
-                raise Exception("{} class definition is not an instance of the Model class.".format(name))
+                logger.error("{} class definition is not a subclass of the Model class.".format(name))
+                raise Exception("{} class definition is not a subclass of the Model class.".format(name))
         else:
             logger.error(
                 "{} already exists in the Catchment KnowledgeBase, please choose a different name.".format(name))
@@ -78,11 +78,11 @@ class KnowledgeBase(object):
         logger = getLogger('TORRENTpy.kb')
 
         if name not in self._river_models:
-            if isinstance(class_definition, Model):
+            if issubclass(class_definition, Model):
                 self._river_models[name] = class_definition
             else:
-                logger.error("{} class definition is not an instance of the Model class.".format(name))
-                raise Exception("{} class definition is not an instance of the Model class.".format(name))
+                logger.error("{} class definition is not a subclass of the Model class.".format(name))
+                raise Exception("{} class definition is not a subclass of the Model class.".format(name))
         else:
             logger.error(
                 "{} already exists in the River KnowledgeBase, please choose a different name.".format(name))
@@ -93,11 +93,11 @@ class KnowledgeBase(object):
         logger = getLogger('TORRENTpy.kb')
 
         if name not in self._lake_models:
-            if isinstance(class_definition, Model):
+            if issubclass(class_definition, Model):
                 self._lake_models[name] = class_definition
             else:
-                logger.error("{} class definition is not an instance of the Model class.".format(name))
-                raise Exception("{} class definition is not an instance of the Model class.".format(name))
+                logger.error("{} class definition is not a subclass of the Model class.".format(name))
+                raise Exception("{} class definition is not a subclass of the Model class.".format(name))
         else:
             logger.error("{} already exists in the Lake KnowledgeBase, please choose a different name.".format(name))
             raise Exception("{} already exists in the Lake KnowledgeBase, please choose a different name.".format(name))
