@@ -66,8 +66,8 @@ class SMARTc(Model):
 
         if os.path.isfile('{}{}_{}.{}{}.parameters'.format(output_folder, catchment, outlet,
                                                            self.identifier, self.category)):
-            with open('{}{}_{}.{}.parameters'.format(output_folder, catchment, outlet,
-                                                     self.identifier, self.category),
+            with open('{}{}_{}.{}{}.parameters'.format(output_folder, catchment, outlet,
+                                                       self.identifier, self.category),
                       'ab') as my_file:
                 header = ['WaterBody'] + self.parameters_names
                 my_writer = csv.DictWriter(my_file, fieldnames=header)
