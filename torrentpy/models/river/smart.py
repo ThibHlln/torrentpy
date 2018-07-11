@@ -31,6 +31,7 @@ except ImportError:
     smart_in_cpp = False
 
 from ..model import Model
+from ...inout import open_csv_wb, open_csv_ab
 
 
 class SMARTr(Model):
@@ -60,16 +61,14 @@ class SMARTr(Model):
 
         if os.path.isfile('{}{}_{}.{}{}.parameters'.format(output_folder, catchment, outlet,
                                                            self.identifier, self.category)):
-            with open('{}{}_{}.{}{}.parameters'.format(output_folder, catchment, outlet,
-                                                       self.identifier, self.category),
-                      'ab') as my_file:
+            with open_csv_ab('{}{}_{}.{}{}.parameters'.format(output_folder, catchment, outlet,
+                                                              self.identifier, self.category)) as my_file:
                 header = ['WaterBody'] + self.parameters_names
                 my_writer = csv.DictWriter(my_file, fieldnames=header)
                 my_writer.writerow(dict_for_file)
         else:
-            with open('{}{}_{}.{}{}.parameters'.format(output_folder, catchment, outlet,
-                                                       self.identifier, self.category),
-                      'wb') as my_file:
+            with open_csv_wb('{}{}_{}.{}{}.parameters'.format(output_folder, catchment, outlet,
+                                                              self.identifier, self.category)) as my_file:
                 header = ['WaterBody'] + self.parameters_names
                 my_writer = csv.DictWriter(my_file, fieldnames=header)
                 my_writer.writeheader()

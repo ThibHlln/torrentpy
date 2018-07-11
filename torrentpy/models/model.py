@@ -21,6 +21,8 @@
 from logging import getLogger
 from csv import DictReader
 
+from ..inout import open_csv_rb
+
 
 class Model(object):
     def __init__(self, category, identifier):
@@ -61,7 +63,7 @@ class Model(object):
         if self.constants_names:
             try:
                 my_dict = dict()
-                with open('{}{}.constants'.format(input_folder, self.identifier), 'rb') as my_file:
+                with open_csv_rb('{}{}.constants'.format(input_folder, self.identifier)) as my_file:
                     my_reader = DictReader(my_file)
                     for row in my_reader:
                         try:
@@ -103,8 +105,8 @@ class Model(object):
         if self.parameters_names:
             try:
                 my_dict = dict()
-                with open('{}{}_{}.{}.parameters'.format(input_folder, catchment, outlet, self.identifier),
-                          'rb') as my_file:
+                with open_csv_rb(
+                        '{}{}_{}.{}.parameters'.format(input_folder, catchment, outlet, self.identifier)) as my_file:
                     my_reader = DictReader(my_file)
                     found = False
                     for row in my_reader:

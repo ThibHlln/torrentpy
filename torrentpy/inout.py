@@ -21,6 +21,8 @@
 from builtins import range
 from datetime import datetime, timedelta
 from logging import getLogger
+import sys
+import io
 import csv
 import numpy as np
 try:
@@ -31,10 +33,31 @@ except ImportError:
 from .timeframe import check_interval_in_list
 
 
+def open_csv_rb(my_file):
+    if sys.version_info[0] < 3:
+        return io.open(my_file, 'rb')
+    else:
+        return io.open(my_file, 'r', encoding='utf8')
+
+
+def open_csv_wb(my_file):
+    if sys.version_info[0] < 3:
+        return io.open(my_file, 'wb')
+    else:
+        return io.open(my_file, 'w', newline='', encoding='utf8')
+
+
+def open_csv_ab(my_file):
+    if sys.version_info[0] < 3:
+        return io.open(my_file, 'ab')
+    else:
+        return io.open(my_file, 'a', newline='', encoding='utf8')
+
+
 def read_csv_timeseries_with_data_checks(csv_file, tf):
     logger = getLogger('TORRENTpy.io')
     try:
-        with open(csv_file, 'rb') as my_file:
+        with open_csv_rb(csv_file) as my_file:
             my_nd_variables = dict()
             my_list_dt = list()
             my_reader = csv.DictReader(my_file)
@@ -166,21 +189,21 @@ def create_simulation_files_csv(network):
             my_states += model.states_names
             my_outputs += model.outputs_names
 
-        with open('{}{}_{}.inputs'.format(network.out_fld, network.catchment, link.name), 'wb') as my_file:
+        with open_csv_wb('{}{}_{}.inputs'.format(network.out_fld, network.catchment, link.name)) as my_file:
             my_writer = csv.writer(my_file, delimiter=',')
             my_writer.writerow(['DateTime'] + my_inputs)
 
-        with open('{}{}_{}.states'.format(network.out_fld, network.catchment, link.name), 'wb') as my_file:
+        with open_csv_wb('{}{}_{}.states'.format(network.out_fld, network.catchment, link.name)) as my_file:
             my_writer = csv.writer(my_file, delimiter=',')
             my_writer.writerow(['DateTime'] + my_states)
 
-        with open('{}{}_{}.outputs'.format(network.out_fld, network.catchment, link.name), 'wb') as my_file:
+        with open_csv_wb('{}{}_{}.outputs'.format(network.out_fld, network.catchment, link.name)) as my_file:
             my_writer = csv.writer(my_file, delimiter=',')
             my_writer.writerow(['DateTime'] + my_outputs)
 
     # Create the CSV files with headers for the nodes
     for node in network.nodes:
-        with open('{}{}_{}.node'.format(network.out_fld, network.catchment, node.name), 'wb') as my_file:
+        with open_csv_wb('{}{}_{}.node'.format(network.out_fld, network.catchment, node.name)) as my_file:
             my_writer = csv.writer(my_file, delimiter=',')
             my_writer.writerow(['DateTime'] + network.variables)
 
@@ -305,7 +328,7 @@ def update_simulation_files_csv(nw, tf, timeslice, db, method='raw'):
                 my_states += model.states_names
                 my_outputs += model.outputs_names
 
-            with open('{}{}_{}.inputs'.format(nw.out_fld, nw.catchment, link.name), 'ab') as my_file:
+            with open_csv_ab('{}{}_{}.inputs'.format(nw.out_fld, nw.catchment, link.name)) as my_file:
                 # for inputs, 'raw' and 'summary report the same values because they are cumulative values
                 my_writer = csv.writer(my_file, delimiter=',')
                 for step in timeslice[1:]:
@@ -319,7 +342,7 @@ def update_simulation_files_csv(nw, tf, timeslice, db, method='raw'):
                         my_list.append('%e' % sum(my_values))
                     my_writer.writerow([step] + my_list)
 
-            with open('{}{}_{}.states'.format(nw.out_fld, nw.catchment, link.name), 'ab') as my_file:
+            with open_csv_ab('{}{}_{}.states'.format(nw.out_fld, nw.catchment, link.name)) as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
                 for step in timeslice[1:]:
                     my_list = list()
@@ -332,7 +355,7 @@ def update_simulation_files_csv(nw, tf, timeslice, db, method='raw'):
                         my_list.append('%e' % (sum(my_values) / len(my_values)))
                     my_writer.writerow([step] + my_list)
 
-            with open('{}{}_{}.outputs'.format(nw.out_fld, nw.catchment, link.name), 'ab') as my_file:
+            with open_csv_ab('{}{}_{}.outputs'.format(nw.out_fld, nw.catchment, link.name)) as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
                 for step in timeslice[1:]:
                     my_list = list()
@@ -347,7 +370,7 @@ def update_simulation_files_csv(nw, tf, timeslice, db, method='raw'):
 
         # Save the Nested Dicts for the nodes
         for node in nw.nodes:
-            with open('{}{}_{}.node'.format(nw.out_fld, nw.catchment, node.name), 'ab') as my_file:
+            with open_csv_ab('{}{}_{}.node'.format(nw.out_fld, nw.catchment, node.name)) as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
                 for step in timeslice[1:]:
                     my_list = list()
@@ -372,7 +395,7 @@ def update_simulation_files_csv(nw, tf, timeslice, db, method='raw'):
                 my_states += model.states_names
                 my_outputs += model.outputs_names
 
-            with open('{}{}_{}.inputs'.format(nw.out_fld, nw.catchment, link.name), 'ab') as my_file:
+            with open_csv_ab('{}{}_{}.inputs'.format(nw.out_fld, nw.catchment, link.name)) as my_file:
                 # for inputs, 'raw' and 'summary report the same values because they are cumulative values
                 my_writer = csv.writer(my_file, delimiter=',')
                 for step in timeslice[1:]:
@@ -386,13 +409,13 @@ def update_simulation_files_csv(nw, tf, timeslice, db, method='raw'):
                         my_list.append('%e' % sum(my_values))
                     my_writer.writerow([step] + my_list)
 
-            with open('{}{}_{}.states'.format(nw.out_fld, nw.catchment, link.name), 'ab') as my_file:
+            with open_csv_ab('{}{}_{}.states'.format(nw.out_fld, nw.catchment, link.name)) as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
                 for step in timeslice[1:]:
                     my_writer.writerow([step] + ['%e' % db.simulation[link.name][step][my_state]
                                                  for my_state in my_states])
 
-            with open('{}{}_{}.outputs'.format(nw.out_fld, nw.catchment, link.name), 'ab') as my_file:
+            with open_csv_ab('{}{}_{}.outputs'.format(nw.out_fld, nw.catchment, link.name)) as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
                 for step in timeslice[1:]:
                     my_writer.writerow([step] + ['%e' % db.simulation[link.name][step][my_output]
@@ -400,7 +423,7 @@ def update_simulation_files_csv(nw, tf, timeslice, db, method='raw'):
 
         # Save the Nested Dicts for the nodes
         for node in nw.nodes:
-            with open('{}{}_{}.node'.format(nw.out_fld, nw.catchment, node.name), 'ab') as my_file:
+            with open_csv_ab('{}{}_{}.node'.format(nw.out_fld, nw.catchment, node.name)) as my_file:
                 my_writer = csv.writer(my_file, delimiter=',')
                 for step in timeslice[1:]:
                     my_writer.writerow([step] + ['%e' % db.simulation[node.name][step][my_variable]

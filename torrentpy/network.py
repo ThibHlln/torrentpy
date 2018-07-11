@@ -26,7 +26,7 @@ from glob import glob
 from datetime import timedelta
 from builtins import zip
 
-from .inout import create_simulation_files, update_simulation_files
+from .inout import create_simulation_files, update_simulation_files, open_csv_rb
 
 
 class Network(object):
@@ -119,7 +119,7 @@ class Network(object):
         """
         logger = getLogger('TORRENTpy.nw')
         try:
-            with open(self.network_file) as my_file:
+            with open_csv_rb(self.network_file) as my_file:
                 my_reader = csv.DictReader(my_file)
                 my_nodes = list()  # list of all nodes
                 my_links = list()  # list of all links (i.e. waterbodies)
@@ -168,7 +168,7 @@ class Network(object):
         found = list()
         categories = list()
         try:
-            with open(self.waterbodies_file) as my_file:
+            with open_csv_rb(self.waterbodies_file) as my_file:
                 my_reader = csv.DictReader(my_file)
                 for row in my_reader:
                     if row['WaterBody'] in self.links_mapping:
@@ -199,7 +199,7 @@ class Network(object):
         """
         logger = getLogger('TORRENTpy.nw')
         try:
-            with open(self.descriptors_file) as my_file:
+            with open_csv_rb(self.descriptors_file) as my_file:
                 my_reader = csv.DictReader(my_file)
                 fields = my_reader.fieldnames[:]
                 fields.remove('WaterBody')
