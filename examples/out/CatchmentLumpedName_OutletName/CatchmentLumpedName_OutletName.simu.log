@@ -1,202 +1,202 @@
-05/07/2018 - 17:02:33 - TORRENTpy.nw - WARNING - Starting TORRENTpy session for CatchmentLumpedName at OutletName.
-05/07/2018 - 17:02:33 - TORRENTpy.db - INFO - Collection meteorological information.
-05/07/2018 - 17:02:35 - TORRENTpy.db - INFO - Collection contamination information.
-05/07/2018 - 17:02:36 - TORRENTpy.io - INFO - Creating files for results.
-05/07/2018 - 17:02:36 - TORRENTpy.nw - INFO - Determining initial conditions.
-05/07/2018 - 17:02:36 - TORRENTpy.nw - INFO - Running Warm-Up Period 31/12/2006 10:00:00 - 24/03/2007 09:00:00.
-05/07/2018 - 17:02:36 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:36 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:36 - TORRENTpy.nw - INFO - Running Warm-Up Period 24/03/2007 10:00:00 - 15/06/2007 09:00:00.
-05/07/2018 - 17:02:36 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:36 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:37 - TORRENTpy.nw - INFO - Running Warm-Up Period 15/06/2007 10:00:00 - 06/09/2007 09:00:00.
-05/07/2018 - 17:02:37 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:37 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:37 - TORRENTpy.nw - INFO - Running Warm-Up Period 06/09/2007 10:00:00 - 28/11/2007 09:00:00.
-05/07/2018 - 17:02:37 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:37 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:37 - TORRENTpy.nw - INFO - Running Warm-Up Period 28/11/2007 10:00:00 - 31/12/2007 09:00:00.
-05/07/2018 - 17:02:37 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:37 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:38 - TORRENTpy.nw - INFO - Starting the simulation.
-05/07/2018 - 17:02:38 - TORRENTpy.nw - INFO - Running Period 31/12/2006 10:00:00 - 24/03/2007 09:00:00.
-05/07/2018 - 17:02:38 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:38 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:38 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:39 - TORRENTpy.nw - INFO - Running Period 24/03/2007 10:00:00 - 15/06/2007 09:00:00.
-05/07/2018 - 17:02:39 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:39 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:39 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:39 - TORRENTpy.nw - INFO - Running Period 15/06/2007 10:00:00 - 06/09/2007 09:00:00.
-05/07/2018 - 17:02:39 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:39 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:40 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:40 - TORRENTpy.nw - INFO - Running Period 06/09/2007 10:00:00 - 28/11/2007 09:00:00.
-05/07/2018 - 17:02:40 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:40 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:41 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:41 - TORRENTpy.nw - INFO - Running Period 28/11/2007 10:00:00 - 19/02/2008 09:00:00.
-05/07/2018 - 17:02:41 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:41 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:42 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:42 - TORRENTpy.nw - INFO - Running Period 19/02/2008 10:00:00 - 12/05/2008 09:00:00.
-05/07/2018 - 17:02:42 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:42 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:43 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:43 - TORRENTpy.nw - INFO - Running Period 12/05/2008 10:00:00 - 03/08/2008 09:00:00.
-05/07/2018 - 17:02:43 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:43 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:43 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:44 - TORRENTpy.nw - INFO - Running Period 03/08/2008 10:00:00 - 25/10/2008 09:00:00.
-05/07/2018 - 17:02:44 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:44 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:44 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:45 - TORRENTpy.nw - INFO - Running Period 25/10/2008 10:00:00 - 16/01/2009 09:00:00.
-05/07/2018 - 17:02:45 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:45 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:45 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:45 - TORRENTpy.nw - INFO - Running Period 16/01/2009 10:00:00 - 09/04/2009 09:00:00.
-05/07/2018 - 17:02:45 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:45 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:46 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:46 - TORRENTpy.nw - INFO - Running Period 09/04/2009 10:00:00 - 01/07/2009 09:00:00.
-05/07/2018 - 17:02:46 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:46 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:46 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:47 - TORRENTpy.nw - INFO - Running Period 01/07/2009 10:00:00 - 22/09/2009 09:00:00.
-05/07/2018 - 17:02:47 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:47 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:47 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:48 - TORRENTpy.nw - INFO - Running Period 22/09/2009 10:00:00 - 14/12/2009 09:00:00.
-05/07/2018 - 17:02:48 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:48 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:48 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:48 - TORRENTpy.nw - INFO - Running Period 14/12/2009 10:00:00 - 07/03/2010 09:00:00.
-05/07/2018 - 17:02:48 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:48 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:49 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:49 - TORRENTpy.nw - INFO - Running Period 07/03/2010 10:00:00 - 29/05/2010 09:00:00.
-05/07/2018 - 17:02:49 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:49 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:49 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:50 - TORRENTpy.nw - INFO - Running Period 29/05/2010 10:00:00 - 20/08/2010 09:00:00.
-05/07/2018 - 17:02:50 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:50 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:50 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:50 - TORRENTpy.nw - INFO - Running Period 20/08/2010 10:00:00 - 11/11/2010 09:00:00.
-05/07/2018 - 17:02:50 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:50 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:51 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:51 - TORRENTpy.nw - INFO - Running Period 11/11/2010 10:00:00 - 02/02/2011 09:00:00.
-05/07/2018 - 17:02:51 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:51 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:52 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:52 - TORRENTpy.nw - INFO - Running Period 02/02/2011 10:00:00 - 26/04/2011 09:00:00.
-05/07/2018 - 17:02:52 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:52 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:52 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:53 - TORRENTpy.nw - INFO - Running Period 26/04/2011 10:00:00 - 18/07/2011 09:00:00.
-05/07/2018 - 17:02:53 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:53 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:53 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:53 - TORRENTpy.nw - INFO - Running Period 18/07/2011 10:00:00 - 09/10/2011 09:00:00.
-05/07/2018 - 17:02:53 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:53 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:54 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:54 - TORRENTpy.nw - INFO - Running Period 09/10/2011 10:00:00 - 31/12/2011 09:00:00.
-05/07/2018 - 17:02:54 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:54 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:54 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:55 - TORRENTpy.nw - INFO - Running Period 31/12/2011 10:00:00 - 23/03/2012 09:00:00.
-05/07/2018 - 17:02:55 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:55 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:55 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:55 - TORRENTpy.nw - INFO - Running Period 23/03/2012 10:00:00 - 14/06/2012 09:00:00.
-05/07/2018 - 17:02:55 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:55 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:56 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:56 - TORRENTpy.nw - INFO - Running Period 14/06/2012 10:00:00 - 05/09/2012 09:00:00.
-05/07/2018 - 17:02:56 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:56 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:57 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:57 - TORRENTpy.nw - INFO - Running Period 05/09/2012 10:00:00 - 27/11/2012 09:00:00.
-05/07/2018 - 17:02:57 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:57 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:57 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:58 - TORRENTpy.nw - INFO - Running Period 27/11/2012 10:00:00 - 18/02/2013 09:00:00.
-05/07/2018 - 17:02:58 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:58 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:58 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:58 - TORRENTpy.nw - INFO - Running Period 18/02/2013 10:00:00 - 12/05/2013 09:00:00.
-05/07/2018 - 17:02:58 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:58 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:59 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:02:59 - TORRENTpy.nw - INFO - Running Period 12/05/2013 10:00:00 - 03/08/2013 09:00:00.
-05/07/2018 - 17:02:59 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:02:59 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:02:59 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:03:00 - TORRENTpy.nw - INFO - Running Period 03/08/2013 10:00:00 - 25/10/2013 09:00:00.
-05/07/2018 - 17:03:00 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:03:00 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:03:00 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:03:01 - TORRENTpy.nw - INFO - Running Period 25/10/2013 10:00:00 - 16/01/2014 09:00:00.
-05/07/2018 - 17:03:01 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:03:01 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:03:01 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:03:01 - TORRENTpy.nw - INFO - Running Period 16/01/2014 10:00:00 - 09/04/2014 09:00:00.
-05/07/2018 - 17:03:01 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:03:01 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:03:02 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:03:02 - TORRENTpy.nw - INFO - Running Period 09/04/2014 10:00:00 - 01/07/2014 09:00:00.
-05/07/2018 - 17:03:02 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:03:02 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:03:02 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:03:03 - TORRENTpy.nw - INFO - Running Period 01/07/2014 10:00:00 - 22/09/2014 09:00:00.
-05/07/2018 - 17:03:03 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:03:03 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:03:03 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:03:03 - TORRENTpy.nw - INFO - Running Period 22/09/2014 10:00:00 - 14/12/2014 09:00:00.
-05/07/2018 - 17:03:03 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:03:03 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:03:04 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:03:04 - TORRENTpy.nw - INFO - Running Period 14/12/2014 10:00:00 - 07/03/2015 09:00:00.
-05/07/2018 - 17:03:04 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:03:04 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:03:05 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:03:05 - TORRENTpy.nw - INFO - Running Period 07/03/2015 10:00:00 - 29/05/2015 09:00:00.
-05/07/2018 - 17:03:05 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:03:05 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:03:05 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:03:06 - TORRENTpy.nw - INFO - Running Period 29/05/2015 10:00:00 - 20/08/2015 09:00:00.
-05/07/2018 - 17:03:06 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:03:06 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:03:06 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:03:06 - TORRENTpy.nw - INFO - Running Period 20/08/2015 10:00:00 - 11/11/2015 09:00:00.
-05/07/2018 - 17:03:06 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:03:06 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:03:07 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:03:07 - TORRENTpy.nw - INFO - Running Period 11/11/2015 10:00:00 - 02/02/2016 09:00:00.
-05/07/2018 - 17:03:07 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:03:07 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:03:07 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:03:08 - TORRENTpy.nw - INFO - Running Period 02/02/2016 10:00:00 - 25/04/2016 09:00:00.
-05/07/2018 - 17:03:08 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:03:08 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:03:08 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:03:08 - TORRENTpy.nw - INFO - Running Period 25/04/2016 10:00:00 - 17/07/2016 09:00:00.
-05/07/2018 - 17:03:08 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:03:08 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:03:09 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:03:09 - TORRENTpy.nw - INFO - Running Period 17/07/2016 10:00:00 - 08/10/2016 09:00:00.
-05/07/2018 - 17:03:09 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:03:09 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:03:10 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:03:10 - TORRENTpy.nw - INFO - Running Period 08/10/2016 10:00:00 - 30/12/2016 09:00:00.
-05/07/2018 - 17:03:10 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:03:10 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:03:10 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:03:11 - TORRENTpy.nw - INFO - Running Period 30/12/2016 10:00:00 - 31/12/2016 09:00:00.
-05/07/2018 - 17:03:11 - TORRENTpy.db - INFO - > Generating data structures.
-05/07/2018 - 17:03:11 - TORRENTpy.nw - INFO - > Simulating.
-05/07/2018 - 17:03:11 - TORRENTpy.io - INFO - > Updating results in files.
-05/07/2018 - 17:03:11 - TORRENTpy.nw - WARNING - Ending TORRENTpy session for CatchmentLumpedName at OutletName.
+12/07/2018 - 12:13:32 - TORRENTpy.nw - WARNING - Starting TORRENTpy session for CatchmentLumpedName at OutletName.
+12/07/2018 - 12:13:32 - TORRENTpy.db - INFO - Collection meteorological information.
+12/07/2018 - 12:13:34 - TORRENTpy.db - INFO - Collection contamination information.
+12/07/2018 - 12:13:37 - TORRENTpy.io - INFO - Creating files for results.
+12/07/2018 - 12:13:37 - TORRENTpy.nw - INFO - Determining initial conditions.
+12/07/2018 - 12:13:37 - TORRENTpy.nw - INFO - Running Warm-Up Period 31/12/2006 10:00:00 - 24/03/2007 09:00:00.
+12/07/2018 - 12:13:37 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:37 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:37 - TORRENTpy.nw - INFO - Running Warm-Up Period 24/03/2007 10:00:00 - 15/06/2007 09:00:00.
+12/07/2018 - 12:13:37 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:37 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:37 - TORRENTpy.nw - INFO - Running Warm-Up Period 15/06/2007 10:00:00 - 06/09/2007 09:00:00.
+12/07/2018 - 12:13:37 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:37 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:38 - TORRENTpy.nw - INFO - Running Warm-Up Period 06/09/2007 10:00:00 - 28/11/2007 09:00:00.
+12/07/2018 - 12:13:38 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:38 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:38 - TORRENTpy.nw - INFO - Running Warm-Up Period 28/11/2007 10:00:00 - 31/12/2007 09:00:00.
+12/07/2018 - 12:13:38 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:38 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:38 - TORRENTpy.nw - INFO - Starting the simulation.
+12/07/2018 - 12:13:38 - TORRENTpy.nw - INFO - Running Period 31/12/2006 10:00:00 - 24/03/2007 09:00:00.
+12/07/2018 - 12:13:38 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:38 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:39 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:39 - TORRENTpy.nw - INFO - Running Period 24/03/2007 10:00:00 - 15/06/2007 09:00:00.
+12/07/2018 - 12:13:39 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:39 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:39 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:40 - TORRENTpy.nw - INFO - Running Period 15/06/2007 10:00:00 - 06/09/2007 09:00:00.
+12/07/2018 - 12:13:40 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:40 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:40 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:41 - TORRENTpy.nw - INFO - Running Period 06/09/2007 10:00:00 - 28/11/2007 09:00:00.
+12/07/2018 - 12:13:41 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:41 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:41 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:42 - TORRENTpy.nw - INFO - Running Period 28/11/2007 10:00:00 - 19/02/2008 09:00:00.
+12/07/2018 - 12:13:42 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:42 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:42 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:43 - TORRENTpy.nw - INFO - Running Period 19/02/2008 10:00:00 - 12/05/2008 09:00:00.
+12/07/2018 - 12:13:43 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:43 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:43 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:44 - TORRENTpy.nw - INFO - Running Period 12/05/2008 10:00:00 - 03/08/2008 09:00:00.
+12/07/2018 - 12:13:44 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:44 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:44 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:44 - TORRENTpy.nw - INFO - Running Period 03/08/2008 10:00:00 - 25/10/2008 09:00:00.
+12/07/2018 - 12:13:44 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:44 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:45 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:45 - TORRENTpy.nw - INFO - Running Period 25/10/2008 10:00:00 - 16/01/2009 09:00:00.
+12/07/2018 - 12:13:45 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:45 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:46 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:46 - TORRENTpy.nw - INFO - Running Period 16/01/2009 10:00:00 - 09/04/2009 09:00:00.
+12/07/2018 - 12:13:46 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:46 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:46 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:47 - TORRENTpy.nw - INFO - Running Period 09/04/2009 10:00:00 - 01/07/2009 09:00:00.
+12/07/2018 - 12:13:47 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:47 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:47 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:48 - TORRENTpy.nw - INFO - Running Period 01/07/2009 10:00:00 - 22/09/2009 09:00:00.
+12/07/2018 - 12:13:48 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:48 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:48 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:49 - TORRENTpy.nw - INFO - Running Period 22/09/2009 10:00:00 - 14/12/2009 09:00:00.
+12/07/2018 - 12:13:49 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:49 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:49 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:49 - TORRENTpy.nw - INFO - Running Period 14/12/2009 10:00:00 - 07/03/2010 09:00:00.
+12/07/2018 - 12:13:49 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:49 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:50 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:50 - TORRENTpy.nw - INFO - Running Period 07/03/2010 10:00:00 - 29/05/2010 09:00:00.
+12/07/2018 - 12:13:50 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:50 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:51 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:51 - TORRENTpy.nw - INFO - Running Period 29/05/2010 10:00:00 - 20/08/2010 09:00:00.
+12/07/2018 - 12:13:51 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:51 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:51 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:52 - TORRENTpy.nw - INFO - Running Period 20/08/2010 10:00:00 - 11/11/2010 09:00:00.
+12/07/2018 - 12:13:52 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:52 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:52 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:53 - TORRENTpy.nw - INFO - Running Period 11/11/2010 10:00:00 - 02/02/2011 09:00:00.
+12/07/2018 - 12:13:53 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:53 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:53 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:54 - TORRENTpy.nw - INFO - Running Period 02/02/2011 10:00:00 - 26/04/2011 09:00:00.
+12/07/2018 - 12:13:54 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:54 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:54 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:54 - TORRENTpy.nw - INFO - Running Period 26/04/2011 10:00:00 - 18/07/2011 09:00:00.
+12/07/2018 - 12:13:54 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:54 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:55 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:55 - TORRENTpy.nw - INFO - Running Period 18/07/2011 10:00:00 - 09/10/2011 09:00:00.
+12/07/2018 - 12:13:55 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:55 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:56 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:56 - TORRENTpy.nw - INFO - Running Period 09/10/2011 10:00:00 - 31/12/2011 09:00:00.
+12/07/2018 - 12:13:56 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:56 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:57 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:57 - TORRENTpy.nw - INFO - Running Period 31/12/2011 10:00:00 - 23/03/2012 09:00:00.
+12/07/2018 - 12:13:57 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:57 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:57 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:58 - TORRENTpy.nw - INFO - Running Period 23/03/2012 10:00:00 - 14/06/2012 09:00:00.
+12/07/2018 - 12:13:58 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:58 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:58 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:59 - TORRENTpy.nw - INFO - Running Period 14/06/2012 10:00:00 - 05/09/2012 09:00:00.
+12/07/2018 - 12:13:59 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:59 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:13:59 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:13:59 - TORRENTpy.nw - INFO - Running Period 05/09/2012 10:00:00 - 27/11/2012 09:00:00.
+12/07/2018 - 12:13:59 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:13:59 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:00 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:00 - TORRENTpy.nw - INFO - Running Period 27/11/2012 10:00:00 - 18/02/2013 09:00:00.
+12/07/2018 - 12:14:00 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:00 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:01 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:01 - TORRENTpy.nw - INFO - Running Period 18/02/2013 10:00:00 - 12/05/2013 09:00:00.
+12/07/2018 - 12:14:01 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:01 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:01 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:02 - TORRENTpy.nw - INFO - Running Period 12/05/2013 10:00:00 - 03/08/2013 09:00:00.
+12/07/2018 - 12:14:02 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:02 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:02 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:03 - TORRENTpy.nw - INFO - Running Period 03/08/2013 10:00:00 - 25/10/2013 09:00:00.
+12/07/2018 - 12:14:03 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:03 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:03 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:04 - TORRENTpy.nw - INFO - Running Period 25/10/2013 10:00:00 - 16/01/2014 09:00:00.
+12/07/2018 - 12:14:04 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:04 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:04 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:04 - TORRENTpy.nw - INFO - Running Period 16/01/2014 10:00:00 - 09/04/2014 09:00:00.
+12/07/2018 - 12:14:04 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:04 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:05 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:05 - TORRENTpy.nw - INFO - Running Period 09/04/2014 10:00:00 - 01/07/2014 09:00:00.
+12/07/2018 - 12:14:05 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:05 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:06 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:06 - TORRENTpy.nw - INFO - Running Period 01/07/2014 10:00:00 - 22/09/2014 09:00:00.
+12/07/2018 - 12:14:06 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:06 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:06 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:07 - TORRENTpy.nw - INFO - Running Period 22/09/2014 10:00:00 - 14/12/2014 09:00:00.
+12/07/2018 - 12:14:07 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:07 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:07 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:08 - TORRENTpy.nw - INFO - Running Period 14/12/2014 10:00:00 - 07/03/2015 09:00:00.
+12/07/2018 - 12:14:08 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:08 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:08 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:09 - TORRENTpy.nw - INFO - Running Period 07/03/2015 10:00:00 - 29/05/2015 09:00:00.
+12/07/2018 - 12:14:09 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:09 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:09 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:09 - TORRENTpy.nw - INFO - Running Period 29/05/2015 10:00:00 - 20/08/2015 09:00:00.
+12/07/2018 - 12:14:09 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:09 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:10 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:10 - TORRENTpy.nw - INFO - Running Period 20/08/2015 10:00:00 - 11/11/2015 09:00:00.
+12/07/2018 - 12:14:10 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:10 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:11 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:11 - TORRENTpy.nw - INFO - Running Period 11/11/2015 10:00:00 - 02/02/2016 09:00:00.
+12/07/2018 - 12:14:11 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:11 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:11 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:12 - TORRENTpy.nw - INFO - Running Period 02/02/2016 10:00:00 - 25/04/2016 09:00:00.
+12/07/2018 - 12:14:12 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:12 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:12 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:13 - TORRENTpy.nw - INFO - Running Period 25/04/2016 10:00:00 - 17/07/2016 09:00:00.
+12/07/2018 - 12:14:13 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:13 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:13 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:13 - TORRENTpy.nw - INFO - Running Period 17/07/2016 10:00:00 - 08/10/2016 09:00:00.
+12/07/2018 - 12:14:13 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:13 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:14 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:14 - TORRENTpy.nw - INFO - Running Period 08/10/2016 10:00:00 - 30/12/2016 09:00:00.
+12/07/2018 - 12:14:14 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:14 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:15 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:15 - TORRENTpy.nw - INFO - Running Period 30/12/2016 10:00:00 - 31/12/2016 09:00:00.
+12/07/2018 - 12:14:15 - TORRENTpy.db - INFO - > Generating data structures.
+12/07/2018 - 12:14:15 - TORRENTpy.nw - INFO - > Simulating.
+12/07/2018 - 12:14:15 - TORRENTpy.io - INFO - > Updating results in files.
+12/07/2018 - 12:14:15 - TORRENTpy.nw - WARNING - Ending TORRENTpy session for CatchmentLumpedName at OutletName.
