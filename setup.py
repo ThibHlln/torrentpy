@@ -9,7 +9,7 @@ with open("README.md", "r") as fh:
 setup(
     name='torrentpy',
 
-    version='0.1.0',
+    version='0.2.0',
 
     description='TORRENTpy: a tool for TranspORt thRough the catchmEnt NeTwork',
     long_description=long_desc,
@@ -40,6 +40,11 @@ setup(
 
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython'
     ],
 
@@ -53,6 +58,8 @@ setup(
 
     extras_require={
         'with_netcdf': ['netCDF4'],
-        'with_graphviz': ['graphviz']
+        'with_graphviz': ['graphviz'],
+        'with_smartcpp': ['smartcpp'],
+        'with_all_extras': ['netCDF4', 'graphviz', 'smartcpp']
     }
 )
