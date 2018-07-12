@@ -25,6 +25,8 @@ try:
 except ImportError:
     Digraph = None
 
+from ..inout import open_csv_rb, open_csv_wb
+
 
 def network_from_connectivity(in_fld, catchment, outlet, plot=False):
 
@@ -58,7 +60,7 @@ def _write_nodes_links_network_in_csv(file_path, dict_link_and_surrounding_nodes
     :param file_path: location where to save the CSV file
     :type file_path: str
     """
-    with open(file_path, 'wb') as my_file:
+    with open_csv_wb(file_path) as my_file:
         my_writer = writer(my_file, delimiter=',')
         my_writer.writerow(['NodeDown', 'WaterBody', 'NodeUp'])
         for key in dict_link_and_surrounding_nodes:
@@ -122,7 +124,7 @@ def _read_connectivity_file(file_path):
     """
     list_consecutive_links_up = list()
 
-    with open(file_path) as my_file:
+    with open_csv_rb(file_path) as my_file:
         my_reader = DictReader(my_file)
         for line in my_reader:
             try:
@@ -197,7 +199,7 @@ def _read_waterbodies_file(file_path):
     """
     dict_waterbodies = dict()
 
-    with open(file_path) as my_file:
+    with open_csv_rb(file_path) as my_file:
         my_reader = DictReader(my_file)
 
         for line in my_reader:
