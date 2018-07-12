@@ -117,15 +117,15 @@ class Model(object):
                                 try:
                                     my_dict[name] = float(row[name])
                                 except KeyError:
-                                    logger.error("The {} parameter {} is not available for {}.".format(
-                                        self.identifier, name, link.name))
-                                    raise Exception("The {} parameter {} is not available for {}.".format(
-                                        self.identifier, name, link.name))
-                        if not found:
-                            logger.error(
-                                "The WaterBody {} is not available in the parameters file.".format(link.name))
-                            raise Exception(
-                                "The WaterBody {} is not available in the parameters file.".format(link.name))
+                                    logger.error("The {}{} parameter {} is not available for {}.".format(
+                                        self.identifier, self.category, name, link.name))
+                                    raise Exception("The {}{} parameter {} is not available for {}.".format(
+                                        self.identifier, self.category, name, link.name))
+                    if not found:
+                        logger.error(
+                            "The WaterBody {} is not available in the parameters file.".format(link.name))
+                        raise Exception(
+                            "The WaterBody {} is not available in the parameters file.".format(link.name))
 
                 self.parameters = my_dict
                 link.models_parameters.update(my_dict)
