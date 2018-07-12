@@ -30,7 +30,7 @@ Additional optional dependencies include `netCDF4` if one wishes to use NetCDF f
 
 ## Input/Output File Formats
 
-TORRENTpy is designed to read CSV (Comma-Separated Values) files and NetCDF (Network Common Data Form) files. However, the use of NetCDF files requires the Python package `netCDF4` to be installed on the Python implementation where this package is installed (specific requirements for the installation of `netCDF4` exist and can be found at [unidata.github.io/netcdf4-python](http://unidata.github.io/netcdf4-python/).
+TORRENTpy is designed to read CSV (Comma-Separated Values) files and NetCDF (Network Common Data Form) files. However, the use of NetCDF files requires the Python package `netCDF4` to be installed on the Python implementation where this package is installed (specific pre-requisites prior the installation of `netCDF4` exist and can be found at [unidata.github.io/netcdf4-python](http://unidata.github.io/netcdf4-python/)).
 
 ## Version History
 
