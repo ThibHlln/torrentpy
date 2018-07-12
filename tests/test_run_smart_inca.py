@@ -4,6 +4,8 @@ import torrentpy
 
 
 class TestNetworkRun(unittest.TestCase):
+    maxDiff = None
+
     def setUp(self):
         self.nw = torrentpy.Network(
             catchment='CatchmentSemiDistributedName',

@@ -5,6 +5,8 @@ from torrentpy import inout
 
 
 class TestReadInputs(unittest.TestCase):
+    maxDiff = None
+
     def setUp(self):
         self.input_file_csv = \
             "examples/in/CatchmentLumpedName_OutletName/CatchmentLumpedName_OutletName_20000101_20161231.meteorology"
