@@ -8,10 +8,10 @@ TORRENTpy is an open-source framework in Python for water, solutes, and particul
 ## How to Install
 
 TORRENTpy is available on PyPI, so you can simply use pip:
-	python -m pip install torrentpy
+    python -m pip install torrentpy
 
 Alternatively, you can download the source code (*i.e.* this repository) and use the command:
-	python setup.py install
+    python setup.py install
 
 ## Dependencies
 
