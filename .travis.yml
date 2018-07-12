@@ -6,6 +6,7 @@ python:
   - 3.6
   - 3.7
 install:
+  - pip install netCDF4
   - pip install -e .
 script:
   - pytest tests
