@@ -13,9 +13,9 @@ class TestReadInputs(unittest.TestCase):
 
         self.tf = torrentpy.TimeFrame(
             dt_data_start=datetime.strptime('01/01/2000 09:00:00', '%d/%m/%Y %H:%M:%S'),
-            dt_data_end=datetime.strptime('07/01/2000 09:00:00', '%d/%m/%Y %H:%M:%S'),
-            dt_save_start=datetime.strptime('01/01/2009 09:00:00', '%d/%m/%Y %H:%M:%S'),
-            dt_save_end=datetime.strptime('31/12/2010 09:00:00', '%d/%m/%Y %H:%M:%S'),
+            dt_data_end=datetime.strptime('31/12/2016 09:00:00', '%d/%m/%Y %H:%M:%S'),
+            dt_save_start=datetime.strptime('01/01/2007 09:00:00', '%d/%m/%Y %H:%M:%S'),
+            dt_save_end=datetime.strptime('31/12/2016 09:00:00', '%d/%m/%Y %H:%M:%S'),
             data_increment_in_minutes=1440,
             save_increment_in_minutes=1440,
             simu_increment_in_minutes=1440,
