@@ -106,7 +106,8 @@ class Model(object):
             try:
                 my_dict = dict()
                 with open_csv_rb(
-                        '{}{}_{}.{}.parameters'.format(input_folder, catchment, outlet, self.identifier)) as my_file:
+                        '{}{}_{}.{}{}.parameters'.format(
+                            input_folder, catchment, outlet, self.identifier, self.category)) as my_file:
                     my_reader = DictReader(my_file)
                     found = False
                     for row in my_reader:

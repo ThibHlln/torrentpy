@@ -41,7 +41,8 @@ class INCAr(Model):
         self._set_constants_with_file(input_folder)
 
     def set_parameters(self, link, catchment, outlet, input_folder, output_folder):
-        if os.path.isfile("{}{}_{}.{}.parameters".format(input_folder, catchment, outlet, self.identifier)):
+        if os.path.isfile(
+                "{}{}_{}.{}{}.parameters".format(input_folder, catchment, outlet, self.identifier, self.category)):
             self._set_parameters_with_file(link, catchment, outlet, input_folder)
         else:
             self._infer_parameters(link, catchment, outlet, output_folder)
