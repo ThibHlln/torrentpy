@@ -71,7 +71,7 @@ class TestReadInputs(unittest.TestCase):
         for var in self.expected_outcome:
             my_nd[var] = dict()
             for dt in self.expected_outcome[var]:
-                my_nd[dt] = read_nd[var][dt]
+                my_nd[var][dt] = read_nd[var][dt]
 
         # compare
         self.assertEqual(
@@ -88,7 +88,7 @@ class TestReadInputs(unittest.TestCase):
         for var in self.expected_outcome:
             my_nd[var] = dict()
             for dt in self.expected_outcome[var]:
-                my_nd[dt] = read_nd[var][dt]
+                my_nd[var][dt] = read_nd[var][dt]
 
         # compare
         self.assertEqual(
