@@ -81,7 +81,7 @@ class TestReadInputs(unittest.TestCase):
 
     def test_netcdf_csv(self):
         # test the targeted read function on the example file
-        read_nd = inout.read_netcdf_timeseries_with_data_checks(self.input_file_csv, self.tf)
+        read_nd = inout.read_netcdf_timeseries_with_data_checks(self.input_file_netcdf, self.tf)
 
         # extract a sample for comparison
         my_nd = dict()
