@@ -485,7 +485,7 @@ class Network(object):
                     db.simulation[node.name][my_simu_slice[0]].update(my_last_lines[node.name])
 
                 # Simulate
-                self.run(db, tf, my_simu_slice)
+                self._run(db, tf, my_simu_slice)
 
                 # Save history (last time step) for next slice
                 for link in self.links:
@@ -524,7 +524,7 @@ class Network(object):
                 db.simulation[node.name][my_simu_slice[0]].update(my_last_lines[node.name])
 
             # Simulate
-            self.run(db, tf, my_simu_slice)
+            self._run(db, tf, my_simu_slice)
 
             # Write results in files
             update_simulation_files(self, tf, my_save_slice, db, out_format, method='summary')
@@ -540,7 +540,7 @@ class Network(object):
 
         logger.warning("Ending TORRENTpy session for {} at {}.".format(self.catchment, self.outlet))
 
-    def run(self, db, tf, timeslice):
+    def _run(self, db, tf, timeslice):
         """
         This function runs the simulations for a given catchment (defined by a Network object) and given time period
         (defined by the time slice). For each time step, it first runs the models associated with the links (defined
