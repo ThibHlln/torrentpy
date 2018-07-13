@@ -40,7 +40,7 @@ TORRENTpy is designed to read CSV (Comma-Separated Values) files and NetCDF (Net
 	* Makes all scripts Python 3 compatible by using `builtins` and `io` packages
 	* Corrects check on class instance for user-defined models added to KnowledgeBase
 * 0.1.0 [05 Jul 2018]: First version of TORRENTpy
-	* Attention, this version is not functional due to relative module import issues.
+	* Attention, this version is not functioning due to relative module import issues.
 
 ## Acknowledgment
 
