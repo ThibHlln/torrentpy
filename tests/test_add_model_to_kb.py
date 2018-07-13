@@ -75,7 +75,7 @@ class TestNetworkRun(unittest.TestCase):
 
         self.nw2.set_links_models(
             self.kb,
-            catchment_h='SMARTSHAWOW', river_h='SMARTSHADOW',
+            catchment_h='SMARTSHADOW', river_h='SMARTSHADOW',
             catchment_q='INCASHADOW', river_q='INCASHADOW'
         )
 
