@@ -12,8 +12,8 @@ class TestAddModelToKB(unittest.TestCase):
         self.nw1 = torrentpy.Network(
             catchment='CatchmentSemiDistributedName',
             outlet='OutletName',
-            in_fld='examples/in/CatchmentSemiDistributedName_OutletName/',
-            out_fld='examples/out/CatchmentSemiDistributedName_OutletName/',
+            in_fld='examples/in/CatchmentLumpedName_OutletName/',
+            out_fld='examples/out/CatchmentLumpeddName_OutletName/',
             variable_h='q_h2o',
             variables_q=['c_no3', 'c_nh4', 'c_dph', 'c_pph', 'c_sed'],
             water_quality=True,
@@ -22,10 +22,10 @@ class TestAddModelToKB(unittest.TestCase):
         self.nw2 = deepcopy(self.nw1)
 
         self.tf = torrentpy.TimeFrame(
-            dt_data_start=datetime.strptime('01/01/2008 09:00:00', '%d/%m/%Y %H:%M:%S'),
-            dt_data_end=datetime.strptime('31/12/2012 09:00:00', '%d/%m/%Y %H:%M:%S'),
-            dt_save_start=datetime.strptime('01/06/2009 09:00:00', '%d/%m/%Y %H:%M:%S'),
-            dt_save_end=datetime.strptime('31/01/2010 09:00:00', '%d/%m/%Y %H:%M:%S'),
+            dt_data_start=datetime.strptime('01/01/2000 09:00:00', '%d/%m/%Y %H:%M:%S'),
+            dt_data_end=datetime.strptime('31/12/2016 09:00:00', '%d/%m/%Y %H:%M:%S'),
+            dt_save_start=datetime.strptime('01/01/2007 09:00:00', '%d/%m/%Y %H:%M:%S'),
+            dt_save_end=datetime.strptime('31/12/2016 09:00:00', '%d/%m/%Y %H:%M:%S'),
             data_increment_in_minutes=1440,
             save_increment_in_minutes=1440,
             simu_increment_in_minutes=60,
