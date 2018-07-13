@@ -5,7 +5,7 @@ import torrentpy
 from torrentpy import models
 
 
-class TestNetworkRun(unittest.TestCase):
+class TestAddModelToKB(unittest.TestCase):
     maxDiff = None
 
     def setUp(self):
@@ -36,8 +36,6 @@ class TestNetworkRun(unittest.TestCase):
         self.kb = torrentpy.KnowledgeBase()
         self.kb.add_catchment_model('SMARTSHADOW', models.SMARTc)
         self.kb.add_river_model('SMARTSHADOW', models.SMARTr)
-        self.kb.add_catchment_model('INCASHADOW', models.INCAc)
-        self.kb.add_river_model('INCASHADOW', models.INCAr)
 
         self.db1 = torrentpy.DataBase(
             self.nw1, self.tf, self.kb,
@@ -76,7 +74,7 @@ class TestNetworkRun(unittest.TestCase):
         self.nw2.set_links_models(
             self.kb,
             catchment_h='SMARTSHADOW', river_h='SMARTSHADOW',
-            catchment_q='INCASHADOW', river_q='INCASHADOW'
+            catchment_q='INCA', river_q='INCA'
         )
 
     def test_outlet_node(self):
