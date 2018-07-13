@@ -108,7 +108,7 @@ def read_netcdf_timeseries_with_data_checks(netcdf_file, tf):
         with Dataset(netcdf_file, "r") as my_file:
             my_file.set_auto_mask(False)
             my_nd_variables = dict()
-            fields = my_file.variables.keys()
+            fields = list(my_file.variables.keys())
             try:
                 fields.remove('DateTime')
             except KeyError:
