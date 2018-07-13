@@ -223,7 +223,7 @@ class TestNetworkRun(unittest.TestCase):
             my_nd[dt] = self.db.simulation['0000'][dt]
 
         # compare
-        self.assertEqual(
+        self.assertDictEqual(
             self.expected_outcome,
             my_nd
         )
