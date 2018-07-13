@@ -115,10 +115,18 @@ class TestAddModelToKB(unittest.TestCase):
         self.nw1._run(self.db1, self.tf, my_simu_slice)
         self.nw2._run(self.db2, self.tf, my_simu_slice)
 
+        # round all values to 12 decimals
+        for dt in self.db1.simulation['0000']:
+            for var in self.db1.simulation['0000'][dt]:
+                self.db1.simulation['0000'][dt][var] = round(self.db1.simulation['0000'][dt][var], 12)
+        for dt in self.db2.simulation['0000']:
+            for var in self.db2.simulation['0000'][dt]:
+                self.db2.simulation['0000'][dt][var] = round(self.db2.simulation['0000'][dt][var], 12)
+
         # compare
         self.assertDictEqual(
-            self.db1.simulation,
-            self.db2.simulation
+            self.db1.simulation['0000'],
+            self.db2.simulation['0000']
         )
 
 
