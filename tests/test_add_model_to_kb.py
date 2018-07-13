@@ -10,7 +10,7 @@ class TestAddModelToKB(unittest.TestCase):
 
     def setUp(self):
         self.nw1 = torrentpy.Network(
-            catchment='CatchmentSemiDistributedName',
+            catchment='CatchmentLumpedName',
             outlet='OutletName',
             in_fld='examples/in/CatchmentLumpedName_OutletName/',
             out_fld='examples/out/CatchmentLumpeddName_OutletName/',
