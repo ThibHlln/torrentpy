@@ -2,9 +2,9 @@
 [![PyPI Version](https://badge.fury.io/py/torrentpy.svg)](https://pypi.python.org/pypi/torrentpy)
 [![Build Status](https://www.travis-ci.org/ThibHlln/torrentpy.svg?branch=master)](https://www.travis-ci.org/ThibHlln/torrentpy)
 
-# TORRENTpy - An open-source tool for TranspORt thRough the catchmEnt NeTwork
+# TORRENTpy - An open-source tool for water, solutes, and particles TranspORt thRough the catchmEnt NeTwork
 
-TORRENTpy is an open-source framework in Python for water, solutes, and particules transport through catchments discretised in lumped and semi-distributed manners. It is licensed under GNU GPL-3.0 (see [licence file](LICENCE.md) provided). The framework simulates the hydrological fluxes using top-down catchment models that can be applied at the catchment scale (lumped manner) or at the sub-catchment scale (semi-distributed manner). Water quality models can complement the catchment models to simulate the water-borne contaminants (both solutes and particles) at the scale where the catchment models are applied (*i.e.* catchment scale or sub-catchment scale).
+TORRENTpy is an open-source framework in Python for water, solutes, and particles transport through catchments discretised in lumped and semi-distributed manners. It is licensed under GNU GPL-3.0 (see [licence file](LICENCE.md) provided). The framework simulates the hydrological fluxes using top-down catchment models that can be applied at the catchment scale (lumped manner) or at the sub-catchment scale (semi-distributed manner). Water quality models can complement the catchment models to simulate the water-borne contaminants (both solutes and particles) at the scale where the catchment models are applied (*i.e.* catchment scale or sub-catchment scale).
 
 ## How to Install
 
