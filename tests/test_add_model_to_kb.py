@@ -1,6 +1,6 @@
 import unittest
 from datetime import datetime
-import pickle
+from copy import deepcopy
 import torrentpy
 from torrentpy import models
 
@@ -9,11 +9,17 @@ class TestAddModelToKB(unittest.TestCase):
     maxDiff = None
 
     def setUp(self):
-        self.nw1 = pickle.load(open(r"examples/in/CatchmentSemiDistributedName_OutletName/"
-                                    r"CatchmentSemiDistributedName_OutletName.network.pickled", 'rb'))
+        self.nw1 = torrentpy.Network(
+            catchment='CatchmentSemiDistributedName',
+            outlet='OutletName',
+            in_fld='examples/in/CatchmentSemiDistributedName_OutletName/',
+            out_fld='examples/out/CatchmentSemiDistributedName_OutletName/',
+            variable_h='q_h2o',
+            variables_q=['c_no3', 'c_nh4', 'c_dph', 'c_pph', 'c_sed'],
+            water_quality=True,
+        )
 
-        self.nw2 = pickle.load(open(r"examples/in/CatchmentSemiDistributedName_OutletName/"
-                                    r"CatchmentSemiDistributedName_OutletName.network.pickled", 'rb'))
+        self.nw2 = deepcopy(self.nw1)
 
         self.tf = torrentpy.TimeFrame(
             dt_data_start=datetime.strptime('01/01/2008 09:00:00', '%d/%m/%Y %H:%M:%S'),
