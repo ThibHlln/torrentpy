@@ -82,22 +82,34 @@ class TestAddModelToKB(unittest.TestCase):
         my_simu_slice = self.tf.simu_slices[0]
 
         # get initial conditions
-        my_last_lines = dict()
+        my_last_lines1 = dict()
         for link in self.nw1.links:
-            my_last_lines[link.name] = dict()
+            my_last_lines1[link.name] = dict()
             for model in link.all_models:
-                my_last_lines[link.name].update(model.initialise(link))
+                my_last_lines1[link.name].update(model.initialise(link))
         for node in self.nw1.nodes:
-            my_last_lines[node.name] = dict()
+            my_last_lines1[node.name] = dict()
+        my_last_lines2 = dict()
+        for link in self.nw1.links:
+            my_last_lines2[link.name] = dict()
+            for model in link.all_models:
+                my_last_lines2[link.name].update(model.initialise(link))
+        for node in self.nw1.nodes:
+            my_last_lines2[node.name] = dict()
 
         # initialise data structures for the simulation slice
         self.db1.set_db_for_links_and_nodes(my_simu_slice)
+        self.db2.set_db_for_links_and_nodes(my_simu_slice)
 
         # transfer initial conditions into the DataBase
         for link in self.nw1.links:
-            self.db1.simulation[link.name][my_simu_slice[0]].update(my_last_lines[link.name])
+            self.db1.simulation[link.name][my_simu_slice[0]].update(my_last_lines1[link.name])
         for node in self.nw1.nodes:
-            self.db1.simulation[node.name][my_simu_slice[0]].update(my_last_lines[node.name])
+            self.db1.simulation[node.name][my_simu_slice[0]].update(my_last_lines1[node.name])
+        for link in self.nw2.links:
+            self.db2.simulation[link.name][my_simu_slice[0]].update(my_last_lines2[link.name])
+        for node in self.nw2.nodes:
+            self.db2.simulation[node.name][my_simu_slice[0]].update(my_last_lines2[node.name])
 
         # run the Models in the Network for the simulation slice
         self.nw1._run(self.db1, self.tf, my_simu_slice)
