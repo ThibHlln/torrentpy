@@ -222,6 +222,12 @@ class TestNetworkRun(unittest.TestCase):
         for dt in self.expected_outcome:
             my_nd[dt] = self.db.simulation['0000'][dt]
 
+        # round all values to 12 decimals
+        for dt in self.expected_outcome:
+            for var in self.expected_outcome[dt]:
+                my_nd[dt][var] = round(my_nd[dt][var], 12)
+                self.expected_outcome[dt][var] = round(self.expected_outcome[dt][var], 12)
+
         # compare
         self.assertDictEqual(
             self.expected_outcome,
