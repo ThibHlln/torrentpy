@@ -18,6 +18,10 @@ Alternatively, you can download the source code (*i.e.* this repository) and use
 
     python setup.py install
 
+## How to Use
+
+A tutorial in the form of a [Jupyter notebook](examples/api_usage_example.ipynb) is available to get started with the usage of SMARTpy's API. The input files required for the tutorial are all provided in the `examples/` folder.
+
 ## Dependencies
 
 TORRENTpy requires the popular Python package `numpy` to be installed on the Python implementation where `torrentpy` is installed. For Python 2 and 3 compatibilities, the package `future` is also required.
