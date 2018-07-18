@@ -20,7 +20,7 @@ Alternatively, you can download the source code (*i.e.* this repository) and use
 
 ## How to Use
 
-A tutorial in the form of a [Jupyter notebook](examples/api_usage_example.ipynb) is available to get started with the usage of SMARTpy's API. The input files required for the tutorial are all provided in the `examples/` folder.
+A tutorial in the form of a [Jupyter notebook](examples/api_usage_example.ipynb) is available to get started with the usage of TORRENTpy's API. The input files required for the tutorial are all provided in the `examples/` folder.
 
 ## Dependencies
 
