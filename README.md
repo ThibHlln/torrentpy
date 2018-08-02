@@ -14,6 +14,10 @@ TORRENTpy is available on PyPI, so you can simply use pip:
 
     python -m pip install torrentpy
 
+You can also use a link to the GitHub repository directly:
+
+	python -m pip install git+https://github.com/ThibHlln/torrentpy.git
+
 Alternatively, you can download the source code (*i.e.* this repository) and use the command:
 
     python setup.py install
