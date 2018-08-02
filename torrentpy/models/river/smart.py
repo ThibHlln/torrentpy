@@ -39,7 +39,7 @@ class SMARTr(Model):
         Model.__init__(self, category, identifier)
         # set model variables names
         self.inputs_names = ['r_in_q_h2o']
-        self.parameters_names = ['r_p_k_h2o']
+        self.parameters_names = ['r_p_rk']
         self.states_names = ['r_s_v_h2o']
         self.outputs_names = ['r_out_q_h2o']
 
@@ -109,7 +109,7 @@ class SMARTr(Model):
     @staticmethod
     def _run(waterbody, datetime_time_step, logger,
              time_gap_sec,
-             r_in_q_h2o, r_p_k_h2o, r_s_v_h2o):
+             r_in_q_h2o, r_p_rk, r_s_v_h2o):
         """
         This function was written by Thibault Hallouin but is largely inspired by the work of Eva Mockler, namely for
         the work published in: Mockler, E., O’Loughlin, F., and Bruen, M.: Understanding hydrological flow paths in
@@ -124,7 +124,7 @@ class SMARTr(Model):
         ___ Inputs * in_ *
         _____ r_in_q_h2o      flow at inlet [m3/s]
         ___ Parameters * p_ *
-        _____ r_p_k_h2o       linear factor k for water where Storage = k.Flow [hours]
+        _____ r_p_rk          linear factor k for water where Storage = k.Flow [hours]
         ___ States * s_ *
         _____ r_s_v_h2o       volume of water in store [m3]
         ___ Outputs * out_ *
@@ -133,12 +133,12 @@ class SMARTr(Model):
         # # 1. Hydrology
 
         # # 1.1. Unit conversions
-        r_p_k_h2o *= 3600.0  # convert hours into seconds
+        r_p_rk *= 3600.0  # convert hours into seconds
 
         # # 1.2. Hydrological calculations
 
         # calculate outflow, at current time step
-        r_out_q_h2o = r_s_v_h2o / r_p_k_h2o
+        r_out_q_h2o = r_s_v_h2o / r_p_rk
         # calculate storage in temporary variable, for next time step
         r_s_v_h2o_old = r_s_v_h2o
         r_s_v_h2o_temp = r_s_v_h2o_old + (r_in_q_h2o - r_out_q_h2o) * time_gap_sec
@@ -179,7 +179,7 @@ class SMARTr(Model):
         dict_data_frame[waterbody][datetime_time_step]['r_in_q_h2o'] = r_in_q_h2o
 
         # bring in model parameter values
-        r_p_k_h2o = dict_param['r_p_k_h2o']
+        r_p_rk = dict_param['r_p_rk']
 
         # bring in model states
         r_s_v_h2o = dict_data_frame[waterbody][datetime_time_step + timedelta(minutes=-time_gap_min)]['r_s_v_h2o']
@@ -187,7 +187,7 @@ class SMARTr(Model):
         # return constants, model inputs, model parameter values, and model states
         return \
             time_gap_sec, \
-            r_in_q_h2o, r_p_k_h2o, r_s_v_h2o
+            r_in_q_h2o, r_p_rk, r_s_v_h2o
 
     @staticmethod
     def _get_out(waterbody, datetime_time_step, dict_data_frame,
@@ -213,7 +213,7 @@ class SMARTr(Model):
         lgth = dict_desc['stream_length']
         rk = lgth / 1.0  # i.e. assuming a water velocity of 1 m/s
         rk /= 3600.0  # convert seconds into hours
-        my_dict_param['r_p_k_h2o'] = rk
+        my_dict_param['r_p_rk'] = rk
 
         return my_dict_param
 
@@ -229,7 +229,7 @@ class SMARTr(Model):
         my_dict = dict()
         try:
             my_dict.update({
-                'r_s_v_h2o': (kwa['aar'] * kwa['r-o_ratio']) / 1000 * area_m2 / 8766 * dict_param['r_p_k_h2o']
+                'r_s_v_h2o': (kwa['aar'] * kwa['r-o_ratio']) / 1000 * area_m2 / 8766 * dict_param['r_p_rk']
             })
         except KeyError:
             my_dict.update({
