@@ -122,7 +122,7 @@ def read_netcdf_timeseries_with_data_checks(netcdf_file, tf):
                     raise Exception(
                         "Fields {} and {} do not have the same length in {}.".format(field, 'DateTime', netcdf_file))
 
-            list_dt = [datetime.utcfromtimestamp(tstamp) for tstamp in my_file.variables['DateTime'][:]]
+            list_dt = [datetime(1970, 1, 1) + timedelta(seconds=tstamp) for tstamp in my_file.variables['DateTime'][:]]
             list_vals = {field: my_file.variables[field][:] for field in fields}
 
             for field in fields:
