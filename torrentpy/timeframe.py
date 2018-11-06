@@ -56,7 +56,7 @@ class TimeFrame(object):
     """
     def __init__(self, dt_data_start, dt_data_end, dt_save_start, dt_save_end,
                  data_increment_in_minutes, save_increment_in_minutes, simu_increment_in_minutes,
-                 expected_simu_slice_length, warm_up_in_days=0):
+                 expected_simu_slice_length=0, warm_up_in_days=0):
 
         # Time Attributes for Input Data (Read in Files)
         self.data_start = dt_data_start  # DateTime
