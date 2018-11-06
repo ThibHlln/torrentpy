@@ -54,7 +54,7 @@ def open_csv_ab(my_file):
         return io.open(my_file, 'a', newline='', encoding='utf8')
 
 
-def read_csv_timeseries_with_data_checks(csv_file, tf):
+def read_csv_timeseries_with_data_checks(csv_file, tf, data_check=True):
     logger = getLogger('TORRENTpy.io')
     try:
         with open_csv_rb(csv_file) as my_file:
@@ -77,16 +77,17 @@ def read_csv_timeseries_with_data_checks(csv_file, tf):
                     my_nd_variables[field][my_dt] = float(row[field])
                 my_list_dt.append(my_dt)
 
-            start_data, end_data, interval = check_interval_in_list(my_list_dt, csv_file)
-            if not start_data <= tf.needed_data_series[0]:
-                logger.error("Data Start in {} is not sufficient for required TimeFrame.".format(csv_file))
-                raise Exception("Data Start in {} is not sufficient for required TimeFrame.".format(csv_file))
-            if not tf.needed_data_series[-1] <= end_data:
-                logger.error("Data End in {} is not sufficient for required TimeFrame.".format(csv_file))
-                raise Exception("Data End in {} is not sufficient for required TimeFrame.".format(csv_file))
-            if not timedelta(minutes=tf.data_gap) == interval:
-                logger.error("Data Gap in {} does not comply with required TimeFrame.".format(csv_file))
-                raise Exception("Data Gap in {} does not comply with required TimeFrame.".format(csv_file))
+            if data_check:
+                start_data, end_data, interval = check_interval_in_list(my_list_dt, csv_file)
+                if not start_data <= tf.needed_data_series[0]:
+                    logger.error("Data Start in {} is not sufficient for required TimeFrame.".format(csv_file))
+                    raise Exception("Data Start in {} is not sufficient for required TimeFrame.".format(csv_file))
+                if not tf.needed_data_series[-1] <= end_data:
+                    logger.error("Data End in {} is not sufficient for required TimeFrame.".format(csv_file))
+                    raise Exception("Data End in {} is not sufficient for required TimeFrame.".format(csv_file))
+                if not timedelta(minutes=tf.data_gap) == interval:
+                    logger.error("Data Gap in {} does not comply with required TimeFrame.".format(csv_file))
+                    raise Exception("Data Gap in {} does not comply with required TimeFrame.".format(csv_file))
 
         return my_nd_variables
 
@@ -94,7 +95,7 @@ def read_csv_timeseries_with_data_checks(csv_file, tf):
         raise Exception("File {} could not be found.".format(csv_file))
 
 
-def read_netcdf_timeseries_with_data_checks(netcdf_file, tf):
+def read_netcdf_timeseries_with_data_checks(netcdf_file, tf, data_check=True):
     logger = getLogger('TORRENTpy.io')
 
     # check if netCDF4 is installed
@@ -132,16 +133,17 @@ def read_netcdf_timeseries_with_data_checks(netcdf_file, tf):
                 for field in fields:
                     my_nd_variables[str(field)][dt] = float(list_vals[field][idx])
 
-            start_data, end_data, interval = check_interval_in_list(list_dt, netcdf_file)
-            if not start_data <= tf.needed_data_series[0]:
-                logger.error("Data Start in {} is not sufficient for required TimeFrame.".format(netcdf_file))
-                raise Exception("Data Start in {} is not sufficient for required TimeFrame.".format(netcdf_file))
-            if not tf.needed_data_series[-1] <= end_data:
-                logger.error("Data End in {} is not sufficient for required TimeFrame.".format(netcdf_file))
-                raise Exception("Data End in {} is not sufficient for required TimeFrame.".format(netcdf_file))
-            if not timedelta(minutes=tf.data_gap) == interval:
-                logger.error('Data Gap in {} does not comply with required TimeFrame.'.format(netcdf_file))
-                raise Exception('Data Gap in {} does not comply with required TimeFrame.'.format(netcdf_file))
+            if data_check:
+                start_data, end_data, interval = check_interval_in_list(list_dt, netcdf_file)
+                if not start_data <= tf.needed_data_series[0]:
+                    logger.error("Data Start in {} is not sufficient for required TimeFrame.".format(netcdf_file))
+                    raise Exception("Data Start in {} is not sufficient for required TimeFrame.".format(netcdf_file))
+                if not tf.needed_data_series[-1] <= end_data:
+                    logger.error("Data End in {} is not sufficient for required TimeFrame.".format(netcdf_file))
+                    raise Exception("Data End in {} is not sufficient for required TimeFrame.".format(netcdf_file))
+                if not timedelta(minutes=tf.data_gap) == interval:
+                    logger.error('Data Gap in {} does not comply with required TimeFrame.'.format(netcdf_file))
+                    raise Exception('Data Gap in {} does not comply with required TimeFrame.'.format(netcdf_file))
 
         return my_nd_variables
 
